@@ -17,6 +17,7 @@
       <license>GPLv3</license>
       <author>vinceyap88</author>
       <layout>us</layout>
+      <exec>/usr/local/bin/ibus-engine-handwrite-chinese --ibus</exec>
     </engine>
     <engine>
       <name>handwrite-chinese-traditional</name>
@@ -26,6 +27,7 @@
       <license>GPLv3</license>
       <author>vinceyap88</author>
       <layout>us</layout>
+      <exec>/usr/local/bin/ibus-engine-handwrite-chinese --ibus --traditional</exec>
     </engine>
   </engines>
 </component>
