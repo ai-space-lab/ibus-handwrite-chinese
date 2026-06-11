@@ -51,6 +51,7 @@ mkdir -p /usr/share/ibus/component
 cp handwrite-chinese-simplified.xml handwrite-chinese-traditional.xml /usr/share/ibus/component/
 
 echo "[4] Installing udev rule for touchpad access..."
+mkdir -p /etc/udev/rules.d
 cp 99-trackpad-handwrite.rules /etc/udev/rules.d/
 udevadm control --reload-rules
 udevadm trigger
