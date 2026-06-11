@@ -1,5 +1,7 @@
 # IBus Chinese Handwriting Input Method
 
+[![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
+
 A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev touchpad integration, and Zinnia-based recognition.
 
 ![screenshot](screenshot.png)
@@ -15,6 +17,19 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle at the bottom to reposition the window
 - **Mouse fallback**: if no evdev touchpad is available, draw with the mouse
+
+## Cross-Distro Support
+
+`bootstrap.sh` auto-detects your Linux distribution and installs everything:
+
+| Distro | Method | Models |
+|--------|--------|--------|
+| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` | System packages (fallback: GitHub download) |
+| Fedora 39+ | `dnf` + GitHub download | Downloaded from tegaki GitHub releases |
+| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + GitHub download | Downloaded from tegaki GitHub releases |
+| openSUSE Tumbleweed | `zypper` + GitHub download | Downloaded from tegaki GitHub releases |
+
+When a distro lacks model packages, the installer fetches the tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.model` — 11853 chars) directly from the [tegaki-models GitHub release](https://github.com/tegaki/tegaki-models/releases).
 
 ## Requirements
 
@@ -38,9 +53,11 @@ ibus restart
 sudo apt install python3-evdev tegaki-zinnia-simplified-chinese tegaki-zinnia-traditional-chinese
 git clone https://github.com/vinceyap88/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
-sudo ./install.sh
+sudo ./install.sh          # add --skip-deps if you already installed dependencies
 ibus restart
 ```
+
+If `tegaki-zinnia-traditional-chinese` is not in your distro's repos, `install.sh` automatically downloads the model from GitHub.
 
 Then switch the engine:
 
@@ -70,11 +87,27 @@ Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditi
 - **Engine won't start**: Check `journalctl -f` while switching to the engine for error messages
 - **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the touchpad device
 
+## Testing
+
+A [CI workflow](.github/workflows/ci.yml) runs on every push across 5 Docker containers:
+
+- **lint**: shellcheck, xmllint, Python syntax checks
+- **test-install**: installs dependencies per distro, verifies `libzinnia.so` loads, checks Python syntax
+- **test-bootstrap**: full bootstrap.sh end-to-end run, verifies installed files and model placement, runs recognition smoke test
+
+Containers tested: `debian:bookworm`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`, `opensuse/tumbleweed`.
+
+The recognition smoke test (`test_recognition.py`) creates synthetic strokes:
+- Horizontal line → recognized as **一** (score > 0.9)
+- Cross shape → recognized as **十** (score > 0.95)
+
+CI does not test IBus, evdev, or GTK (no display/hardware in containers).
+
 ## Known Limitations
 
-- Only verified on MacBook Pro (bcm5974). Should work on any touchpad with BTN_TOUCH + ABS_X, but untested on other hardware.
-- Zinnia uses a 2009 handwriting recognition model — accuracy is limited for complex characters. See [accuracy-improvement-plan](https://github.com/vinceyap88/ibus-handwrite-chinese/wiki) for potential improvements.
-- No multi-character composition yet (you write one character at a time). V2 may add spatial segmentation for sequential character input.
+- **Real hardware**: tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
+- **Recognition engine**: Zinnia uses a 2009 model — accuracy is limited for complex characters. See [accuracy-improvement-plan](https://github.com/vinceyap88/ibus-handwrite-chinese/wiki) for potential improvements.
+- **Single character**: no multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
 
 ## License
 
@@ -102,6 +135,8 @@ Both engines can be added to your input sources simultaneously — switch betwee
 | `handwrite-chinese-simplified.svg` | Engine icon: Simplified |
 | `handwrite-chinese-traditional.svg` | Engine icon: Traditional |
 | `99-trackpad-handwrite.rules` | Udev rule for touchpad access |
-| `install.sh` | Install script (Debian-native) |
+| `install.sh` | Install script (Debian-native, accepts `--skip-deps`) |
 | `bootstrap.sh` | Cross-distro install entry point |
 | `restore.sh` | Rollback/restore script |
+| `test_recognition.py` | Synthetic stroke recognition smoke test |
+| `.github/workflows/ci.yml` | CI workflow — lint, test-install, test-bootstrap on 5 distros |
