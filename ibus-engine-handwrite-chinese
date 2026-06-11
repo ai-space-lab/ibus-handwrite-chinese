@@ -745,8 +745,8 @@ def main():
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
         _USE_FREQ = False
     else:
-        engine_name = "handwrite-chinese"
-        engine_longname = "Chinese Handwriting"
+        engine_name = "handwrite-chinese-simplified"
+        engine_longname = "Chinese Handwriting (Simplified)"
         engine_language = "zh"
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
         _USE_FREQ = True

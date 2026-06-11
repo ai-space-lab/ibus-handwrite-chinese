@@ -10,9 +10,9 @@
   <textdomain>ibus-handwrite-chinese</textdomain>
   <engines>
     <engine>
-      <name>handwrite-chinese</name>
-      <longname>Chinese Handwriting</longname>
-      <description>Chinese handwriting input using touchpad</description>
+      <name>handwrite-chinese-simplified</name>
+      <longname>Chinese Handwriting (Simplified)</longname>
+      <description>Simplified Chinese handwriting input using touchpad</description>
       <language>zh</language>
       <license>GPLv3</license>
       <author>vinceyap88</author>

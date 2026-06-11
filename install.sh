@@ -43,7 +43,9 @@ ibus restart 2>/dev/null || ibus-daemon --replace --daemonize 2>/dev/null || tru
 
 echo ""
 echo "=== Install complete ==="
-echo "Switch to the engine: ibus engine handwrite-chinese"
-echo "Or select 'Chinese Handwriting' from your IBus menu."
+echo "Switch to the engine:"
+echo "  ibus engine handwrite-chinese-simplified   (Simplified)"
+echo "  ibus engine handwrite-chinese-traditional  (Traditional)"
+echo "Or select 'Chinese Handwriting (Simplified)' or 'Chinese Handwriting (Traditional)' from your IBus menu."
 echo ""
 echo "To uninstall: sudo /usr/local/share/ibus-handwrite-chinese/restore.sh"

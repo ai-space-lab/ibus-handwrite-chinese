@@ -35,14 +35,15 @@ ibus restart
 Then switch the engine:
 
 ```bash
-ibus engine handwrite-chinese
+ibus engine handwrite-chinese-simplified   # Simplified Chinese
+ibus engine handwrite-chinese-traditional  # Traditional Chinese
 ```
 
-Or select **Chinese Handwriting** from your desktop's IBus menu.
+Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditional)** from your desktop's IBus menu.
 
 ## Usage
 
-1. Switch to the "Chinese Handwriting" input method
+1. Switch to **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditional)** from your IBus menu
 2. A dark floating panel appears near your text cursor
 3. Draw Chinese characters on your laptop's touchpad with one finger
 4. Candidate characters appear at the top of the panel
@@ -71,13 +72,14 @@ GPLv3 — required by dependencies (libzinnia, python3-evdev, ibus).
 
 ## Traditional Chinese
 
-The engine also supports Traditional Chinese handwriting via a separate IBus engine. After installing, select **Chinese Handwriting (Traditional)** from your IBus menu, or switch with:
+The engine supports both Simplified and Traditional Chinese as separate IBus engines. After installing, select from your IBus menu or switch with:
 
 ```bash
-ibus engine handwrite-chinese-traditional
+ibus engine handwrite-chinese-simplified   # Simplified (zh_CN model, 6763 chars)
+ibus engine handwrite-chinese-traditional  # Traditional (zh_TW model, 11853 chars)
 ```
 
-This uses the `zh_TW` Zinnia model (11853 characters). Both Simplified and Traditional engines can be added to your input sources simultaneously — switch between them like any two input methods.
+Both engines can be added to your input sources simultaneously — switch between them like any two input methods.
 
 ## Files
 
