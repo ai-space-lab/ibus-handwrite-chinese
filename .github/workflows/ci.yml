@@ -46,7 +46,7 @@ jobs:
         if: startsWith(matrix.distro, 'debian')
         run: |
           apt update
-          apt install -y python3-evdev tegaki-zinnia-simplified-chinese wget unzip
+          apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip
           if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
             echo "Traditional model not in apt, downloading from GitHub..."
             mkdir -p /usr/share/tegaki/models/zinnia

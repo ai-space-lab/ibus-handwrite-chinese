@@ -55,13 +55,16 @@ download_model() {
     local zip_url="https://github.com/tegaki/tegaki/releases/download/v0.3/$zip_name"
 
     echo "  Downloading $lang model..."
-    local tmpdir
+    local tmpdir prev_dir
     tmpdir="$(mktemp -d)"
+    prev_dir="$(pwd)"
     cd "$tmpdir"
     if ! wget -q "$zip_url"; then
         echo "  ✗ Failed to download $lang model from GitHub."
         echo "    Manual download: https://github.com/tegaki/tegaki/releases/tag/v0.3"
         echo "    Place .model and .meta files in $model_dir"
+        cd "$prev_dir"
+        rm -rf "$tmpdir"
         exit 1
     fi
     unzip -q "$zip_name"
@@ -69,14 +72,14 @@ download_model() {
     mkdir -p "$model_dir"
     cp "$extracted_dir"/*.model "$model_dir/"
     cp "$extracted_dir"/*.meta "$model_dir/"
-    cd /
+    cd "$prev_dir"
     rm -rf "$tmpdir"
     echo "  ✓ $lang model installed"
 }
 
 install_debian() {
     apt update
-    apt install -y python3-evdev tegaki-zinnia-simplified-chinese wget unzip
+    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip git
     if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
         echo "  tegaki-zinnia-traditional-chinese not in apt (not available in this Debian release)"
         echo "  Downloading traditional model from GitHub..."

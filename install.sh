@@ -23,15 +23,15 @@ if [ "$SKIP_DEPS" = false ]; then
     if ! DEBIAN_FRONTEND=noninteractive apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
         echo "  tegaki-zinnia-traditional-chinese not in apt (not available in this Debian release)"
         echo "  Downloading traditional model from GitHub..."
-        local tmpdir
         tmpdir="$(mktemp -d)"
+        prev_dir="$(pwd)"
         cd "$tmpdir"
         wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-traditional-chinese-0.3.zip
         unzip -q tegaki-zinnia-traditional-chinese-0.3.zip
         mkdir -p /usr/share/tegaki/models/zinnia
         cp tegaki-zinnia-traditional-chinese-0.3/*.model /usr/share/tegaki/models/zinnia/
         cp tegaki-zinnia-traditional-chinese-0.3/*.meta /usr/share/tegaki/models/zinnia/
-        cd /
+        cd "$prev_dir"
         rm -rf "$tmpdir"
         echo "  ✓ Traditional model installed from GitHub"
     fi
