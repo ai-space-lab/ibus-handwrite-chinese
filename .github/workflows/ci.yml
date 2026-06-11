@@ -111,3 +111,5 @@ jobs:
           test -f /usr/share/tegaki/models/zinnia/handwriting-zh_TW.model
       - name: Verify engine Python syntax
         run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+      - name: Test recognition with synthetic strokes
+        run: python3 test_recognition.py
