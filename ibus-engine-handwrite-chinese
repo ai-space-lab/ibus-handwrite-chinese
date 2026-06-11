@@ -1,0 +1,754 @@
+#!/usr/bin/env python3
+"""IBus Chinese Handwriting Engine — macOS-style, uses Zinnia + GTK popup + evdev"""
+
+import sys
+import ctypes
+import time
+import os
+
+import gi
+gi.require_version('IBus', '1.0')
+gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
+from gi.repository import GLib, GObject, IBus, Gtk, Gdk, Gio
+
+ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+MAX_CANDIDATES = 24
+
+_handwrite_dir = os.path.dirname(os.path.abspath(__file__))
+if _handwrite_dir not in sys.path:
+    sys.path.insert(0, _handwrite_dir)
+
+EVDEV_AVAILABLE = False
+try:
+    import handwrite_evdev
+    EVDEV_AVAILABLE = True
+except ImportError:
+    pass
+
+libz = ctypes.CDLL("libzinnia.so")
+
+libz.zinnia_character_new.restype = ctypes.c_void_p
+libz.zinnia_character_destroy.restype = None
+libz.zinnia_character_destroy.argtypes = [ctypes.c_void_p]
+libz.zinnia_character_clear.restype = None
+libz.zinnia_character_clear.argtypes = [ctypes.c_void_p]
+libz.zinnia_character_set_width.restype = None
+libz.zinnia_character_set_width.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+libz.zinnia_character_set_height.restype = None
+libz.zinnia_character_set_height.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+libz.zinnia_character_add.restype = ctypes.c_int
+libz.zinnia_character_add.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int, ctypes.c_int]
+
+libz.zinnia_recognizer_new.restype = ctypes.c_void_p
+libz.zinnia_recognizer_destroy.restype = None
+libz.zinnia_recognizer_destroy.argtypes = [ctypes.c_void_p]
+libz.zinnia_recognizer_open.restype = ctypes.c_int
+libz.zinnia_recognizer_open.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+libz.zinnia_recognizer_classify.restype = ctypes.c_void_p
+libz.zinnia_recognizer_classify.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t]
+
+libz.zinnia_result_value.restype = ctypes.c_char_p
+libz.zinnia_result_value.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+libz.zinnia_result_score.restype = ctypes.c_float
+libz.zinnia_result_score.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+libz.zinnia_result_size.restype = ctypes.c_size_t
+libz.zinnia_result_size.argtypes = [ctypes.c_void_p]
+libz.zinnia_result_destroy.restype = None
+libz.zinnia_result_destroy.argtypes = [ctypes.c_void_p]
+
+libz.zinnia_recognizer_strerror.restype = ctypes.c_char_p
+libz.zinnia_recognizer_strerror.argtypes = [ctypes.c_void_p]
+
+
+
+# Character frequency boost (log-odds, higher = more common)
+_FREQ = {
+    '的': 3.0, '一': 2.8, '是': 2.7, '在': 2.6, '不': 2.5,
+    '了': 2.5, '有': 2.4, '和': 2.4, '人': 2.4, '这': 2.3,
+    '中': 2.3, '大': 2.3, '为': 2.3, '上': 2.3, '个': 2.2,
+    '国': 2.2, '我': 2.2, '以': 2.2, '要': 2.2, '他': 2.2,
+    '时': 2.1, '来': 2.1, '用': 2.1, '们': 2.1, '生': 2.1,
+    '到': 2.1, '作': 2.1, '地': 2.0, '于': 2.0, '出': 2.0,
+    '就': 2.0, '分': 2.0, '对': 2.0, '成': 2.0, '会': 2.0,
+    '可': 2.0, '主': 1.9, '发': 1.9, '年': 1.9, '动': 1.9,
+    '同': 1.9, '工': 1.9, '也': 1.9, '能': 1.9, '下': 1.9,
+    '过': 1.8, '子': 1.8, '说': 1.8, '产': 1.8, '种': 1.8,
+    '面': 1.8, '而': 1.8, '方': 1.8, '后': 1.8, '多': 1.8,
+    '定': 1.8, '行': 1.7, '学': 1.7, '法': 1.7, '所': 1.7,
+    '民': 1.7, '得': 1.7, '经': 1.7, '十': 1.7, '三': 1.7,
+    '之': 1.7, '进': 1.7, '着': 1.7, '等': 1.7, '部': 1.7,
+    '度': 1.6, '家': 1.6, '电': 1.6, '力': 1.6, '里': 1.6,
+    '如': 1.6, '水': 1.6, '化': 1.6, '高': 1.6, '自': 1.6,
+    '二': 1.6, '理': 1.5, '起': 1.5, '小': 1.5, '物': 1.5,
+    '现': 1.5, '实': 1.5, '加': 1.5, '量': 1.5, '都': 1.5,
+    '两': 1.5, '体': 1.5, '制': 1.5, '机': 1.5, '当': 1.5,
+    '使': 1.5, '点': 1.5, '从': 1.5, '业': 1.5, '本': 1.5,
+    '去': 1.5, '把': 1.5, '性': 1.5, '好': 1.5, '开': 1.5,
+    '应': 1.5, '还': 1.5, '它': 1.4, '因': 1.4, '由': 1.4,
+    '其': 1.4, '些': 1.4, '然': 1.4, '前': 1.4, '外': 1.4,
+    '天': 1.4, '政': 1.4, '四': 1.4, '日': 1.4, '那': 1.4,
+    '社': 1.4, '义': 1.4, '事': 1.4, '平': 1.4, '形': 1.4,
+    '相': 1.4, '全': 1.4, '表': 1.4, '间': 1.4, '样': 1.4,
+    '与': 1.4, '关': 1.4, '各': 1.4, '重': 1.4, '新': 1.4,
+    '线': 1.4, '内': 1.4, '数': 1.4, '正': 1.3, '反': 1.3,
+    '明': 1.3, '看': 1.3, '认': 1.3, '件': 1.3, '被': 1.3,
+    '先': 1.3, '已': 1.3, '处': 1.3, '理': 1.3, '最': 1.3,
+    '新': 1.3, '但': 1.3, '更': 1.3, '长': 1.3, '车': 1.3,
+    '门': 1.3, '东': 1.3, '无': 1.3, '手': 1.3, '口': 1.3,
+    '五': 1.3, '头': 1.3, '只': 1.3, '向': 1.3, '教': 1.3,
+    '二': 1.3, '路': 1.3, '通': 1.3, '公': 1.3, '她': 1.3,
+    '十': 1.3, '外': 1.3, '名': 1.3, '南': 1.3, '西': 1.3,
+    '北': 1.3, '太': 1.3, '气': 1.3, '月': 1.3, '心': 1.3,
+    '而': 1.3, '又': 1.3, '今': 1.3, '后': 1.3, '将': 1.3,
+    '小': 1.3, '几': 1.3, '并': 1.3, '目': 1.3, '才': 1.3,
+    '文': 1.2, '战': 1.2, '设': 1.2, '统': 1.2, '报': 1.2,
+    '总': 1.2, '活': 1.2, '保': 1.2, '给': 1.2, '原': 1.2,
+    '问': 1.2, '指': 1.2, '建': 1.2, '位': 1.2, '决': 1.2,
+    '品': 1.2, '军': 1.2, '界': 1.2, '强': 1.2, '海': 1.2,
+    '入': 1.2, '较': 1.2, '世': 1.2, '县': 1.2, '场': 1.2,
+    '平': 1.2, '山': 1.2, '林': 1.2, '比': 1.2, '或': 1.2,
+    '但': 1.2, '任': 1.2, '通': 1.2, '么': 1.2, '代': 1.2,
+    '组': 1.2, '见': 1.2, '第': 1.2, '边': 1.2, '九': 1.2,
+    '老': 1.2, '做': 1.2, '队': 1.2, '七': 1.2, '六': 1.2,
+    '管': 1.1, '干': 1.1, '写': 1.1, '影': 1.1, '八': 1.1,
+    '金': 1.1, '白': 1.1, '住': 1.1, '马': 1.1, '北': 1.1,
+    '放': 1.1, '光': 1.1, '打': 1.1, '百': 1.1, '花': 1.1,
+    '知': 1.1, '据': 1.1, '党': 1.1, '斯': 1.1, '具': 1.1,
+    '政': 1.1, '接': 1.1, '思': 1.1, '东': 1.1, '世': 1.1,
+    '解': 1.1, '受': 1.1, '持': 1.1, '志': 1.1, '结': 1.1,
+    '目': 1.1, '联': 1.1, '度': 1.1, '计': 1.1, '情': 1.1,
+    '集': 1.1, '无': 1.1, '难': 1.0, '便': 1.0, '走': 1.0,
+    '象': 1.0, '程': 1.0, '市': 1.0, '书': 1.0, '百': 1.0,
+    '土': 1.0, '万': 1.0, '广': 1.0, '半': 1.0, '片': 1.0,
+    '装': 1.0, '备': 1.0, '红': 1.0, '青': 1.0, '布': 1.0,
+    '且': 1.0, '每': 1.0, '必': 1.0, '术': 1.0, '真': 1.0,
+    '风': 1.0, '回': 1.0, '品': 1.0, '千': 1.0, '张': 1.0,
+    '电': 1.0, '许': 1.0, '听': 1.0, '华': 1.0, '往': 1.0,
+    '教': 1.0, '少': 1.0, '达': 1.0, '再': 1.0, '整': 1.0,
+    '想': 1.0, '际': 1.0, '必': 1.0, '象': 1.0, '育': 1.0,
+    '志': 1.0, '具': 1.0, '海': 1.0, '专': 1.0, '间': 1.0,
+    '细': 1.0, '色': 1.0, '识': 1.0, '众': 1.0, '路': 1.0,
+    '从': 1.0, '报': 1.0, '转': 1.0, '万': 1.0, '斗': 1.0,
+    '孩': 1.0, '言': 1.0, '团': 1.0, '图': 1.0, '务': 1.0,
+    '石': 1.0, '劳': 1.0, '斯': 1.0, '照': 1.0, '收': 1.0,
+    '包': 1.0, '史': 1.0, '委': 1.0, '争': 1.0, '基': 1.0,
+    '张': 1.0, '笑': 1.0, '调': 1.0, '深': 1.0, '斗': 1.0,
+    '充': 1.0, '火': 1.0, '期': 1.0, '空': 1.0, '办': 1.0,
+    '验': 1.0, '低': 1.0, '须': 1.0, '王': 1.0, '清': 1.0,
+    '率': 1.0, '利': 1.0, '则': 1.0, '标': 1.0, '交': 1.0,
+    '省': 1.0, '府': 1.0, '研': 1.0, '众': 1.0, '外': 1.0,
+    '具': 1.0, '声': 1.0, '向': 1.0, '安': 1.0, '青': 1.0,
+    '色': 1.0, '计': 1.0, '风': 1.0, '液': 1.0, '行': 1.0,
+    '公': 1.0, '最': 1.0, '广': 1.0, '于': 1.0, '写': 1.0,
+    '百': 1.0, '教': 1.0, '变': 1.0, '书': 1.0, '半': 1.0,
+    '象': 1.0, '切': 1.0, '花': 1.0, '土': 1.0, '光': 1.0,
+}
+
+class ZinniaHandle:
+    def __init__(self, model_path):
+        self.ptr = libz.zinnia_recognizer_new()
+        if not self.ptr:
+            raise RuntimeError("Failed to create zinnia recognizer")
+        ret = libz.zinnia_recognizer_open(self.ptr, model_path.encode())
+        if not ret:
+            err = libz.zinnia_recognizer_strerror(self.ptr)
+            libz.zinnia_recognizer_destroy(self.ptr)
+            raise RuntimeError(f"Failed to open model: {err.decode() if err else 'unknown'}")
+        self.character = None
+        self.stroke_id = 0
+        self.all_points = []
+
+    def clear(self):
+        if self.character:
+            libz.zinnia_character_destroy(self.character)
+        self.character = None
+        self.stroke_id = 0
+        self.all_points = []
+
+    def add_stroke(self, points):
+        self.all_points.append(points)
+        self.stroke_id += 1
+
+    def classify(self):
+        if not self.all_points:
+            return []
+        if self.character:
+            libz.zinnia_character_destroy(self.character)
+        self.character = libz.zinnia_character_new()
+        libz.zinnia_character_clear(self.character)
+        libz.zinnia_character_set_width(self.character, 1000)
+        libz.zinnia_character_set_height(self.character, 1000)
+
+        flat = [pt for stroke in self.all_points for pt in stroke]
+        if not flat:
+            return []
+        xs = [p[0] for p in flat]
+        ys = [p[1] for p in flat]
+        xmin, xmax = min(xs), max(xs)
+        ymin, ymax = min(ys), max(ys)
+        cw = max(xmax - xmin, 1)
+        ch = max(ymax - ymin, 1)
+        scale = min((1000 - 100) / cw, (1000 - 100) / ch)
+        cx = (xmin + xmax) / 2
+        cy = (ymin + ymax) / 2
+
+        for sid, stroke in enumerate(self.all_points):
+            for x, y in stroke:
+                nx = int(500 + (x - cx) * scale)
+                ny = int(500 + (y - cy) * scale)
+                nx = max(0, min(1000, nx))
+                ny = max(0, min(1000, ny))
+                libz.zinnia_character_add(self.character, sid, nx, ny)
+
+        result_ptr = libz.zinnia_recognizer_classify(self.ptr, self.character, MAX_CANDIDATES * 4)
+        if not result_ptr:
+            return []
+        size = libz.zinnia_result_size(result_ptr)
+        raw = []
+        for i in range(size):
+            val = libz.zinnia_result_value(result_ptr, i)
+            score = libz.zinnia_result_score(result_ptr, i)
+            if val:
+                raw.append((val.decode('utf-8'), score))
+        libz.zinnia_result_destroy(result_ptr)
+
+        ranked = []
+        seen = set()
+        for ch, sc in raw:
+            if ch in seen:
+                continue
+            seen.add(ch)
+            boost = _FREQ.get(ch, -2.0)
+            ranked.append((ch, sc + 0.5 * boost))
+        ranked.sort(key=lambda x: -x[1])
+        return [(ch, sc) for ch, sc in ranked]
+
+    def destroy(self):
+        if self.character:
+            libz.zinnia_character_destroy(self.character)
+            self.character = None
+        if self.ptr:
+            libz.zinnia_recognizer_destroy(self.ptr)
+            self.ptr = None
+
+
+class HandwriteWin(Gtk.Window):
+    def __init__(self, engine):
+        Gtk.Window.__init__(self, type=Gtk.WindowType.POPUP)
+        self.engine = engine
+        self.set_title("Chinese Handwriting")
+        self.set_default_size(400, 360)
+        self.set_size_request(400, 360)
+        self.set_resizable(False)
+        self.set_keep_above(True)
+        self.set_skip_taskbar_hint(True)
+        self.set_accept_focus(False)
+        self.set_decorated(False)
+        self.set_border_width(0)
+
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(b"""
+            window {
+                background-color: rgba(40, 40, 45, 0.92);
+                border-radius: 8px;
+            }
+            .candidate-btn {
+                background: transparent;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                border: none;
+                padding: 4px 6px;
+                min-width: 32px;
+                min-height: 28px;
+            }
+            .candidate-btn:hover {
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
+            }
+            .delete-btn {
+                background: transparent;
+                color: #999;
+                font-size: 16px;
+                border: none;
+                padding: 2px 12px;
+                min-height: 28px;
+            }
+            .delete-btn:hover {
+                color: white;
+            }
+        """)
+        screen = Gdk.Screen.get_default()
+        Gtk.StyleContext.add_provider_for_screen(
+            screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.add(vbox)
+
+        self.cand_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+        self.cand_bar.set_margin_top(4)
+        self.cand_bar.set_margin_bottom(2)
+        self.cand_bar.set_margin_start(6)
+        self.cand_bar.set_margin_end(4)
+        self.cand_inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=1)
+        self.cand_bar.pack_start(self.cand_inner, True, True, 0)
+
+        self.delete_btn = Gtk.Button(label="⌫")
+        self.delete_btn.get_style_context().add_class("delete-btn")
+        self.delete_btn.set_can_focus(False)
+        self.delete_btn.connect("clicked", self.on_delete)
+        self.cand_bar.pack_end(self.delete_btn, False, False, 0)
+
+        vbox.pack_start(self.cand_bar, False, False, 0)
+
+        self.darea = Gtk.DrawingArea()
+        self.darea.set_size_request(400, 300)
+        self.darea.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                              Gdk.EventMask.BUTTON_RELEASE_MASK |
+                              Gdk.EventMask.POINTER_MOTION_MASK)
+        self.darea.connect("draw", self.on_draw)
+        self.darea.connect("button-press-event", self.on_btn_down)
+        self.darea.connect("button-release-event", self.on_btn_up)
+        self.darea.connect("motion-notify-event", self.on_move)
+        vbox.pack_start(self.darea, True, True, 0)
+
+        self.drag_handle = Gtk.EventBox()
+        self.drag_handle.set_size_request(-1, 24)
+        self.drag_handle.set_app_paintable(True)
+        self.drag_handle.connect("draw", self.on_draw_handle)
+        self.drag_handle.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                                    Gdk.EventMask.BUTTON_RELEASE_MASK |
+                                    Gdk.EventMask.POINTER_MOTION_MASK)
+        self.drag_handle.connect("button-press-event", self.on_drag_begin)
+        self.drag_handle.connect("button-release-event", self.on_drag_end)
+        self.drag_handle.connect("motion-notify-event", self.on_drag_move)
+        vbox.pack_start(self.drag_handle, False, False, 0)
+
+        self.pix = None
+        self.cur_stroke = []
+        self.strokes = []
+        self.drawing = False
+        self._drag_x = 0
+        self._drag_y = 0
+        self.candidate_buttons = []
+        self._last_redraw = 0.0
+        self._min_redraw_ms = 16
+        self._state = 0
+        self._blank_cursor = Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR)
+        self._trackpad = None
+        self._cand_page = 0
+        self._page_size = 8
+
+        self.connect("key-press-event", self.on_key)
+        self.connect("button-press-event", self.on_window_click)
+
+    def start_trackpad(self):
+        if not EVDEV_AVAILABLE:
+            return False
+        self._trackpad = handwrite_evdev.TrackpadReader({
+            'on_stroke_begin': self.on_trackpad_begin,
+            'on_stroke_point': self.on_trackpad_point,
+            'on_stroke_end': self.on_trackpad_end,
+            'on_tap': self.on_trackpad_tap,
+            'on_swipe_left': self.on_trackpad_swipe_left,
+            'on_swipe_right': self.on_trackpad_swipe_right,
+        })
+        return self._trackpad.start()
+
+    def stop_trackpad(self):
+        if self._trackpad:
+            self._trackpad.stop()
+            self._trackpad = None
+
+    def on_key(self, w, ev):
+        name = Gdk.keyval_name(ev.get_keyval()[1])
+        if name == "Escape":
+            if self._state == 0:
+                self._state = 1
+                self.stop_trackpad()
+                self._restore_cursor()
+                self.set_opacity(0.5)
+            else:
+                self._do_reset()
+                self._do_disable()
+            return True
+        if name == "Return":
+            self.engine.commit_first()
+            return True
+        if name == "BackSpace":
+            self.on_delete()
+            return True
+        return False
+
+    def on_window_click(self, widget, ev):
+        if self._state == 1:
+            self._state = 0
+            self.start_trackpad()
+            self._hide_cursor()
+            self.set_opacity(1.0)
+        return False
+
+    def _hide_cursor(self):
+        gw = self.get_window()
+        if gw:
+            gw.set_cursor(self._blank_cursor)
+
+    def _restore_cursor(self):
+        gw = self.get_window()
+        if gw:
+            gw.set_cursor(None)
+
+    def _do_reset(self):
+        self.strokes = []
+        self.cur_stroke = []
+        self.pix = None
+        self.queue_draw()
+        self.show_candidates([])
+        self.engine.zinnia.clear()
+        self.engine.last_results = []
+
+    def _do_disable(self):
+        self.stop_trackpad()
+        self._restore_cursor()
+        self.hide()
+
+    def on_delete(self, btn=None):
+        if self.strokes:
+            self.strokes.pop()
+        self.engine.zinnia.clear()
+        self.engine.zinnia.stroke_id = 0
+        for s in self.strokes:
+            self.engine.zinnia.add_stroke(s)
+        self.pix = None
+        self.queue_draw()
+        self.engine.update_candidates()
+
+    def show_candidates(self, results):
+        for btn in self.candidate_buttons:
+            btn.destroy()
+        self.candidate_buttons = []
+        if not results:
+            self._cand_page = 0
+            return
+        total = len(results)
+        max_page = (total - 1) // self._page_size
+        if self._cand_page > max_page:
+            self._cand_page = max_page
+        start = self._cand_page * self._page_size
+        end = start + self._page_size
+        for i, (val, score) in enumerate(results[start:end]):
+            actual_idx = start + i
+            btn = Gtk.Button(label=val)
+            btn.get_style_context().add_class("candidate-btn")
+            btn.set_can_focus(False)
+            btn.set_size_request(36, -1)
+            btn.connect("clicked", lambda b, idx=actual_idx: self.engine.pick_candidate(idx))
+            self.cand_inner.pack_start(btn, False, False, 0)
+            self.candidate_buttons.append(btn)
+        self.cand_inner.show_all()
+
+    def _pixel_coords(self, frac_x, frac_y):
+        alloc = self.darea.get_allocation()
+        return (frac_x * alloc.width, frac_y * alloc.height)
+
+    def _throttle_redraw(self):
+        t = time.time() * 1000
+        if t - self._last_redraw >= self._min_redraw_ms:
+            self.queue_draw()
+            self._last_redraw = t
+
+    def on_trackpad_begin(self, frac_x, frac_y):
+        px, py = self._pixel_coords(frac_x, frac_y)
+        self.drawing = True
+        self.cur_stroke = [(px, py)]
+
+    def on_trackpad_point(self, frac_x, frac_y):
+        if not self.drawing:
+            return
+        px, py = self._pixel_coords(frac_x, frac_y)
+        self.cur_stroke.append((px, py))
+        self._throttle_redraw()
+
+    def on_trackpad_end(self, points_frac):
+        if not points_frac:
+            self.drawing = False
+            return
+        alloc = self.darea.get_allocation()
+        pixel_pts = [(fx * alloc.width, fy * alloc.height) for fx, fy in points_frac]
+        self.drawing = False
+        self.strokes.append(pixel_pts)
+        self.engine.zinnia.add_stroke(pixel_pts)
+        self.cur_stroke = []
+        self.pix = None
+        self.queue_draw()
+        self.engine.update_candidates()
+
+    def on_trackpad_tap(self, x_frac):
+        num = len(self.engine.last_results)
+        if num > 0:
+            start = self._cand_page * self._page_size
+            visible = min(self._page_size, num - start)
+            if visible > 0:
+                idx = min(start + int(x_frac * visible), num - 1)
+                self.engine.pick_candidate(idx)
+
+    def on_trackpad_swipe_left(self):
+        total = len(self.engine.last_results)
+        if total > 0:
+            max_page = (total - 1) // self._page_size
+            self._cand_page = min(self._cand_page + 1, max_page)
+            self.show_candidates(self.engine.last_results)
+
+    def on_trackpad_swipe_right(self):
+        total = len(self.engine.last_results)
+        if total > 0:
+            self._cand_page = max(self._cand_page - 1, 0)
+            self.show_candidates(self.engine.last_results)
+
+    def rebuild_pix(self, ww, hh):
+        import cairo
+        self.pix = cairo.ImageSurface(cairo.FORMAT_ARGB32, ww, hh)
+        cr = cairo.Context(self.pix)
+        cr.set_source_rgb(0.15, 0.15, 0.17)
+        cr.paint()
+        cr.set_source_rgb(1, 1, 1)
+        cr.set_line_width(3)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_JOIN_ROUND)
+        cr.set_antialias(cairo.ANTIALIAS_BEST)
+        for stroke in self.strokes:
+            if len(stroke) < 2:
+                continue
+            cr.move_to(stroke[0][0], stroke[0][1])
+            for pt in stroke[1:]:
+                cr.line_to(pt[0], pt[1])
+            cr.stroke()
+
+    def on_btn_down(self, w, ev):
+        self.drawing = True
+        self.cur_stroke = [(ev.x, ev.y)]
+
+    def on_move(self, w, ev):
+        if self.drawing and (ev.state & Gdk.ModifierType.BUTTON1_MASK):
+            self.cur_stroke.append((ev.x, ev.y))
+            self._throttle_redraw()
+
+    def on_btn_up(self, w, ev):
+        if not self.drawing:
+            return
+        self.drawing = False
+        if self.cur_stroke:
+            self.cur_stroke.append((ev.x, ev.y))
+            self.strokes.append(self.cur_stroke)
+            self.engine.zinnia.add_stroke(self.cur_stroke)
+            self.cur_stroke = []
+            self.pix = None
+        self.queue_draw()
+        self.engine.update_candidates()
+
+    def on_draw(self, w, cr):
+        alloc = self.darea.get_allocation()
+        ww, hh = alloc.width, alloc.height
+        if self.pix is None:
+            self.rebuild_pix(ww, hh)
+        cr.set_source_surface(self.pix, 0, 0)
+        cr.paint()
+        if self.cur_stroke and len(self.cur_stroke) > 1:
+            import cairo
+            cr.set_source_rgb(1, 1, 1)
+            cr.set_line_width(3)
+            cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            cr.set_line_join(cairo.LINE_JOIN_ROUND)
+            cr.set_antialias(cairo.ANTIALIAS_BEST)
+            cr.move_to(self.cur_stroke[0][0], self.cur_stroke[0][1])
+            for pt in self.cur_stroke[1:]:
+                cr.line_to(pt[0], pt[1])
+            cr.stroke()
+
+    def on_draw_handle(self, widget, cr):
+        alloc = widget.get_allocation()
+        cr.set_source_rgb(0.2, 0.2, 0.2)
+        cr.rectangle(0, 0, alloc.width, alloc.height)
+        cr.fill()
+        cr.set_source_rgb(0.5, 0.5, 0.5)
+        cx = alloc.width / 2
+        for i in range(5):
+            x = cx + (i - 2) * 10
+            cr.arc(x, alloc.height / 2, 2, 0, 6.2832)
+            cr.fill()
+
+    def on_drag_begin(self, widget, ev):
+        self._drag_x = ev.x_root
+        self._drag_y = ev.y_root
+
+    def on_drag_end(self, widget, ev):
+        pass
+
+    def on_drag_move(self, widget, ev):
+        if ev.state & Gdk.ModifierType.BUTTON1_MASK:
+            dx = int(ev.x_root - self._drag_x)
+            dy = int(ev.y_root - self._drag_y)
+            if dx or dy:
+                px, py = self.get_position()
+                self.move(px + dx, py + dy)
+                self._drag_x = ev.x_root
+                self._drag_y = ev.y_root
+
+    def destroy(self):
+        self.stop_trackpad()
+        self.pix = None
+        Gtk.Window.destroy(self)
+
+
+class HandwriteEngine(IBus.Engine):
+    def __init__(self):
+        super().__init__()
+        self.zinnia = ZinniaHandle(ZINNIA_MODEL)
+        self.win = None
+        self.last_results = []
+        self._bus = None
+        self._watch_id = None
+        self._cx = 0
+        self._cy = 0
+        self._cw = 0
+        self._ch = 0
+
+    def do_set_cursor_location(self, x, y, w, h):
+        self._cx = x
+        self._cy = y
+        self._cw = w
+        self._ch = h
+        if self.win and self.win.get_visible():
+            self._position_window()
+
+    def _position_window(self):
+        if not self.win:
+            return
+        wx = self._cx
+        wy = self._cy + self._ch + 4
+        screen = Gdk.Screen.get_default()
+        mw = screen.get_width()
+        mh = screen.get_height()
+        win_w = 400
+        win_h = 360
+        wx = max(0, min(wx, mw - win_w))
+        wy = max(0, min(wy, mh - win_h))
+        self.win.move(int(wx), int(wy))
+
+    def do_enable(self):
+        if self.win is None:
+            self.win = HandwriteWin(self)
+        if self._bus is None:
+            self._bus = IBus.Bus()
+        self.zinnia.clear()
+        self.last_results = []
+        self.win.show_all()
+        self._position_window()
+        self.win.present()
+        self.win._hide_cursor()
+        self.win.start_trackpad()
+        if self._watch_id is None:
+            self._watch_id = GLib.timeout_add(500, self._check_engine)
+
+    def do_disable(self):
+        if self._watch_id:
+            GLib.source_remove(self._watch_id)
+            self._watch_id = None
+        if self.win:
+            self.win._restore_cursor()
+            self.win.stop_trackpad()
+        if self.win:
+            self.win.hide()
+        self.zinnia.clear()
+        self.last_results = []
+
+    def do_focus_out(self):
+        pass
+
+    def _check_engine(self):
+        if self._bus and self.win:
+            current = self._bus.get_global_engine()
+            if current and current.get_name() != 'handwrite-chinese':
+                if self.win.get_visible():
+                    self.win.hide()
+                self._watch_id = None
+                return False
+        return True
+
+    def do_reset(self):
+        if self.win:
+            self.win._do_reset()
+        self.zinnia.clear()
+        self.last_results = []
+
+    def update_candidates(self):
+        results = self.zinnia.classify()
+        self.last_results = results
+        if self.win:
+            self.win.show_candidates(results)
+
+    def commit_first(self):
+        if self.last_results:
+            self.commit_text(IBus.Text.new_from_string(self.last_results[0][0]))
+            self.do_reset()
+
+    def pick_candidate(self, idx):
+        if idx < len(self.last_results):
+            self.commit_text(IBus.Text.new_from_string(self.last_results[idx][0]))
+            self.do_reset()
+
+    def destroy(self):
+        if self.win:
+            self.win.destroy()
+            self.win = None
+        if self.zinnia:
+            self.zinnia.destroy()
+            self.zinnia = None
+        super().destroy()
+
+
+GObject.type_register(HandwriteEngine)
+
+
+def main():
+    Gtk.init(sys.argv)
+    IBus.init()
+
+    bus = IBus.Bus()
+    factory = IBus.Factory.new(bus.get_connection())
+    factory.add_engine("handwrite-chinese", HandwriteEngine.__gtype__)
+
+    component = IBus.Component.new(
+        "com.github.vinceyap88.ibus-handwrite-chinese",
+        "Chinese Handwriting Input Method",
+        "0.1.0",
+        "GPLv3",
+        "vinceyap88",
+        "",
+        "",
+        "ibus-engine-handwrite-chinese"
+    )
+    engine_desc = IBus.EngineDesc.new(
+        "handwrite-chinese",
+        "Chinese Handwriting",
+        "Chinese handwriting input using touchpad",
+        "zh",
+        "GPLv3",
+        "vinceyap88",
+        "",
+        "us"
+    )
+    component.add_engine(engine_desc)
+
+    if "--ibus" in sys.argv:
+        bus.request_name("com.github.vinceyap88.ibus-handwrite-chinese", 0)
+    else:
+        bus.register_component(component)
+
+    IBus.main()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,4 @@
+# Grant uaccess for touchpads/trackpads used by ibus-handwrite-chinese
+SUBSYSTEM=="input", KERNEL=="event*", ATTR{name}=="*[Tt]ouchpad*", TAG+="uaccess"
+SUBSYSTEM=="input", KERNEL=="event*", ATTR{name}=="*[Tt]rackpad*", TAG+="uaccess"
+SUBSYSTEM=="input", KERNEL=="event*", ATTR{name}=="*bcm5974*", TAG+="uaccess"
