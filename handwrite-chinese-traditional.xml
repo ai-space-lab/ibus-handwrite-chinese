@@ -13,7 +13,7 @@
       <name>handwrite-chinese-traditional</name>
       <longname>Chinese Handwriting (Traditional)</longname>
       <description>Traditional Chinese handwriting input using touchpad</description>
-      <language>zh-TW</language>
+      <language>zh</language>
       <license>GPLv3</license>
       <author>vinceyap88</author>
       <layout>us</layout>
