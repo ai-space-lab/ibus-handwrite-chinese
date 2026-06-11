@@ -58,7 +58,12 @@ download_model() {
     local tmpdir
     tmpdir="$(mktemp -d)"
     cd "$tmpdir"
-    wget -q "$zip_url"
+    if ! wget -q "$zip_url"; then
+        echo "  ✗ Failed to download $lang model from GitHub."
+        echo "    Manual download: https://github.com/tegaki/tegaki/releases/tag/v0.3"
+        echo "    Place .model and .meta files in $model_dir"
+        exit 1
+    fi
     unzip -q "$zip_name"
     local extracted_dir="${zip_name%.zip}"
     mkdir -p "$model_dir"
