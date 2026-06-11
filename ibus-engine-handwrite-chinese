@@ -632,6 +632,7 @@ class HandwriteEngine(IBus.Engine):
         self._cy = 0
         self._cw = 0
         self._ch = 0
+        self._engine_name = None
 
     def do_set_cursor_location(self, x, y, w, h):
         self._cx = x
@@ -660,6 +661,9 @@ class HandwriteEngine(IBus.Engine):
             self.win = HandwriteWin(self)
         if self._bus is None:
             self._bus = IBus.Bus()
+        current = self._bus.get_global_engine()
+        if current:
+            self._engine_name = current.get_name()
         self.zinnia.clear()
         self.last_results = []
         self.win.show_all()
@@ -688,7 +692,7 @@ class HandwriteEngine(IBus.Engine):
     def _check_engine(self):
         if self._bus and self.win:
             current = self._bus.get_global_engine()
-            if current and current.get_name() != 'handwrite-chinese':
+            if current and current.get_name() != self._engine_name:
                 if self.win.get_visible():
                     self.win.hide()
                 self._watch_id = None
@@ -741,13 +745,15 @@ def main():
     if args.traditional:
         engine_name = "handwrite-chinese-traditional"
         engine_longname = "Chinese Handwriting (Traditional)"
-        engine_language = "zh-TW"
+        engine_language = "zh"
+        component_name = "com.github.vinceyap88.ibus-handwrite-chinese-traditional"
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
         _USE_FREQ = False
     else:
         engine_name = "handwrite-chinese-simplified"
         engine_longname = "Chinese Handwriting (Simplified)"
         engine_language = "zh"
+        component_name = "com.github.vinceyap88.ibus-handwrite-chinese-simplified"
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
         _USE_FREQ = True
 
@@ -759,7 +765,7 @@ def main():
     factory.add_engine(engine_name, HandwriteEngine.__gtype__)
 
     component = IBus.Component.new(
-        "com.github.vinceyap88.ibus-handwrite-chinese",
+        component_name,
         "Chinese Handwriting Input Method",
         "0.1.0",
         "GPLv3",
@@ -781,7 +787,7 @@ def main():
     component.add_engine(engine_desc)
 
     if args.ibus:
-        bus.request_name("com.github.vinceyap88.ibus-handwrite-chinese", 0)
+        bus.request_name(component_name, 0)
     else:
         bus.register_component(component)
 
