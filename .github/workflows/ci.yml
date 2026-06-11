@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt update && sudo apt install -y shellcheck libxml2-utils
+      - name: shellcheck
+        run: shellcheck bootstrap.sh install.sh restore.sh
+      - name: xmllint
+        run: xmllint --noout handwrite-chinese-simplified.xml handwrite-chinese-traditional.xml
+      - name: Python syntax — engine
+        run: python3 -c "compile(open('ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+      - name: Python syntax — evdev reader
+        run: python3 -c "compile(open('handwrite_evdev.py').read(), 'evdev', 'exec')"
+
+  test-install:
+    name: "install deps — ${{ matrix.distro }}"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.distro }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        distro: [debian:bookworm, fedora:latest, archlinux:latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Arch
+        if: startsWith(matrix.distro, 'arch')
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git sudo
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+      - name: Install deps (Debian)
+        if: startsWith(matrix.distro, 'debian')
+        run: |
+          apt update
+          apt install -y python3-evdev tegaki-zinnia-simplified-chinese tegaki-zinnia-traditional-chinese
+      - name: Install deps (Fedora)
+        if: startsWith(matrix.distro, 'fedora')
+        run: dnf install -y python3-evdev zinnia zinnia-devel
+      - name: Install deps (Arch)
+        if: startsWith(matrix.distro, 'arch')
+        run: su builder -c "yay -S --noconfirm zinnia"
+      - name: Verify libzinnia loads
+        run: python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')"
+      - name: Verify Python syntax
+        run: |
+          python3 -c "compile(open('ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+          python3 -c "compile(open('handwrite_evdev.py').read(), 'evdev', 'exec')"
+
+  test-bootstrap:
+    name: "bootstrap.sh — ${{ matrix.distro }}"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.distro }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        distro: [debian:bookworm, fedora:latest, archlinux:latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Arch + pre-install zinnia
+        if: startsWith(matrix.distro, 'arch')
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git sudo
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+          su builder -c "yay -S --noconfirm zinnia"
+      - name: Run bootstrap.sh
+        run: bash bootstrap.sh
+      - name: Verify installed files
+        run: |
+          test -f /usr/local/bin/ibus-engine-handwrite-chinese
+          test -f /usr/local/bin/handwrite_evdev.py
+          test -f /usr/share/ibus/component/handwrite-chinese-simplified.xml
+          test -f /usr/share/ibus/component/handwrite-chinese-traditional.xml
+          test -f /usr/local/share/ibus-handwrite-chinese/restore.sh
+          test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-simplified.svg
+          test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-traditional.svg
+          test -f /etc/udev/rules.d/99-trackpad-handwrite.rules
+      - name: Verify models
+        run: |
+          test -f /usr/share/tegaki/models/zinnia/handwriting-zh_CN.model
+          test -f /usr/share/tegaki/models/zinnia/handwriting-zh_TW.model
+      - name: Verify engine Python syntax
+        run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
