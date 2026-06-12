@@ -74,6 +74,22 @@ class TrackpadReader:
             return 0
         return sum(s['x'] for s in active) / len(active)
 
+    def _grab(self):
+        if not self.device:
+            return
+        try:
+            self.device.grab()
+        except Exception:
+            pass
+
+    def _ungrab(self):
+        if not self.device:
+            return
+        try:
+            self.device.ungrab()
+        except Exception:
+            pass
+
     def start(self):
         devices = [evdev.InputDevice(p) for p in evdev.list_devices()]
         for d in devices:
@@ -85,13 +101,6 @@ class TrackpadReader:
                 self.device = d
                 break
         if not self.device:
-            return False
-
-        try:
-            self.device.grab()
-        except Exception as e:
-            self.device.close()
-            self.device = None
             return False
 
         abs_codes = self.device.capabilities(absinfo=False).get(ecodes.EV_ABS, [])
@@ -119,10 +128,6 @@ class TrackpadReader:
     def stop(self):
         self.running = False
         if self.device:
-            try:
-                self.device.ungrab()
-            except Exception:
-                pass
             self.device.close()
             self.device = None
 
@@ -158,7 +163,9 @@ class TrackpadReader:
                 if event.code == ecodes.BTN_TOUCH:
                     if event.value == 1 and self._state == _STATE_IDLE:
                         self._pending = True
-                    elif event.value == 0 and self._state not in (_STATE_IDLE, _STATE_SWIPE):
+                        self._grab()
+                    elif event.value == 0:
+                        self._ungrab()
                         if self._state == _STATE_STROKE:
                             self._idle(self.callbacks["on_stroke_end"],
                                        list(self._stroke))
@@ -193,6 +200,14 @@ class TrackpadReader:
                     self._swipe_centroid = cx
                     self._pending = False
 
+                elif active == 0:
+                    self._ungrab()
+                    if self._state != _STATE_IDLE:
+                        self._state = _STATE_IDLE
+                        self._stroke = []
+                        self._pending = False
+                        self._mt_slots = {}
+
                 elif active == 1:
                     if self._uses_mt_pos:
                         rx = ry = 0
@@ -210,6 +225,7 @@ class TrackpadReader:
                         self._stroke = []
                         self._pending = False
                         self._mt_slots = {}
+                        self._ungrab()
 
                     elif self._state == _STATE_IDLE and self._pending:
                         self._state = _STATE_TOUCH
