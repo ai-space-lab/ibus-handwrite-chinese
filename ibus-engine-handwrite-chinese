@@ -321,7 +321,9 @@ class HandwriteWin(Gtk.Window):
         self.delete_btn = Gtk.Button(label="⌫")
         self.delete_btn.get_style_context().add_class("delete-btn")
         self.delete_btn.set_can_focus(False)
-        self.delete_btn.connect("clicked", self.on_delete)
+        self.delete_btn.connect("clicked", self.on_delete_tap)
+        self.delete_btn.connect("button-press-event", self.on_delete_press)
+        self.delete_btn.connect("button-release-event", self.on_delete_release)
         self.cand_bar.pack_end(self.delete_btn, False, False, 0)
 
         vbox.pack_start(self.cand_bar, False, False, 0)
@@ -363,6 +365,8 @@ class HandwriteWin(Gtk.Window):
         self._trackpad = None
         self._cand_page = 0
         self._page_size = 8
+        self._delete_timer = None
+        self._delete_held = False
 
         self.connect("key-press-event", self.on_key)
         self.connect("button-press-event", self.on_window_click)
@@ -385,23 +389,26 @@ class HandwriteWin(Gtk.Window):
             self._trackpad.stop()
             self._trackpad = None
 
+    def on_key_esc(self):
+        if self._state == 0:
+            self._state = 1
+            self.stop_trackpad()
+            self._restore_cursor()
+            self.set_opacity(0.5)
+        else:
+            self._do_reset()
+            self._do_disable()
+
     def on_key(self, w, ev):
         name = Gdk.keyval_name(ev.get_keyval()[1])
         if name == "Escape":
-            if self._state == 0:
-                self._state = 1
-                self.stop_trackpad()
-                self._restore_cursor()
-                self.set_opacity(0.5)
-            else:
-                self._do_reset()
-                self._do_disable()
+            self.on_key_esc()
             return True
         if name == "Return":
             self.engine.commit_first()
             return True
         if name == "BackSpace":
-            self.on_delete()
+            self.on_delete_tap(None)
             return True
         return False
 
@@ -439,21 +446,46 @@ class HandwriteWin(Gtk.Window):
         self._restore_cursor()
         self.hide()
 
-    def on_delete(self, btn=None):
-        if self.strokes:
-            self.strokes.pop()
+    def _do_clear_strokes(self):
+        self.strokes.clear()
         self.engine.zinnia.clear()
         self.engine.zinnia.stroke_id = 0
         if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
             self.engine.zinnia_backup.clear()
             self.engine.zinnia_backup.stroke_id = 0
-        for s in self.strokes:
-            self.engine.zinnia.add_stroke(s)
-            if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
-                self.engine.zinnia_backup.add_stroke(s)
         self.pix = None
         self.queue_draw()
         self.engine.update_candidates()
+
+    def _do_forward_backspace(self):
+        GLib.spawn_command_line_async("/usr/bin/xdotool key --delay 0 BackSpace") 
+
+    def on_delete_tap(self, btn=None):
+        if self._delete_held:
+            self._delete_held = False
+            return
+        has_strokes = bool(self.strokes) or bool(self.cur_stroke)
+        self._do_clear_strokes()
+        if not has_strokes:
+            self._do_forward_backspace()
+
+    def on_delete_press(self, btn, ev):
+        self._delete_held = False
+        if self._delete_timer:
+            GLib.source_remove(self._delete_timer)
+        self._delete_timer = GLib.timeout_add(500, self._on_delete_hold_timeout)
+        return False
+
+    def _on_delete_hold_timeout(self):
+        self._delete_held = True
+        self._do_clear_strokes()
+        self._do_forward_backspace()
+        return False
+
+    def on_delete_release(self, btn, ev):
+        if self._delete_timer:
+            GLib.source_remove(self._delete_timer)
+            self._delete_timer = None
 
     def show_candidates(self, results):
         for btn in self.candidate_buttons:
@@ -516,6 +548,9 @@ class HandwriteWin(Gtk.Window):
         self.engine.update_candidates()
 
     def on_trackpad_tap(self, x_frac):
+        if x_frac > 0.7:
+            self.on_delete_tap(None)
+            return
         num = len(self.engine.last_results)
         if num > 0:
             start = self._cand_page * self._page_size
@@ -628,6 +663,9 @@ class HandwriteWin(Gtk.Window):
 
     def destroy(self):
         self.stop_trackpad()
+        if self._delete_timer:
+            GLib.source_remove(self._delete_timer)
+            self._delete_timer = None
         self.pix = None
         Gtk.Window.destroy(self)
 
@@ -651,6 +689,18 @@ class HandwriteEngine(IBus.Engine):
         self._cw = 0
         self._ch = 0
         self._engine_name = None
+
+    def do_process_key_event(self, keyval, keycode, state):
+        if keyval in (IBus.KEY_Escape, IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible():
+            if keyval == IBus.KEY_Escape:
+                self.win.on_key_esc()
+            elif keyval == IBus.KEY_BackSpace:
+                self.win._do_clear_strokes()
+                return False
+            elif keyval == IBus.KEY_Return:
+                self.commit_first()
+            return True
+        return super().do_process_key_event(keyval, keycode, state)
 
     def do_set_cursor_location(self, x, y, w, h):
         self._cx = x
