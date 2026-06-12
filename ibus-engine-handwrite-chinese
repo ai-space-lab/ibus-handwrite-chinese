@@ -341,7 +341,6 @@ class HandwriteWin(Gtk.Window):
         self.close_btn.get_style_context().add_class("close-btn")
         self.close_btn.set_can_focus(False)
         self.close_btn.connect("clicked", self.on_close_click)
-        self.close_btn.hide()
         self.cand_bar.pack_start(self.close_btn, False, False, 0)
 
         self.cand_inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=1)
@@ -424,7 +423,8 @@ class HandwriteWin(Gtk.Window):
             self._state = 1
             self.stop_trackpad()
             self._restore_cursor()
-            self.queue_draw()
+            self.darea.queue_draw()
+            self.show_candidates([])
             self.close_btn.show()
         else:
             self._do_reset()
@@ -452,9 +452,10 @@ class HandwriteWin(Gtk.Window):
     def on_window_click(self, widget, ev):
         if self._state == 1:
             self._state = 0
-            self.queue_draw()
+            self.darea.queue_draw()
             self.close_btn.hide()
             self.start_trackpad()
+            self.engine.update_candidates()
             self._hide_cursor()
         return False
 
@@ -655,22 +656,27 @@ class HandwriteWin(Gtk.Window):
     def on_draw(self, w, cr):
         alloc = self.darea.get_allocation()
         ww, hh = alloc.width, alloc.height
-        if self.pix is None:
-            self.rebuild_pix(ww, hh)
-        cr.set_source_surface(self.pix, 0, 0)
-        cr.paint()
         if self._state == 1:
             cr.set_source_rgba(0, 0, 0, 0.5)
             cr.rectangle(0, 0, ww, hh)
             cr.fill()
             cr.set_source_rgb(1, 1, 1)
             cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-            cr.set_font_size(18)
-            text = "Paused \u2013 click to resume"
+            cr.set_font_size(24)
+            text = "click to resume"
             xb = cr.text_extents(text)
-            cr.move_to((ww - xb.width) / 2, (hh - xb.height) / 2)
+            box_w, box_h = xb.width + 40, xb.height + 30
+            cr.rectangle((ww - box_w) / 2, (hh - box_h) / 2, box_w, box_h)
+            cr.set_source_rgba(0, 0, 0, 0.3)
+            cr.fill()
+            cr.set_source_rgb(1, 1, 1)
+            cr.move_to((ww - xb.width) / 2, (hh - xb.height) / 2 + 20)
             cr.show_text(text)
             return
+        if self.pix is None:
+            self.rebuild_pix(ww, hh)
+        cr.set_source_surface(self.pix, 0, 0)
+        cr.paint()
         if self.cur_stroke and len(self.cur_stroke) > 1:
             import cairo
             cr.set_source_rgb(1, 1, 1)
@@ -794,6 +800,7 @@ class HandwriteEngine(IBus.Engine):
             self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
+        self.win.close_btn.hide()
         self._position_window()
         self.win.present()
         self.win._hide_cursor()
