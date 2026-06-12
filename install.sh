@@ -35,6 +35,18 @@ if [ "$SKIP_DEPS" = false ]; then
         rm -rf "$tmpdir"
         echo "  ✓ Traditional model installed from GitHub"
     fi
+    echo "  Installing improved model (幽兰百合 Community) for Simplified Chinese..."
+    DEBIAN_FRONTEND=noninteractive apt install -y p7zip 2>/dev/null || true
+    tmpdir="$(mktemp -d)"
+    prev_dir="$(pwd)"
+    cd "$tmpdir"
+    wget -q -O model.7z 'https://gitee.com/LZQingXi/handwriting-zh_CN_Community/releases/download/1.1.0/handwriting-zh_CN-%E7%A4%BE%E5%8C%BA%E7%89%88_V1.1.0.7z'
+    7z x -y model.7z >/dev/null 2>&1
+    mkdir -p /usr/local/share/ibus-handwrite-chinese/models
+    cp ZJHandWriting-zh_CN.model /usr/local/share/ibus-handwrite-chinese/models/
+    cd "$prev_dir"
+    rm -rf "$tmpdir"
+    echo "  ✓ 幽兰百合 model installed"
 fi
 
 echo "=== Installing Chinese Handwriting IBus Engine ==="

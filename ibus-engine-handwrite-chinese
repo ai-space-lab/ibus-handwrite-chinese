@@ -13,6 +13,8 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import GLib, GObject, IBus, Gtk, Gdk, Gio
 
 ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+ZINNIA_MODEL_LILY = "/usr/local/share/ibus-handwrite-chinese/models/ZJHandWriting-zh_CN.model"
+ZINNIA_MODEL_BACKUP = None
 MAX_CANDIDATES = 24
 _USE_FREQ = True
 
@@ -428,6 +430,8 @@ class HandwriteWin(Gtk.Window):
         self.queue_draw()
         self.show_candidates([])
         self.engine.zinnia.clear()
+        if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
+            self.engine.zinnia_backup.clear()
         self.engine.last_results = []
 
     def _do_disable(self):
@@ -440,8 +444,13 @@ class HandwriteWin(Gtk.Window):
             self.strokes.pop()
         self.engine.zinnia.clear()
         self.engine.zinnia.stroke_id = 0
+        if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
+            self.engine.zinnia_backup.clear()
+            self.engine.zinnia_backup.stroke_id = 0
         for s in self.strokes:
             self.engine.zinnia.add_stroke(s)
+            if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
+                self.engine.zinnia_backup.add_stroke(s)
         self.pix = None
         self.queue_draw()
         self.engine.update_candidates()
@@ -627,6 +636,12 @@ class HandwriteEngine(IBus.Engine):
     def __init__(self):
         super().__init__()
         self.zinnia = ZinniaHandle(ZINNIA_MODEL)
+        self.zinnia_backup = None
+        if ZINNIA_MODEL_BACKUP:
+            try:
+                self.zinnia_backup = ZinniaHandle(ZINNIA_MODEL_BACKUP)
+            except:
+                pass
         self.win = None
         self.last_results = []
         self._bus = None
@@ -668,6 +683,8 @@ class HandwriteEngine(IBus.Engine):
         if current:
             self._engine_name = current.get_name()
         self.zinnia.clear()
+        if self.zinnia_backup:
+            self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
         self._position_window()
@@ -687,6 +704,8 @@ class HandwriteEngine(IBus.Engine):
         if self.win:
             self.win.hide()
         self.zinnia.clear()
+        if self.zinnia_backup:
+            self.zinnia_backup.clear()
         self.last_results = []
 
     def do_focus_out(self):
@@ -706,10 +725,16 @@ class HandwriteEngine(IBus.Engine):
         if self.win:
             self.win._do_reset()
         self.zinnia.clear()
+        if self.zinnia_backup:
+            self.zinnia_backup.clear()
         self.last_results = []
 
     def update_candidates(self):
         results = self.zinnia.classify()
+        if not results and self.zinnia_backup and self.zinnia.all_points:
+            self.zinnia_backup.all_points = list(self.zinnia.all_points)
+            self.zinnia_backup.stroke_id = self.zinnia.stroke_id
+            results = self.zinnia_backup.classify()
         self.last_results = results
         if self.win:
             self.win.show_candidates(results)
@@ -731,6 +756,9 @@ class HandwriteEngine(IBus.Engine):
         if self.zinnia:
             self.zinnia.destroy()
             self.zinnia = None
+        if hasattr(self, "zinnia_backup") and self.zinnia_backup:
+            self.zinnia_backup.destroy()
+            self.zinnia_backup = None
         super().destroy()
 
 
@@ -744,21 +772,23 @@ def main():
     parser.add_argument('--traditional', action='store_true')
     args = parser.parse_args()
 
-    global ZINNIA_MODEL, _USE_FREQ
+    global ZINNIA_MODEL, ZINNIA_MODEL_BACKUP, _USE_FREQ
     if args.traditional:
         engine_name = "handwrite-chinese-traditional"
         engine_longname = "Chinese Handwriting (Traditional)"
         engine_language = "zh"
         component_name = "com.github.vinceyap88.ibus-handwrite-chinese-traditional"
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
+        ZINNIA_MODEL_BACKUP = None
         _USE_FREQ = False
     else:
         engine_name = "handwrite-chinese-simplified"
         engine_longname = "Chinese Handwriting (Simplified)"
         engine_language = "zh"
         component_name = "com.github.vinceyap88.ibus-handwrite-chinese-simplified"
-        ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-        _USE_FREQ = True
+        ZINNIA_MODEL = ZINNIA_MODEL_LILY
+        ZINNIA_MODEL_BACKUP = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+        _USE_FREQ = False
 
     Gtk.init(sys.argv)
     IBus.init()

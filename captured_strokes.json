@@ -1,0 +1,7 @@
+{
+ "models": {
+  "tegaki": "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model",
+  "community": "/tmp/handwriting-model-community/ZJHandWriting-zh_CN.model"
+ },
+ "results": []
+}

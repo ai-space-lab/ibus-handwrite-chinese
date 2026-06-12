@@ -29,8 +29,10 @@ if [ -z "$DISTRO_FAMILY" ]; then
     echo ""
     echo "Manual install:"
     echo "  1. Install python3-evdev and libzinnia (0.06+) for your distro"
-    echo "  2. Download models: https://github.com/tegaki/tegaki/releases"
-    echo "  3. Place .model and .meta files in /usr/share/tegaki/models/zinnia/"
+    echo "  2. Download tegaki models: https://github.com/tegaki/tegaki/releases"
+    echo "     and 幽兰百合 model: https://gitee.com/LZQingXi/handwriting-zh_CN_Community"
+    echo "  3. Place .model files in /usr/share/tegaki/models/zinnia/"
+    echo "     and /usr/local/share/ibus-handwrite-chinese/models/"
     echo "  4. Clone repo and run: sudo ./install.sh --skip-deps"
     exit 1
 fi
@@ -63,6 +65,7 @@ download_model() {
         echo "  ✗ Failed to download $lang model from GitHub."
         echo "    Manual download: https://github.com/tegaki/tegaki/releases/tag/v0.3"
         echo "    Place .model and .meta files in $model_dir"
+        echo "    (zh_CN is used as fallback for the primary 幽兰百合 model)"
         cd "$prev_dir"
         rm -rf "$tmpdir"
         exit 1
@@ -79,7 +82,7 @@ download_model() {
 
 install_debian() {
     apt update
-    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip git
+    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip p7zip git
     if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
         echo "  tegaki-zinnia-traditional-chinese not in apt (not available in this Debian release)"
         echo "  Downloading traditional model from GitHub..."
@@ -88,13 +91,13 @@ install_debian() {
 }
 
 install_fedora() {
-    dnf install -y python3-evdev zinnia zinnia-devel wget unzip git
+    dnf install -y python3-evdev zinnia zinnia-devel wget unzip p7zip git
     download_model "zh_CN"
     download_model "zh_TW"
 }
 
 install_arch() {
-    pacman -S --noconfirm python-evdev wget unzip
+    pacman -S --noconfirm python-evdev wget unzip p7zip
     if ! python3 -c "import ctypes; ctypes.CDLL('libzinnia.so')" 2>/dev/null && \
        ! python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')" 2>/dev/null; then
         echo ""
@@ -111,7 +114,7 @@ install_arch() {
 }
 
 install_suse() {
-    zypper install -y python3-evdev zinnia zinnia-devel wget unzip
+    zypper install -y python3-evdev zinnia zinnia-devel wget unzip p7zip
     download_model "zh_CN"
     download_model "zh_TW"
 }
@@ -122,6 +125,26 @@ case "$DISTRO_FAMILY" in
     arch)   install_arch ;;
     suse)   install_suse ;;
 esac
+
+echo ""
+echo "  Installing improved 幽兰百合 model for Simplified Chinese..."
+LILY_MODEL="/usr/local/share/ibus-handwrite-chinese/models/ZJHandWriting-zh_CN.model"
+if [ -f "$LILY_MODEL" ]; then
+    echo "  ✓ 幽兰百合 model already installed"
+else
+    tmpdir="$(mktemp -d)"
+    prev_dir="$(pwd)"
+    cd "$tmpdir"
+    echo "  Downloading from Gitee..."
+    wget -q -O model.7z 'https://gitee.com/LZQingXi/handwriting-zh_CN_Community/releases/download/1.1.0/handwriting-zh_CN-%E7%A4%BE%E5%8C%BA%E7%89%88_V1.1.0.7z'
+    echo "  Extracting..."
+    7z x -y model.7z >/dev/null 2>&1
+    mkdir -p /usr/local/share/ibus-handwrite-chinese/models
+    cp ZJHandWriting-zh_CN.model "$LILY_MODEL"
+    cd "$prev_dir"
+    rm -rf "$tmpdir"
+    echo "  ✓ 幽兰百合 model installed (9374 characters)"
+fi
 
 echo ""
 echo "=== Dependencies installed. Running install.sh... ==="
