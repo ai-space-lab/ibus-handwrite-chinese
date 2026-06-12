@@ -257,8 +257,16 @@ class ZinniaHandle:
 
 
 class HandwriteWin(Gtk.Window):
+
+    @staticmethod
+    def _write_log(msg):
+        import os
+        with open('/tmp/hw.log', 'a') as f:
+            f.write(str(os.getpid()) + ' ' + msg + '\n')
+
+
     def __init__(self, engine):
-        Gtk.Window.__init__(self, type=Gtk.WindowType.POPUP)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         self.engine = engine
         self.set_title("Chinese Handwriting")
         self.set_default_size(400, 360)
@@ -266,6 +274,7 @@ class HandwriteWin(Gtk.Window):
         self.set_resizable(False)
         self.set_keep_above(True)
         self.set_skip_taskbar_hint(True)
+        self.set_type_hint(Gdk.WindowTypeHint.UTILITY)
         self.set_accept_focus(False)
         self.set_decorated(False)
         self.set_border_width(0)
@@ -390,14 +399,16 @@ class HandwriteWin(Gtk.Window):
             self._trackpad = None
 
     def on_key_esc(self):
+        self._write_log('on_key_esc: _state=%d' % self._state)
         if self._state == 0:
             self._state = 1
             self.stop_trackpad()
             self._restore_cursor()
-            self.set_opacity(0.5)
+            self.queue_draw()
         else:
             self._do_reset()
             self._do_disable()
+            self.engine.restore_previous_engine()
 
     def on_key(self, w, ev):
         name = Gdk.keyval_name(ev.get_keyval()[1])
@@ -415,9 +426,9 @@ class HandwriteWin(Gtk.Window):
     def on_window_click(self, widget, ev):
         if self._state == 1:
             self._state = 0
+            self.queue_draw()
             self.start_trackpad()
             self._hide_cursor()
-            self.set_opacity(1.0)
         return False
 
     def _hide_cursor(self):
@@ -445,6 +456,7 @@ class HandwriteWin(Gtk.Window):
         self.stop_trackpad()
         self._restore_cursor()
         self.hide()
+        self._state = 0
 
     def _do_clear_strokes(self):
         self.strokes.clear()
@@ -620,6 +632,18 @@ class HandwriteWin(Gtk.Window):
             self.rebuild_pix(ww, hh)
         cr.set_source_surface(self.pix, 0, 0)
         cr.paint()
+        if self._state == 1:
+            cr.set_source_rgba(0, 0, 0, 0.5)
+            cr.rectangle(0, 0, ww, hh)
+            cr.fill()
+            cr.set_source_rgb(1, 1, 1)
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(18)
+            text = "Paused \u2013 click to resume"
+            xb = cr.text_extents(text)
+            cr.move_to((ww - xb.width) / 2, (hh - xb.height) / 2)
+            cr.show_text(text)
+            return
         if self.cur_stroke and len(self.cur_stroke) > 1:
             import cairo
             cr.set_source_rgb(1, 1, 1)
@@ -691,6 +715,9 @@ class HandwriteEngine(IBus.Engine):
         self._engine_name = None
 
     def do_process_key_event(self, keyval, keycode, state):
+        self._write_log('do_pke: keyval=%d visible=%s' % (keyval, str(self.win.get_visible() if self.win else False)))
+        if state & IBus.ModifierType.RELEASE_MASK:
+            return super().do_process_key_event(keyval, keycode, state)
         if keyval in (IBus.KEY_Escape, IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible():
             if keyval == IBus.KEY_Escape:
                 self.win.on_key_esc()
@@ -725,10 +752,13 @@ class HandwriteEngine(IBus.Engine):
         self.win.move(int(wx), int(wy))
 
     def do_enable(self):
+        self._write_log('do_enable')
         if self.win is None:
             self.win = HandwriteWin(self)
         if self._bus is None:
             self._bus = IBus.Bus()
+        self.win._state = 0
+
         current = self._bus.get_global_engine()
         if current:
             self._engine_name = current.get_name()
@@ -757,6 +787,28 @@ class HandwriteEngine(IBus.Engine):
         if self.zinnia_backup:
             self.zinnia_backup.clear()
         self.last_results = []
+
+    def restore_previous_engine(self):
+        if not self._bus:
+            return
+        try:
+            settings = Gio.Settings.new('org.freedesktop.ibus.general')
+            engines = settings.get_strv('preload-engines')
+            for name in engines:
+                if name and name != self._engine_name:
+                    self._bus.set_global_engine(name)
+                    return
+        except Exception:
+            pass
+        try:
+            self._bus.set_global_engine('xkb:us::eng')
+        except Exception:
+            pass
+
+    def _write_log(self, msg):
+        import os
+        with open('/tmp/hw.log', 'a') as _f:
+            _f.write(str(os.getpid()) + ' ' + msg + '\n')
 
     def do_focus_out(self):
         pass
