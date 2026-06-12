@@ -24,12 +24,12 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 
 | Distro | Method | Models |
 |--------|--------|--------|
-| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` | System packages (fallback: GitHub download) |
-| Fedora 39+ | `dnf` + GitHub download | Downloaded from tegaki GitHub releases |
-| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + GitHub download | Downloaded from tegaki GitHub releases |
-| openSUSE Tumbleweed | `zypper` + GitHub download | Downloaded from tegaki GitHub releases |
+| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + Gitee download | System packages + 幽兰百合 from Gitee (fallback: GitHub download) |
+| Fedora 39+ | `dnf` + GitHub/Gitee download | tegaki + 幽兰百合 models downloaded |
+| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + download | tegaki + 幽兰百合 models downloaded |
+| openSUSE Tumbleweed | `zypper` + download | tegaki + 幽兰百合 models downloaded |
 
-When a distro lacks model packages, the installer fetches the tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.model` — 11853 chars) directly from the [tegaki-models GitHub release](https://github.com/tegaki/tegaki-models/releases).
+The installer fetches tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.model` — 11853 chars) from [tegaki GitHub releases](https://github.com/tegaki/tegaki-models/releases), and the **幽兰百合 Community v1.1.0** model (`ZJHandWriting-zh_CN.model` — 9374 chars) from [Gitee](https://gitee.com/LZQingXi/handwriting-zh_CN_Community). For Simplified Chinese, 幽兰百合 is the primary recognizer with tegaki zh_CN as fallback.
 
 ## Requirements
 
@@ -57,7 +57,7 @@ sudo ./install.sh          # add --skip-deps if you already installed dependenci
 ibus restart
 ```
 
-If `tegaki-zinnia-traditional-chinese` is not in your distro's repos, `install.sh` automatically downloads the model from GitHub.
+`install.sh` automatically downloads missing models: tegaki traditional from GitHub and the 幽兰百合 Community v1.1.0 model (9374 chars) from Gitee for improved Simplified Chinese accuracy.
 
 Then switch the engine:
 
@@ -106,7 +106,7 @@ CI does not test IBus, evdev, or GTK (no display/hardware in containers).
 ## Known Limitations
 
 - **Real hardware**: tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
-- **Recognition engine**: Zinnia uses a 2009 model — accuracy is limited for complex characters. See [accuracy-improvement-plan](https://github.com/vinceyap88/ibus-handwrite-chinese/wiki) for potential improvements.
+- **Recognition accuracy**: Simplified Chinese uses the 幽兰百合 Community v1.1.0 model (9374 chars) as primary with tegaki zh_CN (6763 chars) as fallback. Tested at ~80% top-1 accuracy on real handwriting (MacBook trackpad, 20 common characters). Traditional Chinese uses tegaki zh_TW (11853 chars).
 - **Single character**: no multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
 
 ## License
@@ -118,8 +118,8 @@ GPLv3 — required by dependencies (libzinnia, python3-evdev, ibus).
 The engine supports both Simplified and Traditional Chinese as separate IBus engines. After installing, select from your IBus menu or switch with:
 
 ```bash
-ibus engine handwrite-chinese-simplified   # Simplified (zh_CN model, 6763 chars)
-ibus engine handwrite-chinese-traditional  # Traditional (zh_TW model, 11853 chars)
+ibus engine handwrite-chinese-simplified   # Simplified (幽兰百合 9374 chars + tegaki zh_CN fallback)
+ibus engine handwrite-chinese-traditional  # Traditional (tegaki zh_TW model, 11853 chars)
 ```
 
 Both engines can be added to your input sources simultaneously — switch between them like any two input methods.
@@ -139,4 +139,7 @@ Both engines can be added to your input sources simultaneously — switch betwee
 | `bootstrap.sh` | Cross-distro install entry point |
 | `restore.sh` | Rollback/restore script |
 | `test_recognition.py` | Synthetic stroke recognition smoke test |
+| `capture_handwriting_for_test.py` | Tool to capture real handwriting strokes for accuracy comparison |
+| `plan-handwriting-accuracy-test.md` | Methodology for comparing tegaki vs 幽兰百合 accuracy |
+| `ZJHandWriting-zh_CN.model` | 幽兰百合 Community v1.1.0 model (9374 chars, installed to `/usr/local/share/ibus-handwrite-chinese/models/`) |
 | `.github/workflows/ci.yml` | CI workflow — lint, test-install, test-bootstrap on 5 distros |
