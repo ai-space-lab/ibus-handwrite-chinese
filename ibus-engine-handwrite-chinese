@@ -751,6 +751,7 @@ class HandwriteEngine(IBus.Engine):
         self._cw = 0
         self._ch = 0
         self._engine_name = None
+        self._pending_pause = None
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d visible=%s' % (keyval, str(self.win.get_visible() if self.win else False)))
@@ -868,7 +869,27 @@ class HandwriteEngine(IBus.Engine):
             _f.write(str(os.getpid()) + ' ' + msg + '\n')
 
     def do_focus_out(self):
-        pass
+        if self.win and self.win.get_visible() and self.win._state == 0:
+            if self._pending_pause:
+                GLib.source_remove(self._pending_pause)
+            self._pending_pause = GLib.timeout_add(200, self._apply_pause)
+
+    def do_focus_in(self):
+        if self._pending_pause:
+            GLib.source_remove(self._pending_pause)
+            self._pending_pause = None
+        if self.win and self.win._state == 1 and self.win.get_visible():
+            self.win._state = 0
+            self.win.darea.queue_draw()
+            self.win.close_btn.hide()
+            self.win.start_trackpad()
+            self.win._hide_cursor()
+            self.update_candidates()
+
+    def _apply_pause(self):
+        self._pending_pause = None
+        if self.win and self.win.get_visible() and self.win._state == 0:
+            self.win.on_key_esc()
 
     def _check_engine(self):
         if self._bus and self.win:
