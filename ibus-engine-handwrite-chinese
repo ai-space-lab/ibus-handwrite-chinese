@@ -332,16 +332,34 @@ class HandwriteWin(Gtk.Window):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(vbox)
 
+        self.close_btn = Gtk.Button(label="×")
+        self.close_btn.get_style_context().add_class("close-btn")
+        self.close_btn.set_can_focus(False)
+        self.close_btn.connect("clicked", self.on_close_click)
+        self.drag_handle = Gtk.EventBox()
+        self.drag_handle.set_size_request(-1, 24)
+        self.drag_handle.set_app_paintable(True)
+        self.drag_handle.connect("draw", self.on_draw_handle)
+        self.drag_handle.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                                    Gdk.EventMask.BUTTON_RELEASE_MASK |
+                                    Gdk.EventMask.POINTER_MOTION_MASK |
+                                    Gdk.EventMask.ENTER_NOTIFY_MASK |
+                                    Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        self.drag_handle.connect("button-press-event", self.on_drag_begin)
+        self.drag_handle.connect("button-release-event", self.on_drag_end)
+        self.drag_handle.connect("motion-notify-event", self.on_drag_move)
+        self.drag_handle.connect("enter-notify-event", self.on_drag_enter)
+        self.drag_handle.connect("leave-notify-event", self.on_drag_leave)
+        top_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        top_bar.pack_start(self.close_btn, False, False, 0)
+        top_bar.pack_start(self.drag_handle, True, True, 0)
+        vbox.pack_start(top_bar, False, False, 0)
+
         self.cand_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.cand_bar.set_margin_top(4)
         self.cand_bar.set_margin_bottom(2)
         self.cand_bar.set_margin_start(6)
         self.cand_bar.set_margin_end(4)
-        self.close_btn = Gtk.Button(label="×")
-        self.close_btn.get_style_context().add_class("close-btn")
-        self.close_btn.set_can_focus(False)
-        self.close_btn.connect("clicked", self.on_close_click)
-        self.cand_bar.pack_start(self.close_btn, False, False, 0)
 
         self.cand_inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=1)
         self.cand_bar.pack_start(self.cand_inner, True, True, 0)
@@ -367,18 +385,6 @@ class HandwriteWin(Gtk.Window):
         self.darea.connect("motion-notify-event", self.on_move)
         vbox.pack_start(self.darea, True, True, 0)
 
-        self.drag_handle = Gtk.EventBox()
-        self.drag_handle.set_size_request(-1, 24)
-        self.drag_handle.set_app_paintable(True)
-        self.drag_handle.connect("draw", self.on_draw_handle)
-        self.drag_handle.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
-                                    Gdk.EventMask.BUTTON_RELEASE_MASK |
-                                    Gdk.EventMask.POINTER_MOTION_MASK)
-        self.drag_handle.connect("button-press-event", self.on_drag_begin)
-        self.drag_handle.connect("button-release-event", self.on_drag_end)
-        self.drag_handle.connect("motion-notify-event", self.on_drag_move)
-        vbox.pack_start(self.drag_handle, False, False, 0)
-
         self.pix = None
         self.cur_stroke = []
         self.strokes = []
@@ -395,6 +401,7 @@ class HandwriteWin(Gtk.Window):
         self._page_size = 8
         self._delete_timer = None
         self._delete_held = False
+        self._drag_hovered = False
 
         self.connect("key-press-event", self.on_key)
         self.connect("button-press-event", self.on_window_click)
@@ -454,7 +461,6 @@ class HandwriteWin(Gtk.Window):
         if self._state == 1:
             self._state = 0
             self.darea.queue_draw()
-            self.close_btn.hide()
             self.start_trackpad()
             self.engine.update_candidates()
             self._hide_cursor()
@@ -589,7 +595,8 @@ class HandwriteWin(Gtk.Window):
         self.engine.update_candidates()
 
     def on_trackpad_tap(self, x_frac):
-        if x_frac > 0.7:
+        delete_at = 0.82
+        if x_frac > delete_at:
             self.on_delete_tap(None)
             return
         num = len(self.engine.last_results)
@@ -597,7 +604,8 @@ class HandwriteWin(Gtk.Window):
             start = self._cand_page * self._page_size
             visible = min(self._page_size, num - start)
             if visible > 0:
-                idx = min(start + int(x_frac * visible), num - 1)
+                scaled = x_frac / delete_at
+                idx = min(start + int(scaled * visible), num - 1)
                 self.engine.pick_candidate(idx)
 
     def on_trackpad_swipe_left(self):
@@ -699,12 +707,34 @@ class HandwriteWin(Gtk.Window):
         cr.set_source_rgb(0.2, 0.2, 0.2)
         cr.rectangle(0, 0, alloc.width, alloc.height)
         cr.fill()
-        cr.set_source_rgb(0.5, 0.5, 0.5)
-        cx = alloc.width / 2
+        toplevel = widget.get_toplevel()
+        if toplevel:
+            win_w = toplevel.get_allocation().width
+            origin = widget.translate_coordinates(toplevel, 0, 0)
+            if origin:
+                cx = win_w / 2 - origin[0]
+            else:
+                cx = alloc.width / 2
+        else:
+            cx = alloc.width / 2
+        if self._drag_hovered:
+            cr.set_source_rgb(0.8, 0.8, 0.8)
+        else:
+            cr.set_source_rgb(0.5, 0.5, 0.5)
         for i in range(5):
             x = cx + (i - 2) * 10
             cr.arc(x, alloc.height / 2, 2, 0, 6.2832)
             cr.fill()
+
+    def on_drag_enter(self, widget, ev):
+        self._drag_hovered = True
+        self.drag_handle.queue_draw()
+        return False
+
+    def on_drag_leave(self, widget, ev):
+        self._drag_hovered = False
+        self.drag_handle.queue_draw()
+        return False
 
     def on_drag_begin(self, widget, ev):
         self._drag_x = ev.x_root
@@ -751,7 +781,6 @@ class HandwriteEngine(IBus.Engine):
         self._cw = 0
         self._ch = 0
         self._engine_name = None
-        self._pending_pause = None
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d visible=%s' % (keyval, str(self.win.get_visible() if self.win else False)))
@@ -782,7 +811,7 @@ class HandwriteEngine(IBus.Engine):
         screen = Gdk.Screen.get_default()
         display = screen.get_display()
         win_w = 400
-        win_h = 360
+        win_h = self.win.get_allocated_height() or 370
         our_gdk_win = self.win.get_window()
         active = screen.get_active_window()
         if active is None or active == our_gdk_win:
@@ -824,7 +853,6 @@ class HandwriteEngine(IBus.Engine):
             self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
-        self.win.close_btn.hide()
         self._position_window()
         self.win.present()
         self.win._hide_cursor()
@@ -869,27 +897,7 @@ class HandwriteEngine(IBus.Engine):
             _f.write(str(os.getpid()) + ' ' + msg + '\n')
 
     def do_focus_out(self):
-        if self.win and self.win.get_visible() and self.win._state == 0:
-            if self._pending_pause:
-                GLib.source_remove(self._pending_pause)
-            self._pending_pause = GLib.timeout_add(200, self._apply_pause)
-
-    def do_focus_in(self):
-        if self._pending_pause:
-            GLib.source_remove(self._pending_pause)
-            self._pending_pause = None
-        if self.win and self.win._state == 1 and self.win.get_visible():
-            self.win._state = 0
-            self.win.darea.queue_draw()
-            self.win.close_btn.hide()
-            self.win.start_trackpad()
-            self.win._hide_cursor()
-            self.update_candidates()
-
-    def _apply_pause(self):
-        self._pending_pause = None
-        if self.win and self.win.get_visible() and self.win._state == 0:
-            self.win.on_key_esc()
+        pass
 
     def _check_engine(self):
         if self._bus and self.win:
