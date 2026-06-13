@@ -36,7 +36,7 @@ if [ "$SKIP_DEPS" = false ]; then
         echo "  ✓ Traditional model installed from GitHub"
     fi
     echo "  Installing improved model (幽兰百合 Community) for Simplified Chinese..."
-    DEBIAN_FRONTEND=noninteractive apt install -y p7zip 2>/dev/null || true
+    DEBIAN_FRONTEND=noninteractive apt install -y p7zip-full 2>/dev/null || true
     tmpdir="$(mktemp -d)"
     prev_dir="$(pwd)"
     cd "$tmpdir"

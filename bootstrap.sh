@@ -82,7 +82,7 @@ download_model() {
 
 install_debian() {
     apt update
-    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip p7zip git
+    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip p7zip-full git
     if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
         echo "  tegaki-zinnia-traditional-chinese not in apt (not available in this Debian release)"
         echo "  Downloading traditional model from GitHub..."
