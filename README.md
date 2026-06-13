@@ -15,10 +15,10 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Tap to select**: quickly tap on the touchpad to pick a candidate — spatial mapping matches candidate position
 - **Two-finger swipe**: swipe left/right with two fingers to page through candidates
 - **Delete stroke**: ⌫ button to undo the last stroke
-- **Close button**: × button appears at top-left after pausing, closes and restores previous input method
+- **Close button**: × button always visible at top-left, closes and restores previous input method
 - **ESC state machine**: one ESC pauses (ungrab touchpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
-- **Drag handle**: custom drag handle at the bottom to reposition the window
+- **Drag handle**: custom drag handle in the top bar to reposition the window
 - **Mouse fallback**: if no evdev touchpad is available, draw with the mouse
 
 ## Cross-Distro Support
@@ -80,7 +80,7 @@ Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditi
 5. Tap on the touchpad to select a candidate (spatial mapping)
 6. Use two-finger swipe left/right to page through candidates
 7. Press **⌫** to undo the last stroke
-8. Click **×** at top-left (appears after pausing) to close and restore previous input method, or press **ESC** once to pause
+8. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
 9. **ESC** again closes and restores previous input method
 10. Click the window to resume after pausing
 
