@@ -454,7 +454,6 @@ class HandwriteWin(Gtk.Window):
         if self._state == 1:
             self._state = 0
             self.darea.queue_draw()
-            self.close_btn.hide()
             self.start_trackpad()
             self.engine.update_candidates()
             self._hide_cursor()
@@ -823,7 +822,6 @@ class HandwriteEngine(IBus.Engine):
             self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
-        self.win.close_btn.hide()
         self._position_window()
         self.win.present()
         self.win._hide_cursor()
