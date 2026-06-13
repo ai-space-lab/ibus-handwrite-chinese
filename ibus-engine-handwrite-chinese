@@ -778,15 +778,13 @@ class HandwriteEngine(IBus.Engine):
     def _position_window(self):
         if not self.win:
             return
-        wx = self._cx
-        wy = self._cy + self._ch + 4
         screen = Gdk.Screen.get_default()
         mw = screen.get_width()
         mh = screen.get_height()
         win_w = 400
         win_h = 360
-        wx = max(0, min(wx, mw - win_w))
-        wy = max(0, min(wy, mh - win_h))
+        wx = mw - win_w - 12
+        wy = mh - win_h - 12
         self.win.move(int(wx), int(wy))
 
     def do_enable(self):
