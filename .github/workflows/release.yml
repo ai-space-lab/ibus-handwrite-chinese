@@ -174,13 +174,13 @@ jobs:
               apt install -f -y
               ;;
             fedora:*)
-              dnf install -y python3-evdev python3-gobject gtk3 ibus-libs \
+              dnf install -y python3-evdev python3-gobject gtk3 ibus ibus-libs \
                 gobject-introspection zinnia xorg-x11-server-Xvfb \
                 wget unzip p7zip
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             opensuse/*)
-              zypper install -y python3-evdev python3-gobject \
+              zypper install -y python3-evdev python3-gobject ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
                 xvfb-run wget unzip p7zip
               zypper install -y zinnia || echo "zinnia not available, skipping GTK test"
@@ -196,7 +196,7 @@ jobs:
               su builder -c "yay -S --noconfirm zinnia"
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
-              (cd "$tmpdir"/ibus-handwrite-chinese-* && ./tools/install.sh --skip-deps)
+              (cd "$tmpdir" && ./tools/install.sh --skip-deps)
               ;;
           esac
           echo "available=true" >> "$GITHUB_OUTPUT"
