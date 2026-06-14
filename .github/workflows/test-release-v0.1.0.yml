@@ -1,0 +1,62 @@
+name: Test Release v0.1.0
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [v0.1.0]
+
+jobs:
+  test-install:
+    name: "install — ${{ matrix.distro }}"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.distro }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        distro: [debian:bookworm, ubuntu:24.04, fedora:latest, archlinux:latest, opensuse/tumbleweed]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v0.1.0
+      - name: Setup Arch
+        if: startsWith(matrix.distro, 'arch')
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git sudo
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+      - name: Install deps (Debian/Ubuntu)
+        if: startsWith(matrix.distro, 'debian') || startsWith(matrix.distro, 'ubuntu')
+        run: |
+          apt update
+          apt install -y python3-evdev tegaki-zinnia-simplified-chinese wget unzip
+      - name: Install deps (Fedora)
+        if: startsWith(matrix.distro, 'fedora')
+        run: dnf install -y python3-evdev zinnia zinnia-devel wget unzip
+      - name: Install deps (Arch)
+        if: startsWith(matrix.distro, 'arch')
+        run: su builder -c "yay -S --noconfirm zinnia"
+      - name: Install deps (openSUSE)
+        if: startsWith(matrix.distro, 'opensuse')
+        run: zypper install -y python3-evdev zinnia zinnia-devel wget unzip
+      - name: Run install.sh
+        run: bash install.sh --skip-deps
+      - name: Verify libzinnia loads
+        run: python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')"
+      - name: Verify engine Python syntax
+        run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+      - name: Verify evdev module syntax
+        run: python3 -c "compile(open('/usr/local/bin/handwrite_evdev.py').read(), 'evdev', 'exec')"
+      - name: Verify installed files
+        run: |
+          test -f /usr/local/bin/ibus-engine-handwrite-chinese
+          test -f /usr/local/bin/handwrite_evdev.py
+          test -f /usr/share/ibus/component/handwrite-chinese.xml
+          test -f /etc/udev/rules.d/99-trackpad-handwrite.rules
+      - name: Verify model
+        run: test -f /usr/share/tegaki/models/zinnia/handwriting-zh_CN.model
+      - name: Verify engine imports
+        run: python3 -c "import sys; sys.path.insert(0, '/usr/local/bin'); import handwrite_evdev; print('handwrite_evdev imported OK')"
