@@ -953,11 +953,125 @@ class HandwriteEngine(IBus.Engine):
 GObject.type_register(HandwriteEngine)
 
 
+class TestCommitEngine:
+    """Minimal engine for --test mode: no IBus dependency."""
+    def __init__(self, traditional=False):
+        self.zinnia = None
+        self.zinnia_backup = None
+        self.last_results = []
+        self.committed = []
+        self.win = None
+
+        if traditional:
+            primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
+            backup = None
+        else:
+            primary = ZINNIA_MODEL_LILY
+            backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+
+        for mp in [primary, backup] if backup else [primary]:
+            if mp:
+                try:
+                    self.zinnia = ZinniaHandle(mp)
+                    break
+                except:
+                    continue
+        if not self.zinnia:
+            raise RuntimeError(f"No model found (tried: {[primary, backup]})")
+
+        if backup and backup != primary:
+            try:
+                self.zinnia_backup = ZinniaHandle(backup)
+            except:
+                pass
+
+    def commit_text(self, text):
+        self.committed.append(text)
+        print(f"COMMIT:{text}", flush=True)
+
+    def do_reset(self):
+        if self.win:
+            self.win._do_reset()
+        self.zinnia.clear()
+        if self.zinnia_backup:
+            self.zinnia_backup.clear()
+        self.last_results = []
+
+    def commit_first(self):
+        if self.last_results:
+            self.commit_text(self.last_results[0][0])
+            self.do_reset()
+
+    def pick_candidate(self, idx):
+        if idx < len(self.last_results):
+            self.commit_text(self.last_results[idx][0])
+            self.do_reset()
+
+    def update_candidates(self):
+        results = self.zinnia.classify()
+        if not results and self.zinnia_backup and self.zinnia.all_points:
+            self.zinnia_backup.all_points = list(self.zinnia.all_points)
+            self.zinnia_backup.stroke_id = self.zinnia.stroke_id
+            results = self.zinnia_backup.classify()
+        self.last_results = results
+        if self.win:
+            self.win.show_candidates(results)
+
+    def restore_previous_engine(self):
+        if self.win:
+            self.win._do_reset()
+            self.win._do_disable()
+
+    def switch_model(self, traditional=False):
+        if self.win:
+            self.win._do_reset()
+        if self.zinnia:
+            self.zinnia.destroy()
+            self.zinnia = None
+        if self.zinnia_backup:
+            self.zinnia_backup.destroy()
+            self.zinnia_backup = None
+
+        if traditional:
+            primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
+            backup = None
+        else:
+            primary = ZINNIA_MODEL_LILY
+            backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+
+        for mp in [primary, backup] if backup else [primary]:
+            if mp:
+                try:
+                    self.zinnia = ZinniaHandle(mp)
+                    break
+                except:
+                    continue
+
+        if backup and backup != primary and self.zinnia:
+            try:
+                self.zinnia_backup = ZinniaHandle(backup)
+            except:
+                pass
+
+        self.last_results = []
+        if self.win:
+            self.win.show_candidates([])
+
+    def destroy(self):
+        if self.zinnia:
+            self.zinnia.destroy()
+            self.zinnia = None
+        if self.zinnia_backup:
+            self.zinnia_backup.destroy()
+            self.zinnia_backup = None
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--ibus', action='store_true')
     parser.add_argument('--traditional', action='store_true')
+    parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
 
     global ZINNIA_MODEL, ZINNIA_MODEL_BACKUP, _USE_FREQ
@@ -979,6 +1093,17 @@ def main():
         _USE_FREQ = False
 
     Gtk.init(sys.argv)
+
+    if args.test:
+        engine = TestCommitEngine()
+        win = HandwriteWin(engine)
+        engine.win = win
+        win.show_all()
+        win.present()
+        win._hide_cursor()
+        Gtk.main()
+        return
+
     IBus.init()
 
     bus = IBus.Bus()
