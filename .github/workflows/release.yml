@@ -232,16 +232,6 @@ jobs:
       - name: Run GTK write test
         if: steps.check_zinnia.outputs.available == 'true'
         run: IBUS_HANDWRITE_ENGINE=/usr/local/bin/ibus-engine-handwrite-chinese python3 tests/test_gtk_write_phrase.py
-      - name: Set artifact name
-        run: |
-          printf 'RELEASE_TEST_ARTIFACT_NAME=%s\n' "release-package-test-${{ matrix.distro }}" | tr ':/' '-' >> "$GITHUB_ENV"
-      - name: Upload screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.RELEASE_TEST_ARTIFACT_NAME }}
-          path: tests/screenshots/
-          if-no-files-found: warn
 
   upload-release:
     name: Upload release assets
@@ -256,4 +246,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.release.outputs.tag }}
-          files: release-artifacts/*
+          files: |
+            release-artifacts/ibus-handwrite-chinese_*.deb
+            release-artifacts/ibus-handwrite-chinese-*.rpm
+            release-artifacts/ibus-handwrite-chinese-*.tar.gz
