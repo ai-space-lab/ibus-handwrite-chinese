@@ -7,10 +7,17 @@ import time
 import os
 
 import gi
-gi.require_version('IBus', '1.0')
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
-from gi.repository import GLib, GObject, IBus, Gtk, Gdk, Gio
+from gi.repository import GLib, GObject, Gtk, Gdk, Gio
+
+try:
+    gi.require_version('IBus', '1.0')
+    from gi.repository import IBus
+    HAS_IBUS = True
+except ValueError:
+    IBus = None
+    HAS_IBUS = False
 
 ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
 ZINNIA_MODEL_LILY = "/usr/local/share/ibus-handwrite-chinese/models/ZJHandWriting-zh_CN.model"
@@ -762,7 +769,7 @@ class HandwriteWin(Gtk.Window):
         Gtk.Window.destroy(self)
 
 
-class HandwriteEngine(IBus.Engine):
+class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def __init__(self):
         super().__init__()
         self.zinnia = ZinniaHandle(ZINNIA_MODEL)
@@ -950,7 +957,8 @@ class HandwriteEngine(IBus.Engine):
         super().destroy()
 
 
-GObject.type_register(HandwriteEngine)
+if HAS_IBUS:
+    GObject.type_register(HandwriteEngine)
 
 
 class TestCommitEngine:
