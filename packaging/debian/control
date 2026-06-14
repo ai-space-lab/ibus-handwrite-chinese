@@ -16,8 +16,7 @@ Depends: python3 (>= 3.6),
          libzinnia0,
          ibus,
          wget,
-         unzip,
-         ${misc:Depends}
+         unzip
 Recommends: tegaki-zinnia-simplified-chinese,
             tegaki-zinnia-traditional-chinese
 Description: Chinese handwriting input method with macOS-style floating panel
