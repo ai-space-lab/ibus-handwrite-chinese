@@ -64,7 +64,8 @@ jobs:
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
         run: |
-          su builder -c "yay -S --noconfirm zinnia python-gobject"
+          pacman -S --noconfirm python-evdev python-gobject
+          su builder -c "yay -S --noconfirm zinnia"
           mkdir -p /usr/share/tegaki/models/zinnia
           wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-simplified-chinese-0.3.zip
           unzip -q tegaki-zinnia-simplified-chinese-0.3.zip
