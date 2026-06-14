@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Remove udev rule
+rm -f /etc/udev/rules.d/99-trackpad-handwrite.rules
+
+# Reload udev rules
+if command -v udevadm >/dev/null 2>&1; then
+    udevadm control --reload-rules 2>/dev/null || true
+fi
+
+exit 0

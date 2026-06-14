@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+echo "=============================================="
+echo "  ibus-handwrite-chinese — v0.1.0 Beta"
+echo "  ⚠️  Not yet widely tested on real hardware."
+echo "  Please report issues at:"
+echo "  https://github.com/vinceyap88/ibus-handwrite-chinese/issues"
+echo "=============================================="
+echo ""
+
 if [ "$EUID" -ne 0 ]; then
     echo "Please run as root: sudo ./bootstrap.sh"
     exit 1

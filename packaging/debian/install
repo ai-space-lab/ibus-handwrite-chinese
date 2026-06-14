@@ -1,0 +1,8 @@
+src/ibus-engine-handwrite-chinese usr/local/bin/
+src/handwrite_evdev.py usr/local/bin/
+xml/handwrite-chinese-simplified.xml usr/share/ibus/component/
+xml/handwrite-chinese-traditional.xml usr/share/ibus/component/
+icons/handwrite-chinese-simplified.svg usr/local/share/ibus-handwrite-chinese/icons/
+icons/handwrite-chinese-traditional.svg usr/local/share/ibus-handwrite-chinese/icons/
+tools/restore.sh usr/local/share/ibus-handwrite-chinese/
+tools/99-trackpad-handwrite.rules etc/udev/rules.d/

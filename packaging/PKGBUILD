@@ -1,0 +1,47 @@
+# Maintainer: ibus-handwrite-chinese developers <dev@ibus-handwrite-chinese.example.com>
+# Contributor: Your Name <your@email.com>
+#
+# NOTE: zinnia is an AUR dependency. Install it first:
+#   yay -S zinnia
+# or build manually from https://aur.archlinux.org/packages/zinnia
+
+pkgname=ibus-handwrite-chinese
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Chinese handwriting input method with macOS-style floating panel, evdev touchpad integration, and Zinnia-based recognition"
+arch=('any')
+url="https://github.com/vinceyap88/ibus-handwrite-chinese"
+license=('GPL3')
+depends=('python' 'python-evdev' 'python-gobject' 'ibus' 'zinnia' 'wget' 'unzip' 'p7zip')
+makedepends=('git')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vinceyap88/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
+install="${pkgname}.install"
+
+package() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+
+    # Install engine files
+    install -Dm755 src/ibus-engine-handwrite-chinese "${pkgdir}/usr/local/bin/ibus-engine-handwrite-chinese"
+    install -Dm644 src/handwrite_evdev.py "${pkgdir}/usr/local/bin/handwrite_evdev.py"
+
+    # Install IBus component files
+    install -Dm644 xml/handwrite-chinese-simplified.xml "${pkgdir}/usr/share/ibus/component/handwrite-chinese-simplified.xml"
+    install -Dm644 xml/handwrite-chinese-traditional.xml "${pkgdir}/usr/share/ibus/component/handwrite-chinese-traditional.xml"
+
+    # Install icons
+    install -Dm644 icons/handwrite-chinese-simplified.svg "${pkgdir}/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-simplified.svg"
+    install -Dm644 icons/handwrite-chinese-traditional.svg "${pkgdir}/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-traditional.svg"
+
+    # Install restore script
+    install -Dm755 tools/restore.sh "${pkgdir}/usr/local/share/ibus-handwrite-chinese/restore.sh"
+
+    # Install udev rule
+    install -Dm644 tools/99-trackpad-handwrite.rules "${pkgdir}/etc/udev/rules.d/99-trackpad-handwrite.rules"
+
+    # Install docs
+    install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+    install -Dm644 README.zh-CN.md "${pkgdir}/usr/share/doc/${pkgname}/README.zh-CN.md"
+    install -Dm644 README.zh-TW.md "${pkgdir}/usr/share/doc/${pkgname}/README.zh-TW.md"
+    install -Dm644 LICENSE "${pkgdir}/usr/share/doc/${pkgname}/LICENSE"
+}

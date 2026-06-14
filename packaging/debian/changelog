@@ -1,0 +1,12 @@
+ibus-handwrite-chinese (0.1.0-1) unstable; urgency=medium
+
+  * Initial Beta release.
+  * macOS-style floating handwriting panel with evdev touchpad input.
+  * V1 features: delete button, ESC state machine, tap-to-select,
+    cursor-proximity positioning, drag handle.
+  * 幽兰百合 Community v1.1.0 model (9,374 chars) for Simplified Chinese.
+  * tegaki zh_TW (11,853 chars) for Traditional Chinese.
+  * CI tested on Debian 11/12, Ubuntu 22.04/24.04, Fedora 40/41,
+    Arch Linux, openSUSE Tumbleweed.
+
+ -- ibus-handwrite-chinese developers <dev@ibus-handwrite-chinese.example.com>  Sun, 14 Jun 2026 00:00:00 +0000

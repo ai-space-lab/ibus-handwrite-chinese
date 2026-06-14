@@ -1,0 +1,35 @@
+Source: ibus-handwrite-chinese
+Section: utils
+Priority: optional
+Maintainer: ibus-handwrite-chinese developers
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/vinceyap88/ibus-handwrite-chinese
+Rules-Requires-Root: no
+
+Package: ibus-handwrite-chinese
+Architecture: all
+Depends: python3 (>= 3.6),
+         python3-evdev,
+         python3-gi,
+         libzinnia0,
+         ibus,
+         wget,
+         unzip,
+         ${misc:Depends}
+Recommends: tegaki-zinnia-simplified-chinese,
+            tegaki-zinnia-traditional-chinese
+Description: Chinese handwriting input method with macOS-style floating panel
+ A Chinese handwriting input method for Linux with a macOS-style floating
+ panel, evdev touchpad integration, and Zinnia-based recognition.
+ .
+ Features:
+  * macOS-style dark floating popup with embedded candidates
+  * evdev touchpad input (works on any touchpad with BTN_TOUCH support)
+  * Tap-to-select candidates via spatial trackpad mapping
+  * Two-finger swipe to page through candidates (V2)
+  * ESC pause/resume/close state machine
+  * Delete button and always-visible close button
+  * Cursor-proximity window positioning
+  * Both Simplified and Traditional Chinese (separate IBus engines)
+  * 幽兰百合 Community v1.1.0 model (9,374 chars, downloaded post-install)
