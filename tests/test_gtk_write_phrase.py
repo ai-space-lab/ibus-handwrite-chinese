@@ -18,7 +18,10 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
 from gi.repository import GLib, Gtk, Gdk
 
-engine_path = os.path.join(SRC_DIR, 'ibus-engine-handwrite-chinese')
+engine_path = os.environ.get(
+    'IBUS_HANDWRITE_ENGINE',
+    os.path.join(SRC_DIR, 'ibus-engine-handwrite-chinese'),
+)
 mod = types.ModuleType("engine")
 mod.__file__ = engine_path
 mod.__package__ = ""

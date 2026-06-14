@@ -116,10 +116,122 @@ jobs:
           test -n "$(find release-artifacts -name 'ibus-handwrite-chinese-*.rpm' -print -quit)"
           test -n "$(find release-artifacts -name 'ibus-handwrite-chinese-*.tar.gz' -print -quit)"
 
+  test-packages:
+    name: Test package — ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    needs: [build-deb, build-rpm, build-source]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: debian:11
+            package: deb
+          - distro: debian:12
+            package: deb
+          - distro: ubuntu:22.04
+            package: deb
+          - distro: ubuntu:24.04
+            package: deb
+          - distro: fedora:40
+            package: rpm
+          - distro: fedora:41
+            package: rpm
+          - distro: fedora:latest
+            package: rpm
+          - distro: archlinux:latest
+            package: source
+          - distro: opensuse/leap:latest
+            package: rpm
+          - distro: opensuse/tumbleweed
+            package: rpm
+    container: ${{ matrix.distro }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Arch
+        if: startsWith(matrix.distro, 'arch')
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git sudo wget unzip p7zip
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+      - name: Install package
+        run: |
+          set -e
+          case "${{ matrix.distro }}" in
+            debian:*|ubuntu:*)
+              apt update
+              apt install -y python3-evdev python3-gi python3-gi-cairo \
+                libzinnia0 ibus xvfb wget unzip p7zip-full
+              dpkg -i release-artifacts/deb-package/ibus-handwrite-chinese_*.deb
+              apt install -f -y
+              ;;
+            fedora:*)
+              dnf install -y python3-evdev python3-gobject gtk3 ibus-libs \
+                gobject-introspection zinnia xorg-x11-server-Xvfb \
+                wget unzip p7zip
+              rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
+              ;;
+            opensuse/*)
+              zypper install -y python3-evdev python3-gobject \
+                typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
+                xvfb-run wget unzip p7zip
+              zypper install -y zinnia || echo "zinnia not available, skipping GTK test"
+              if ! python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')" 2>/dev/null; then
+                echo "available=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
+              ;;
+            archlinux:*)
+              pacman -S --noconfirm python-evdev python-gobject gtk3 ibus \
+                xorg-server-xvfb wget unzip p7zip
+              su builder -c "yay -S --noconfirm zinnia"
+              tmpdir="$(mktemp -d)"
+              tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
+              (cd "$tmpdir"/ibus-handwrite-chinese-* && ./tools/install.sh --skip-deps)
+              ;;
+          esac
+          echo "available=true" >> "$GITHUB_OUTPUT"
+        id: install
+      - name: Check libzinnia availability
+        if: steps.install.outputs.available != 'false'
+        id: check_zinnia
+        run: |
+          python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')" && \
+            echo "available=true" >> "$GITHUB_OUTPUT" || \
+            echo "available=false" >> "$GITHUB_OUTPUT"
+      - name: Start Xvfb
+        if: steps.check_zinnia.outputs.available == 'true'
+        run: |
+          Xvfb :99 -screen 0 1280x1024x24 &
+          sleep 2
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+      - name: Run GTK write test
+        if: steps.check_zinnia.outputs.available == 'true'
+        run: IBUS_HANDWRITE_ENGINE=/usr/local/bin/ibus-engine-handwrite-chinese python3 tests/test_gtk_write_phrase.py
+      - name: Set artifact name
+        run: |
+          printf 'RELEASE_TEST_ARTIFACT_NAME=%s\n' "release-package-test-${{ matrix.distro }}" | tr ':/' '-' >> "$GITHUB_ENV"
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.RELEASE_TEST_ARTIFACT_NAME }}
+          path: tests/screenshots/
+          if-no-files-found: warn
+
   upload-release:
     name: Upload release assets
     runs-on: ubuntu-latest
-    needs: [release, verify-release-artifacts]
+    needs: [release, verify-release-artifacts, test-packages]
     steps:
       - uses: actions/download-artifact@v4
         with:
