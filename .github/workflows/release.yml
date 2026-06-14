@@ -180,6 +180,11 @@ jobs:
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             opensuse/*)
+              if [ "${{ matrix.distro }}" = "opensuse/tumbleweed" ]; then
+                zypper --non-interactive removerepo repo-oss || true
+                zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
+                zypper --non-interactive --gpg-auto-import-keys refresh
+              fi
               zypper install -y python3-evdev python3-gobject ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
                 xvfb-run wget unzip p7zip
