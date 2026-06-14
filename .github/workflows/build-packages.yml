@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build packages for'
+        description: 'Tag to upload packages to (e.g. v0.1.0)'
         required: true
 
 jobs:
@@ -17,15 +17,13 @@ jobs:
     container: debian:bookworm
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref_name }}
       - name: Install build tools
         run: |
           apt update
           apt install -y dpkg-dev fakeroot python3
       - name: Build .deb
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${VERSION#v}"
           bash packaging/build-deb.sh "$VERSION"
       - name: Upload .deb
@@ -40,13 +38,11 @@ jobs:
     container: fedora:latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref_name }}
       - name: Install build tools
         run: dnf install -y rpm-build python3 git tar gzip
       - name: Build .rpm
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${VERSION#v}"
           bash packaging/build-rpm.sh "$VERSION"
       - name: Upload .rpm
@@ -60,11 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref_name }}
       - name: Create source tarball
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${VERSION#v}"
           tar --exclude='.git' --exclude='.github' --exclude='__pycache__' \
               --exclude='models' --exclude='*.pyc' \
