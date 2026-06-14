@@ -8,6 +8,7 @@ Homepage: https://github.com/vinceyap88/ibus-handwrite-chinese
 Rules-Requires-Root: no
 
 Package: ibus-handwrite-chinese
+Version: 0.1.0
 Architecture: all
 Depends: python3 (>= 3.6),
          python3-evdev,

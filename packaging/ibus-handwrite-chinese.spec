@@ -34,7 +34,7 @@ Features:
 - Both Simplified and Traditional Chinese
 
 %prep
-%autosetup -n %{srcname}
+%autosetup -n %{srcname}-%{version}
 
 %build
 python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
