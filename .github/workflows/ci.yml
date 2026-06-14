@@ -14,13 +14,13 @@ jobs:
       - name: Install tools
         run: sudo apt update && sudo apt install -y shellcheck libxml2-utils
       - name: shellcheck
-        run: shellcheck -e SC1091 bootstrap.sh install.sh restore.sh
+        run: shellcheck -e SC1091 bootstrap.sh tools/install.sh tools/restore.sh
       - name: xmllint
-        run: xmllint --noout handwrite-chinese-simplified.xml handwrite-chinese-traditional.xml
+        run: xmllint --noout xml/handwrite-chinese-simplified.xml xml/handwrite-chinese-traditional.xml
       - name: Python syntax — engine
-        run: python3 -c "compile(open('ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+        run: python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Python syntax — evdev reader
-        run: python3 -c "compile(open('handwrite_evdev.py').read(), 'evdev', 'exec')"
+        run: python3 -c "compile(open('src/handwrite_evdev.py').read(), 'evdev', 'exec')"
 
   test-install:
     name: "install deps — ${{ matrix.distro }}"
@@ -69,8 +69,8 @@ jobs:
         run: python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')"
       - name: Verify Python syntax
         run: |
-          python3 -c "compile(open('ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
-          python3 -c "compile(open('handwrite_evdev.py').read(), 'evdev', 'exec')"
+          python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+          python3 -c "compile(open('src/handwrite_evdev.py').read(), 'evdev', 'exec')"
 
   test-bootstrap:
     name: "bootstrap.sh — ${{ matrix.distro }}"
@@ -112,4 +112,4 @@ jobs:
       - name: Verify engine Python syntax
         run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Test recognition with synthetic strokes
-        run: python3 test_recognition.py
+        run: python3 tests/test_recognition.py

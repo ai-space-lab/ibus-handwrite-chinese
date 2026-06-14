@@ -155,7 +155,7 @@ echo ""
 echo "=== Dependencies installed. Running install.sh... ==="
 echo ""
 
-if [ -f "./install.sh" ]; then
+if [ -f "./tools/install.sh" ]; then
     SRC_DIR="$(pwd)"
 else
     echo "Cloning repository..."
@@ -164,4 +164,4 @@ else
 fi
 
 cd "$SRC_DIR"
-exec ./install.sh --skip-deps
+exec ./tools/install.sh --skip-deps
