@@ -1,6 +1,7 @@
 # IBus 中文手寫輸入法
 
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
+[![v0.1.0 Release Test](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml)
 
 一款 Linux 平臺的中文手寫輸入法，採用 macOS 風格浮動面板、evdev 觸控板整合和 Zinnia 辨識引擎。
 
@@ -36,10 +37,10 @@
 
 - Linux 系統，帶觸控板（或觸控螢幕）
 - IBus 輸入法框架（大多數桌面環境預設安裝）
-- **Debian 系列**：Debian 12+、Ubuntu 22.04+、Linux Mint 21+
-- **Fedora**：Fedora 39+
+- **Debian 系列**：Debian 11+、Ubuntu 22.04+、Linux Mint 21+
+- **Fedora**：Fedora 40+
 - **Arch**：Arch Linux、Manjaro（zinnia 來自 AUR）
-- **openSUSE**：Tumbleweed 15+
+- **openSUSE**：Tumbleweed（Leap 不提供 zinnia）
 
 ## 快速安裝
 
@@ -91,15 +92,37 @@ ibus engine handwrite-chinese-traditional  # 繁體中文
 
 ## 測試
 
-[CI 工作流程](.github/workflows/ci.yml) 每次推送時在 5 個 Docker 容器中執行：
+兩個 CI 工作流程在每次推送時執行：
 
+### 主 CI
+
+[主 CI](.github/workflows/ci.yml) 在 5 個 Docker 容器中執行：
 - **lint**：shellcheck、xmllint、Python 語法檢查
 - **test-install**：按發行版安裝依賴，驗證 `libzinnia.so` 載入，檢查 Python 語法
 - **test-bootstrap**：完整執行 bootstrap.sh，驗證安裝檔案和模型，執行辨識冒煙測試
 
 測試容器：`debian:bookworm`、`ubuntu:24.04`、`fedora:latest`、`archlinux:latest`、`opensuse/tumbleweed`。
 
-辨識冒煙測試（`test_recognition.py`）建立合成筆畫：
+### v0.1.0 發佈測試
+
+[v0.1.0 發佈測試](.github/workflows/test-release-v0.1.0.yml) 在 **10 個發行版版本** 上驗證：
+
+| 發行版 | libzinnia | evdev | 模型 | 引擎 |
+|--------|-----------|-------|------|------|
+| Debian 11 | ✅ | ✅ | ✅ | ✅ |
+| Debian 12 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu 22.04 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu 24.04 | ✅ | ✅ | ✅ | ✅ |
+| Fedora 40 | ✅ | ✅ | ✅ | ✅ |
+| Fedora 41 | ✅ | ✅ | ✅ | ✅ |
+| Fedora latest | ✅ | ✅ | ✅ | ✅ |
+| Arch Linux | ✅ | ✅ | ✅ | ✅ |
+| openSUSE Leap | ❌（源中無） | ✅ | ✅ | ✅ |
+| openSUSE Tumbleweed | ✅ | ✅ | ✅ | ✅ |
+
+### 辨識冒煙測試
+
+辨識冒煙測試（`tests/test_recognition.py`）建立合成筆畫：
 - 水平線 → 辨識為 **一**（得分 > 0.9）
 - 十字形 → 辨識為 **十**（得分 > 0.95）
 
@@ -110,26 +133,42 @@ CI 不測試 IBus、evdev 或 GTK（容器無顯示/硬體）。
 - **實機測試**：在 MacBook Pro（bcm5974）上測試通過 —— 應適用於任何支援 `BTN_TOUCH + ABS_X` 的觸控板，但 Fedora/Arch 上的 Wayland 彈出面板定位和 SELinux evdev 存取尚未測試
 - **辨識精度**：簡體中文以幽蘭百合 Community v1.1.0 模型（9374 字）為主，tegaki zh_CN（6763 字）為備用。實際手寫測試（MacBook 觸控板，20 個常用字）約 80% 首選辨識率。繁體中文使用 tegaki zh_TW（11853 字）
 - **單字輸入**：暫不支援多字組合（一次輸入一個字）。V2 版本可能加入空間分割實現連續輸入
+- **openSUSE Leap**：zinnia 函式庫在 Leap 16.0 預設來源中不可用。請使用 openSUSE Tumbleweed，或從 OBS 手動安裝 zinnia
+- **第三方模型**：幽蘭百合模型託管在 Gitee（中國）。如果 Gitee 無法訪問，安裝程式將回退到本地 `models/` 快取，或發出警告並繼續。CI 容器優雅跳過下載
 
 ## 授權條款
 
 GPLv3 — 由相依函式庫要求（libzinnia、python3-evdev、ibus）。
 
-## 檔案說明
+## 目錄結構
 
-| 檔案 | 用途 |
-|------|------|
-| `ibus-engine-handwrite-chinese` | 主引擎（Python、Zinnia ctypes、GTK 彈出面板、evdev 整合） |
-| `handwrite_evdev.py` | Evdev 多點觸控讀取模組 |
-| `handwrite-chinese-simplified.xml` | IBus 元件：簡體中文 |
-| `handwrite-chinese-traditional.xml` | IBus 元件：繁體中文 |
-| `handwrite-chinese-simplified.svg` | 引擎圖示：簡體 |
-| `handwrite-chinese-traditional.svg` | 引擎圖示：繁體 |
-| `99-trackpad-handwrite.rules` | 觸控板存取的 udev 規則 |
-| `install.sh` | 安裝指令碼（Debian 原生，支援 `--skip-deps`） |
-| `bootstrap.sh` | 跨發行版安裝入口 |
-| `restore.sh` | 回滾/恢復指令碼 |
-| `test_recognition.py` | 合成筆畫辨識冒煙測試 |
-| `capture_handwriting_for_test.py` | 採集真實手寫筆畫的工具，用於精度對比 |
-| `plan-handwriting-accuracy-test.md` | tegaki 與幽蘭百合精度對比測試方案 |
-| `.github/workflows/ci.yml` | CI 工作流程 —— 5 個發行版的 lint、test-install、test-bootstrap |
+```
+├── src/
+│   ├── ibus-engine-handwrite-chinese    主引擎（Python、Zinnia ctypes、GTK 彈出面板、evdev 整合）
+│   └── handwrite_evdev.py               Evdev 多點觸控讀取模組
+├── xml/
+│   ├── handwrite-chinese-simplified.xml IBus 元件：簡體中文
+│   └── handwrite-chinese-traditional.xml IBus 元件：繁體中文
+├── icons/
+│   ├── handwrite-chinese-simplified.svg 引擎圖示：簡體
+│   └── handwrite-chinese-traditional.svg 引擎圖示：繁體
+├── tools/
+│   ├── install.sh                       安裝指令碼（Debian 原生，支援 `--skip-deps`）
+│   ├── restore.sh                       回滾/恢復指令碼
+│   └── 99-trackpad-handwrite.rules      觸控板存取的 udev 規則
+├── tests/
+│   ├── test_recognition.py             合成筆畫辨識冒煙測試
+│   └── test_data/                      測試筆畫資料
+├── docs/
+│   ├── screenshot.png                   應用截圖
+│   ├── plan-handwriting-accuracy-test.md tegaki 與幽蘭百合精度對比測試方案
+│   └── multi-char-composition-with-phrase-boost-plan.md  V2 功能規劃
+├── models/                              本地模型快取（gitignore）
+├── .github/workflows/
+│   ├── ci.yml                          主 CI — 5 個發行版
+│   └── test-release-v0.1.0.yml         v0.1.0 發佈測試 — 10 個發行版版本
+├── bootstrap.sh                        跨發行版安裝入口
+├── README.md
+├── README.zh-CN.md
+└── README.zh-TW.md
+```

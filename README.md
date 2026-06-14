@@ -1,6 +1,7 @@
 # IBus Chinese Handwriting Input Method
 
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
+[![v0.1.0 Release Test](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml)
 
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
@@ -38,10 +39,10 @@ The installer fetches tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.m
 
 - Linux with a touchpad (or touchscreen)
 - IBus input method framework (default on most desktops)
-- **Debian family**: Debian 12+, Ubuntu 22.04+, Linux Mint 21+
-- **Fedora**: Fedora 39+
+- **Debian family**: Debian 11+, Ubuntu 22.04+, Linux Mint 21+
+- **Fedora**: Fedora 40+
 - **Arch**: Arch Linux, Manjaro (zinnia from AUR)
-- **openSUSE**: Tumbleweed 15+
+- **openSUSE**: Tumbleweed (zinnia not available on Leap)
 
 ## Quick Install
 
@@ -93,15 +94,39 @@ Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditi
 
 ## Testing
 
-A [CI workflow](.github/workflows/ci.yml) runs on every push across 5 Docker containers:
+Two CI workflows run on every push:
 
+### Main CI
+
+[Main CI](.github/workflows/ci.yml) runs across 5 Docker containers:
 - **lint**: shellcheck, xmllint, Python syntax checks
 - **test-install**: installs dependencies per distro, verifies `libzinnia.so` loads, checks Python syntax
 - **test-bootstrap**: full bootstrap.sh end-to-end run, verifies installed files and model placement, runs recognition smoke test
 
 Containers tested: `debian:bookworm`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`, `opensuse/tumbleweed`.
 
-The recognition smoke test (`test_recognition.py`) creates synthetic strokes:
+### v0.1.0 Release Test
+
+The [v0.1.0 release test](.github/workflows/test-release-v0.1.0.yml) validates the release across **10 distro versions**:
+
+| Distro | libzinnia | evdev | Model | Engine |
+|--------|-----------|-------|-------|--------|
+| Debian 11 | ✅ | ✅ | ✅ | ✅ |
+| Debian 12 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu 22.04 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu 24.04 | ✅ | ✅ | ✅ | ✅ |
+| Fedora 40 | ✅ | ✅ | ✅ | ✅ |
+| Fedora 41 | ✅ | ✅ | ✅ | ✅ |
+| Fedora latest | ✅ | ✅ | ✅ | ✅ |
+| Arch Linux | ✅ | ✅ | ✅ | ✅ |
+| openSUSE Leap | ❌ (not in repos) | ✅ | ✅ | ✅ |
+| openSUSE Tumbleweed | ✅ | ✅ | ✅ | ✅ |
+
+The test installs engine files to `/usr/local/bin`, verifies libzinnia loading via ctypes, checks Python syntax, confirms model placement, and validates module imports.
+
+### Recognition Smoke Test
+
+The recognition smoke test (`tests/test_recognition.py`) creates synthetic strokes:
 - Horizontal line → recognized as **一** (score > 0.9)
 - Cross shape → recognized as **十** (score > 0.95)
 
@@ -109,9 +134,11 @@ CI does not test IBus, evdev, or GTK (no display/hardware in containers).
 
 ## Known Limitations
 
-- **Real hardware**: tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
+- **Real hardware**: Tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
 - **Recognition accuracy**: Simplified Chinese uses the 幽兰百合 Community v1.1.0 model (9374 chars) as primary with tegaki zh_CN (6763 chars) as fallback. Tested at ~80% top-1 accuracy on real handwriting (MacBook trackpad, 20 common characters). Traditional Chinese uses tegaki zh_TW (11853 chars).
-- **Single character**: no multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
+- **Single character**: No multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
+- **openSUSE Leap**: `zinnia` library not available in Leap 16.0 default repos. Use openSUSE Tumbleweed instead, or install zinnia from OBS manually.
+- **Third-party model**: The 幽兰百合 model is hosted on Gitee (China). If Gitee is unreachable, the installer falls back to the local `models/` cache or warns and continues. CI containers skip the download gracefully.
 
 ## License
 
@@ -128,22 +155,35 @@ ibus engine handwrite-chinese-traditional  # Traditional (tegaki zh_TW model, 11
 
 Both engines can be added to your input sources simultaneously — switch between them like any two input methods.
 
-## Files
+## Repository Structure
 
-| File | Purpose |
-|------|---------|
-| `ibus-engine-handwrite-chinese` | Main engine (Python, Zinnia ctypes, GTK popup, evdev integration) |
-| `handwrite_evdev.py` | Evdev multitouch reader module |
-| `handwrite-chinese-simplified.xml` | IBus component: Simplified Chinese |
-| `handwrite-chinese-traditional.xml` | IBus component: Traditional Chinese |
-| `handwrite-chinese-simplified.svg` | Engine icon: Simplified |
-| `handwrite-chinese-traditional.svg` | Engine icon: Traditional |
-| `99-trackpad-handwrite.rules` | Udev rule for touchpad access |
-| `install.sh` | Install script (Debian-native, accepts `--skip-deps`) |
-| `bootstrap.sh` | Cross-distro install entry point |
-| `restore.sh` | Rollback/restore script |
-| `test_recognition.py` | Synthetic stroke recognition smoke test |
-| `capture_handwriting_for_test.py` | Tool to capture real handwriting strokes for accuracy comparison |
-| `plan-handwriting-accuracy-test.md` | Methodology for comparing tegaki vs 幽兰百合 accuracy |
-| `ZJHandWriting-zh_CN.model` | 幽兰百合 Community v1.1.0 model (9374 chars, installed to `/usr/local/share/ibus-handwrite-chinese/models/`) |
-| `.github/workflows/ci.yml` | CI workflow — lint, test-install, test-bootstrap on 5 distros |
+```
+├── src/
+│   ├── ibus-engine-handwrite-chinese    Main engine (Python, Zinnia ctypes, GTK popup, evdev integration)
+│   └── handwrite_evdev.py               Evdev multitouch reader module
+├── xml/
+│   ├── handwrite-chinese-simplified.xml IBus component: Simplified Chinese
+│   └── handwrite-chinese-traditional.xml IBus component: Traditional Chinese
+├── icons/
+│   ├── handwrite-chinese-simplified.svg Engine icon: Simplified
+│   └── handwrite-chinese-traditional.svg Engine icon: Traditional
+├── tools/
+│   ├── install.sh                       Install script (Debian-native, accepts `--skip-deps`)
+│   ├── restore.sh                       Rollback/restore script
+│   └── 99-trackpad-handwrite.rules      Udev rule for touchpad access
+├── tests/
+│   ├── test_recognition.py             Synthetic stroke recognition smoke test
+│   └── test_data/                      Test stroke data
+├── docs/
+│   ├── screenshot.png                  App screenshot
+│   ├── plan-handwriting-accuracy-test.md Methodology for comparing tegaki vs 幽兰百合 accuracy
+│   └── multi-char-composition-with-phrase-boost-plan.md  V2 feature plan
+├── models/                              Local model cache (gitignored)
+├── .github/workflows/
+│   ├── ci.yml                          Main CI — 5 distros
+│   └── test-release-v0.1.0.yml         v0.1.0 release test — 10 distro versions
+├── bootstrap.sh                        Cross-distro install entry point
+├── README.md
+├── README.zh-CN.md
+└── README.zh-TW.md
+```
