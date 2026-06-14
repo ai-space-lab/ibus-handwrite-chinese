@@ -164,7 +164,7 @@ jobs:
         if: startsWith(matrix.distro, 'fedora')
         run: |
           dnf install -y python3-evdev python3-gobject zinnia \
-            xorg-x11-server-Xvfb wget unzip gtk3 ibus libX11-gobject
+            xorg-x11-server-Xvfb wget unzip gtk3 ibus-libs gobject-introspection
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
             /usr/share/tegaki/models/zinnia
           for m in simplified traditional; do
@@ -225,10 +225,13 @@ jobs:
       - name: Run GTK write test
         if: steps.check_zinnia.outputs.available == 'true'
         run: python3 tests/test_gtk_write_phrase.py
+      - name: Set artifact name
+        run: |
+          printf 'GTK_ARTIFACT_NAME=%s\n' "gtk-write-screenshots-${{ matrix.distro }}" | tr ':/' '-' >> "$GITHUB_ENV"
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gtk-write-screenshots-${{ matrix.distro }}
+          name: ${{ env.GTK_ARTIFACT_NAME }}
           path: tests/screenshots/
           if-no-files-found: warn
