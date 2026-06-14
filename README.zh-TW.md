@@ -1,7 +1,7 @@
 # IBus 中文手寫輸入法
 
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
-[![v0.1.0 Release Test](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml)
+[![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
 
 一款 Linux 平臺的中文手寫輸入法，採用 macOS 風格浮動面板、evdev 觸控板整合和 Zinnia 辨識引擎。
 
@@ -92,33 +92,25 @@ ibus engine handwrite-chinese-traditional  # 繁體中文
 
 ## 測試
 
-兩個 CI 工作流程在每次推送時執行：
+兩個工作流分別覆蓋開發和發佈：
 
 ### 主 CI
 
-[主 CI](.github/workflows/ci.yml) 在 5 個 Docker 容器中執行：
+[主 CI](.github/workflows/ci.yml) 在每次推送/PR 到 `main` 時執行，覆蓋 5 個 Docker 容器：
 - **lint**：shellcheck、xmllint、Python 語法檢查
 - **test-install**：按發行版安裝依賴，驗證 `libzinnia.so` 載入，檢查 Python 語法
 - **test-bootstrap**：完整執行 bootstrap.sh，驗證安裝檔案和模型，執行辨識冒煙測試
+- **test-gtk-write**：在 10 個發行版版本上執行 GTK 書寫模擬，並上傳截圖產物
 
 測試容器：`debian:bookworm`、`ubuntu:24.04`、`fedora:latest`、`archlinux:latest`、`opensuse/tumbleweed`。
 
-### v0.1.0 發佈測試
+### 發佈
 
-[v0.1.0 發佈測試](.github/workflows/test-release-v0.1.0.yml) 在 **10 個發行版版本** 上驗證：
-
-| 發行版 | libzinnia | evdev | 模型 | 引擎 |
-|--------|-----------|-------|------|------|
-| Debian 11 | ✅ | ✅ | ✅ | ✅ |
-| Debian 12 | ✅ | ✅ | ✅ | ✅ |
-| Ubuntu 22.04 | ✅ | ✅ | ✅ | ✅ |
-| Ubuntu 24.04 | ✅ | ✅ | ✅ | ✅ |
-| Fedora 40 | ✅ | ✅ | ✅ | ✅ |
-| Fedora 41 | ✅ | ✅ | ✅ | ✅ |
-| Fedora latest | ✅ | ✅ | ✅ | ✅ |
-| Arch Linux | ✅ | ✅ | ✅ | ✅ |
-| openSUSE Leap | ❌（源中無） | ✅ | ✅ | ✅ |
-| openSUSE Tumbleweed | ✅ | ✅ | ✅ | ✅ |
+[Release](.github/workflows/release.yml) 在 `v*` 標籤推送或手動觸發時執行：
+- 解析發佈標籤和版本號
+- 建置 `.deb`、`.rpm` 和原始碼 tarball
+- 驗證發佈產物
+- 上傳發佈資產到 GitHub Release
 
 ### 辨識冒煙測試
 
@@ -126,7 +118,7 @@ ibus engine handwrite-chinese-traditional  # 繁體中文
 - 水平線 → 辨識為 **一**（得分 > 0.9）
 - 十字形 → 辨識為 **十**（得分 > 0.95）
 
-CI 不測試 IBus、evdev 或 GTK（容器無顯示/硬體）。
+CI 會在 Xvfb 下測試 GTK，但不會在容器中測試真實 IBus、evdev 或觸控板硬體。
 
 ## 已知限制
 
@@ -179,7 +171,7 @@ GPLv3 — 由相依函式庫要求（libzinnia、python3-evdev、ibus）。
 ├── packaging/                            Debian 打包、RPM spec、PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          主 CI — 5 個發行版
-│   └── test-release-v0.1.0.yml         v0.1.0 發佈測試 — 10 個發行版版本
+│   └── release.yml                     發佈建置、驗證、上傳
 ├── bootstrap.sh                        跨發行版安裝入口
 ├── README.md
 ├── README.zh-CN.md

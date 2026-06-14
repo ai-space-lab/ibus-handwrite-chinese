@@ -166,7 +166,6 @@ def run_test():
     engine.win = win
     win.show_all()
     win.present()
-    win._hide_cursor()
 
     while Gtk.events_pending():
         Gtk.main_iteration()

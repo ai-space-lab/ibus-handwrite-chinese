@@ -403,6 +403,7 @@ class HandwriteWin(Gtk.Window):
         self._min_redraw_ms = 16
         self._state = 0
         self._blank_cursor = Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR)
+        self._cursor_hidden = False
         self._trackpad = None
         self._cand_page = 0
         self._page_size = 8
@@ -470,18 +471,20 @@ class HandwriteWin(Gtk.Window):
             self.darea.queue_draw()
             self.start_trackpad()
             self.engine.update_candidates()
-            self._hide_cursor()
         return False
 
-    def _hide_cursor(self):
+    def _set_cursor_hidden(self, hidden):
         gw = self.get_window()
-        if gw:
-            gw.set_cursor(self._blank_cursor)
+        if not gw or self._cursor_hidden == hidden:
+            return
+        gw.set_cursor(self._blank_cursor if hidden else None)
+        self._cursor_hidden = hidden
+
+    def _hide_cursor(self):
+        self._set_cursor_hidden(True)
 
     def _restore_cursor(self):
-        gw = self.get_window()
-        if gw:
-            gw.set_cursor(None)
+        self._set_cursor_hidden(False)
 
     def _do_reset(self):
         self.strokes = []
@@ -585,9 +588,12 @@ class HandwriteWin(Gtk.Window):
             return
         px, py = self._pixel_coords(frac_x, frac_y)
         self.cur_stroke.append((px, py))
+        if len(self.cur_stroke) > 1:
+            self._hide_cursor()
         self._throttle_redraw()
 
     def on_trackpad_end(self, points_frac):
+        self._restore_cursor()
         if not points_frac:
             self.drawing = False
             return
@@ -602,6 +608,7 @@ class HandwriteWin(Gtk.Window):
         self.engine.update_candidates()
 
     def on_trackpad_tap(self, x_frac):
+        self._restore_cursor()
         delete_at = 0.82
         if x_frac > delete_at:
             self.on_delete_tap(None)
@@ -762,6 +769,7 @@ class HandwriteWin(Gtk.Window):
 
     def destroy(self):
         self.stop_trackpad()
+        self._restore_cursor()
         if self._delete_timer:
             GLib.source_remove(self._delete_timer)
             self._delete_timer = None
@@ -862,7 +870,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.win.show_all()
         self._position_window()
         self.win.present()
-        self.win._hide_cursor()
         self.win.start_trackpad()
         if self._watch_id is None:
             self._watch_id = GLib.timeout_add(500, self._check_engine)
@@ -911,7 +918,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             current = self._bus.get_global_engine()
             if current and current.get_name() != self._engine_name:
                 if self.win.get_visible():
-                    self.win.hide()
+                    self.win._do_disable()
                 self._watch_id = None
                 return False
         return True
@@ -1108,7 +1115,6 @@ def main():
         engine.win = win
         win.show_all()
         win.present()
-        win._hide_cursor()
         Gtk.main()
         return
 

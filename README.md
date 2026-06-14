@@ -1,8 +1,7 @@
 # IBus Chinese Handwriting Input Method
 
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
-[![v0.1.0 Release Test](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml)
-[![Build Packages](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/build-packages.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/build-packages.yml)
+[![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
 
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
@@ -107,35 +106,25 @@ Packages are built automatically by CI on tag push. Post-install downloads tegak
 
 ## Testing
 
-Two CI workflows run on every push:
+Two workflows cover development and releases:
 
 ### Main CI
 
-[Main CI](.github/workflows/ci.yml) runs across 5 Docker containers:
+[Main CI](.github/workflows/ci.yml) runs on every push/PR to `main` across 5 Docker containers:
 - **lint**: shellcheck, xmllint, Python syntax checks
 - **test-install**: installs dependencies per distro, verifies `libzinnia.so` loads, checks Python syntax
 - **test-bootstrap**: full bootstrap.sh end-to-end run, verifies installed files and model placement, runs recognition smoke test
+- **test-gtk-write**: GTK writing simulation across 10 distro versions, captures screenshots as artifacts
 
 Containers tested: `debian:bookworm`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`, `opensuse/tumbleweed`.
 
-### v0.1.0 Release Test
+### Release
 
-The [v0.1.0 release test](.github/workflows/test-release-v0.1.0.yml) validates the release across **10 distro versions**:
-
-| Distro | libzinnia | evdev | Model | Engine |
-|--------|-----------|-------|-------|--------|
-| Debian 11 | ✅ | ✅ | ✅ | ✅ |
-| Debian 12 | ✅ | ✅ | ✅ | ✅ |
-| Ubuntu 22.04 | ✅ | ✅ | ✅ | ✅ |
-| Ubuntu 24.04 | ✅ | ✅ | ✅ | ✅ |
-| Fedora 40 | ✅ | ✅ | ✅ | ✅ |
-| Fedora 41 | ✅ | ✅ | ✅ | ✅ |
-| Fedora latest | ✅ | ✅ | ✅ | ✅ |
-| Arch Linux | ✅ | ✅ | ✅ | ✅ |
-| openSUSE Leap | ❌ (not in repos) | ✅ | ✅ | ✅ |
-| openSUSE Tumbleweed | ✅ | ✅ | ✅ | ✅ |
-
-The test installs engine files to `/usr/local/bin`, verifies libzinnia loading via ctypes, checks Python syntax, confirms model placement, and validates module imports.
+[Release](.github/workflows/release.yml) runs on `v*` tag pushes or manual dispatch:
+- resolve release tag/version
+- build `.deb`, `.rpm`, and source tarball
+- verify packaged artifacts
+- upload release assets to GitHub Release
 
 ### Recognition Smoke Test
 
@@ -143,7 +132,7 @@ The recognition smoke test (`tests/test_recognition.py`) creates synthetic strok
 - Horizontal line → recognized as **一** (score > 0.9)
 - Cross shape → recognized as **十** (score > 0.95)
 
-CI does not test IBus, evdev, or GTK (no display/hardware in containers).
+CI tests GTK under Xvfb, but not live IBus, evdev, or real touchpad hardware in containers.
 
 ## Known Limitations
 
@@ -195,7 +184,7 @@ Both engines can be added to your input sources simultaneously — switch betwee
 ├── packaging/                            Debian packaging, RPM spec, PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          Main CI — 5 distros
-│   └── test-release-v0.1.0.yml         v0.1.0 release test — 10 distro versions
+│   └── release.yml                     Release build, verify, upload
 ├── bootstrap.sh                        Cross-distro install entry point
 ├── README.md
 ├── README.zh-CN.md
