@@ -12,17 +12,17 @@ BUILDDIR="/tmp/${PACKAGE}-deb-build"
 rm -rf "$BUILDDIR"
 mkdir -p "$BUILDDIR/DEBIAN"
 
-# Copy control files
-cp "$ROOTDIR/packaging/debian/control" "$BUILDDIR/DEBIAN/"
+# Build binary control file (strip source stanza)
+# The source file has both source and binary stanzas separated by a blank line
+awk 'BEGIN{pkg=0} /^Package:/{pkg=1} pkg{print}' "$ROOTDIR/packaging/debian/control" > "$BUILDDIR/DEBIAN/control"
 cp "$ROOTDIR/packaging/debian/copyright" "$BUILDDIR/DEBIAN/"
 cp "$ROOTDIR/packaging/debian/changelog" "$BUILDDIR/DEBIAN/changelog"
 cp "$ROOTDIR/packaging/debian/postinst" "$BUILDDIR/DEBIAN/"
 cp "$ROOTDIR/packaging/debian/prerm" "$BUILDDIR/DEBIAN/"
 chmod 755 "$BUILDDIR/DEBIAN/postinst" "$BUILDDIR/DEBIAN/prerm"
 
-# Add version to control
+# Set version in binary control
 sed -i "s/^Version:.*/Version: ${VERSION}/" "$BUILDDIR/DEBIAN/control"
-sed -i "s/^Maintainer:.*/Maintainer: $(git config user.name 2>/dev/null || echo 'ibus-handwrite-chinese developers') <$(git config user.email 2>/dev/null || echo 'dev@ibus-handwrite-chinese.example.com')>/" "$BUILDDIR/DEBIAN/control"
 
 # Copy files into package tree
 mkdir -p "$BUILDDIR/usr/local/bin"
