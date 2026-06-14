@@ -9,6 +9,7 @@ Rules-Requires-Root: no
 
 Package: ibus-handwrite-chinese
 Version: 0.1.0
+Maintainer: ibus-handwrite-chinese developers <dev@ibus-handwrite-chinese.example.com>
 Architecture: all
 Depends: python3 (>= 3.6),
          python3-evdev,

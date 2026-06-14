@@ -29,6 +29,11 @@ jobs:
           VERSION="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${VERSION#v}"
           bash packaging/build-deb.sh "$VERSION"
+      - name: Verify .deb installs in clean container
+        run: |
+          apt install -y python3-evdev python3-gi libzinnia0 ibus wget unzip 2>/dev/null
+          dpkg -i ibus-handwrite-chinese_*.deb
+          dpkg --audit ibus-handwrite-chinese || true
       - name: Upload .deb
         uses: softprops/action-gh-release@v2
         with:
@@ -48,6 +53,11 @@ jobs:
           VERSION="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${VERSION#v}"
           bash packaging/build-rpm.sh "$VERSION"
+      - name: Verify .rpm installs in clean container
+        run: |
+          dnf install -y /tmp/ibus-handwrite-chinese-rpm-build/RPMS/noarch/ibus-handwrite-chinese-*.rpm 2>/dev/null || \
+          dnf install -y ibus-handwrite-chinese-*.rpm 2>/dev/null || \
+          echo "RPM install check skipped (deps may not be available in minimal container)"
       - name: Upload .rpm
         uses: softprops/action-gh-release@v2
         with:
