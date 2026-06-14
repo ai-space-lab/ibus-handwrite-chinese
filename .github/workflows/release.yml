@@ -193,7 +193,7 @@ jobs:
             archlinux:*)
               pacman -S --noconfirm python-evdev python-gobject gtk3 ibus \
                 xorg-server-xvfb wget unzip p7zip
-              su builder -c "yay -S --noconfirm zinnia"
+              su builder -c "yay -S --needed --noconfirm zinnia tegaki-zinnia-simplified-chinese"
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
               (cd "$tmpdir" && ./tools/install.sh --skip-deps --no-restart)
