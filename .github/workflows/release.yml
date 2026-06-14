@@ -183,7 +183,17 @@ jobs:
               if [ "${{ matrix.distro }}" = "opensuse/tumbleweed" ]; then
                 zypper --non-interactive removerepo repo-oss || true
                 zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
-                zypper --non-interactive --gpg-auto-import-keys refresh
+                refresh_ok=false
+                for attempt in 1 2 3; do
+                  if zypper --non-interactive --gpg-auto-import-keys refresh; then
+                    refresh_ok=true
+                    break
+                  fi
+                  if [ "$attempt" -lt 3 ]; then
+                    sleep 30
+                  fi
+                done
+                [ "$refresh_ok" = true ]
               fi
               zypper install -y python3-evdev python3-gobject ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
