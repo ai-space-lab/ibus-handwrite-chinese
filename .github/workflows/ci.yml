@@ -150,7 +150,8 @@ jobs:
         run: |
           apt update
           apt install -y python3-evdev python3-gi python3-gi-cairo \
-            libzinnia0 xvfb wget unzip tegaki-zinnia-simplified-chinese
+            libzinnia0 xvfb wget unzip tegaki-zinnia-simplified-chinese \
+            gir1.2-gtk-3.0
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
             /usr/share/tegaki/models/zinnia
           if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
@@ -163,7 +164,7 @@ jobs:
         if: startsWith(matrix.distro, 'fedora')
         run: |
           dnf install -y python3-evdev python3-gobject zinnia \
-            xorg-x11-server-Xvfb wget unzip
+            xorg-x11-server-Xvfb wget unzip gtk3
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
             /usr/share/tegaki/models/zinnia
           for m in simplified traditional; do
@@ -175,7 +176,7 @@ jobs:
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
         run: |
-          pacman -S --noconfirm python-evdev python-gobject xorg-server-xvfb wget unzip
+          pacman -S --noconfirm python-evdev python-gobject gtk3 xorg-server-xvfb wget unzip
           su builder -c "yay -S --noconfirm zinnia"
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
             /usr/share/tegaki/models/zinnia
@@ -188,7 +189,7 @@ jobs:
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
-          zypper install -y python3-evdev python3-gobject xvfb-run wget unzip
+          zypper install -y python3-evdev python3-gobject typelib-1_0-Gtk-3_0 xvfb-run wget unzip
           zypper install -y zinnia || echo "zinnia not in repos, continuing"
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
             /usr/share/tegaki/models/zinnia
