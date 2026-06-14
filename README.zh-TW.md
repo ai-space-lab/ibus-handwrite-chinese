@@ -140,6 +140,18 @@ CI 不測試 IBus、evdev 或 GTK（容器無顯示/硬體）。
 
 GPLv3 — 由相依函式庫要求（libzinnia、python3-evdev、ibus）。
 
+## 軟體套件
+
+預先建置的軟體套件可在 [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) 頁面下載：
+
+| 格式 | 安裝命令 | 發行版 |
+|------|----------|--------|
+| `.deb` | `sudo dpkg -i <file> && sudo apt install -f` | Debian 11+, Ubuntu 22.04+, Mint 21+ |
+| `.rpm` | `sudo rpm -i <file>` | Fedora 40+, openSUSE Tumbleweed |
+| `PKGBUILD` | 參考 `packaging/PKGBUILD` | Arch Linux（需手動提交到 AUR）|
+
+軟體套件在推送標籤時由 CI 自動建置。安裝後自動下載 tegaki 模型（GitHub）和幽蘭百合模型（Gitee，非致命失敗）。
+
 ## 目錄結構
 
 ```
@@ -164,6 +176,7 @@ GPLv3 — 由相依函式庫要求（libzinnia、python3-evdev、ibus）。
 │   ├── plan-handwriting-accuracy-test.md tegaki 與幽蘭百合精度對比測試方案
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 功能規劃
 ├── models/                              本地模型快取（gitignore）
+├── packaging/                            Debian 打包、RPM spec、PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          主 CI — 5 個發行版
 │   └── test-release-v0.1.0.yml         v0.1.0 發佈測試 — 10 個發行版版本

@@ -70,6 +70,18 @@ ibus engine handwrite-chinese-traditional  # 繁体中文
 
 或者从桌面环境的 IBus 菜单中选择 **Chinese Handwriting (Simplified)** 或 **Chinese Handwriting (Traditional)**。
 
+## 软件包
+
+预构建的软件包可在 [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) 页面下载：
+
+| 格式 | 安装命令 | 发行版 |
+|------|----------|--------|
+| `.deb` | `sudo dpkg -i <file> && sudo apt install -f` | Debian 11+, Ubuntu 22.04+, Mint 21+ |
+| `.rpm` | `sudo rpm -i <file>` | Fedora 40+, openSUSE Tumbleweed |
+| `PKGBUILD` | 参考 `packaging/PKGBUILD` | Arch Linux（需手动提交到 AUR）|
+
+软件包在推送标签时由 CI 自动构建。安装后自动下载 tegaki 模型（GitHub）和幽兰百合模型（Gitee，非致命失败）。
+
 ## 使用方法
 
 1. 从 IBus 菜单切换到 **Chinese Handwriting (Simplified)** 或 **Chinese Handwriting (Traditional)**
@@ -164,6 +176,7 @@ GPLv3 — 由依赖库要求（libzinnia、python3-evdev、ibus）。
 │   ├── plan-handwriting-accuracy-test.md tegaki 与幽兰百合精度对比测试方案
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 功能规划
 ├── models/                              本地模型缓存（gitignore）
+├── packaging/                            Debian 打包、RPM spec、PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          主 CI — 5 个发行版
 │   └── test-release-v0.1.0.yml         v0.1.0 发布测试 — 10 个发行版版本

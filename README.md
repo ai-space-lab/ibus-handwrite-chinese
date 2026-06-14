@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
 [![v0.1.0 Release Test](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/test-release-v0.1.0.yml)
+[![Build Packages](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/build-packages.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/build-packages.yml)
 
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
@@ -71,6 +72,18 @@ ibus engine handwrite-chinese-traditional  # Traditional Chinese
 ```
 
 Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditional)** from your desktop's IBus menu.
+
+## Packages
+
+Pre-built packages are available on the [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) page:
+
+| Format | Command | Distros |
+|--------|---------|---------|
+| `.deb` | `sudo dpkg -i <file> && sudo apt install -f` | Debian 11+, Ubuntu 22.04+, Mint 21+ |
+| `.rpm` | `sudo rpm -i <file>` | Fedora 40+, openSUSE Tumbleweed |
+| `PKGBUILD` | Reference in `packaging/PKGBUILD` | Arch Linux (submit to AUR manually) |
+
+Packages are built automatically by CI on tag push. Post-install downloads tegaki models from GitHub and 幽兰百合 from Gitee (best-effort, non-fatal if Gitee is unreachable).
 
 ## Usage
 
@@ -179,6 +192,7 @@ Both engines can be added to your input sources simultaneously — switch betwee
 │   ├── plan-handwriting-accuracy-test.md Methodology for comparing tegaki vs 幽兰百合 accuracy
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 feature plan
 ├── models/                              Local model cache (gitignored)
+├── packaging/                            Debian packaging, RPM spec, PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          Main CI — 5 distros
 │   └── test-release-v0.1.0.yml         v0.1.0 release test — 10 distro versions
