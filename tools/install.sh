@@ -2,8 +2,10 @@
 set -e
 
 SKIP_DEPS=false
+SKIP_RESTART=false
 for arg in "$@"; do
     [ "$arg" = "--skip-deps" ] && SKIP_DEPS=true
+    [ "$arg" = "--no-restart" ] && SKIP_RESTART=true
 done
 
 if [ "$EUID" -ne 0 ]; then
@@ -94,7 +96,11 @@ mkdir -p /usr/local/share/ibus-handwrite-chinese/icons
 cp icons/handwrite-chinese-simplified.svg icons/handwrite-chinese-traditional.svg /usr/local/share/ibus-handwrite-chinese/icons/
 
 echo "【7】 Restarting IBus..."
-ibus restart 2>/dev/null || ibus-daemon --replace --daemonize 2>/dev/null || true
+if [ "$SKIP_RESTART" = true ]; then
+    echo "  Skipping IBus restart"
+else
+    timeout 5s ibus restart 2>/dev/null || timeout 5s ibus-daemon --replace --daemonize 2>/dev/null || true
+fi
 
 echo ""
 echo "=== Install complete ==="

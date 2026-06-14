@@ -196,7 +196,7 @@ jobs:
               su builder -c "yay -S --noconfirm zinnia"
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
-              (cd "$tmpdir" && ./tools/install.sh --skip-deps)
+              (cd "$tmpdir" && ./tools/install.sh --skip-deps --no-restart)
               ;;
           esac
           echo "available=true" >> "$GITHUB_OUTPUT"
