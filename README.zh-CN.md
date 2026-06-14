@@ -5,7 +5,7 @@
 
 一款 Linux 平台的中文手写输入法，采用 macOS 风格浮动面板、evdev 触摸板集成和 Zinnia 识别引擎。
 
-![screenshot](screenshot.png)
+![screenshot](docs/screenshot.png)
 
 ## 功能特点
 
@@ -172,7 +172,7 @@ GPLv3 — 由依赖库要求（libzinnia、python3-evdev、ibus）。
 │   ├── test_recognition.py             合成笔画识别冒烟测试
 │   └── test_data/                      测试笔画数据
 ├── docs/
-│   ├── screenshot.png                   应用截图
+│   └── screenshot.png                   应用截图
 │   ├── plan-handwriting-accuracy-test.md tegaki 与幽兰百合精度对比测试方案
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 功能规划
 ├── models/                              本地模型缓存（gitignore）

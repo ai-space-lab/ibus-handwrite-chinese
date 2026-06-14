@@ -8,7 +8,7 @@
 
 A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev touchpad integration, and Zinnia-based recognition.
 
-![screenshot](screenshot.png)
+![screenshot](docs/screenshot.png)
 
 ## Features
 
@@ -188,7 +188,7 @@ Both engines can be added to your input sources simultaneously — switch betwee
 │   ├── test_recognition.py             Synthetic stroke recognition smoke test
 │   └── test_data/                      Test stroke data
 ├── docs/
-│   ├── screenshot.png                  App screenshot
+│   └── screenshot.png                  App screenshot
 │   ├── plan-handwriting-accuracy-test.md Methodology for comparing tegaki vs 幽兰百合 accuracy
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 feature plan
 ├── models/                              Local model cache (gitignored)
