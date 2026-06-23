@@ -47,26 +47,72 @@ Any integration plan must account for this asymmetry. PP-OCR cannot replace the 
 | Accuracy on single chars | ~80% top-1 (幽兰百合) | Higher potential with fine-tuned CNN |
 
 ### Step 2.2 Identify integration points in the engine
-- [ ] `ZinniaHandle` class (lines ~175-263) — needs recognition-backend abstraction layer.
+- [ ] `ZinniaHandle` class (lines ~175-263) — replace entirely with `OnnxHandle` for simplified engine (no Zinnia fallback needed).
 - [ ] `HandwriteEngine.update_candidates()` (line ~934) — where `zinnia.classify()` is called. Primary integration point.
 - [ ] `HandwriteEngine.__init__()` (line ~782) — model loading and initialization.
 - [ ] `TestCommitEngine` (line ~971) — test-mode equivalent must also be updated.
 - [ ] Stroke input pipeline: evdev → `on_stroke_end` → `zinnia.add_stroke(pixel_pts)` — strokes are in pixel coords relative to drawing area.
+- [ ] Stroke rendering: current `rebuild_pix()` (line ~638) already renders strokes via Cairo. This same Cairo pipeline can render to an offscreen surface → numpy array for ONNX inference.
 
 ### Step 2.3 Evaluate dependencies
-- [ ] **onnxruntime** — new dependency, not currently in packaging. Check if available in Debian/Ubuntu/Fedora/Arch repos (`python3-onnxruntime` or pip-based).
-- [ ] **numpy** — needed for tensor construction, likely already transitively available.
-- [ ] **OpenCV (cv2)** — used in chinese-brush-ime for rendering. Evaluate alternatives:
-  - Option A: Use Cairo (already a GTK dependency) to render strokes to a `GdkPixbuf` or Cairo image surface → numpy array. Eliminates OpenCV dependency.
-  - Option B: Use pure Python PIL/Pillow (fewer deps than OpenCV).
-  - Option C: Accept OpenCV (`python3-opencv` available in most distros but heavy).
-- [ ] **opencc-python** — optional, for script conversion in ranking.
+
+| Dependency | Needed? | In current project | Notes |
+|---|---|---|---|
+| `onnxruntime` | **YES** | No | New dependency. Check distro packages: `python3-onnxruntime` (Debian/Ubuntu/Fedora/Arch?). If not available, fallback to `pip install onnxruntime`. CPU-only build (~5 MB). |
+| `numpy` | **YES** | No direct dep, but may be transitive | Lightweight, needed for tensor construction. Standard distro package (`python3-numpy`). |
+| Cairo (pycairo) | **YES** | **Already a GTK3 dep** ✓ | Comes with `python3-gi` (GTK3 GObject introspection). The engine already imports `cairo` at lines 639/708 and uses `cairo.ImageSurface` for rendering strokes. Can render to an offscreen surface → `get_data()` → numpy array. **No new dep needed for rendering.** |
+| OpenCV (cv2) | **NO** | No | chinese-brush-ime uses it, but Cairo can do the same job. Avoid — adds ~200 MB to install. |
+| PIL/Pillow | **NO** | No | Cairo+NumPy can handle everything. Avoid unnecessary dep. |
+| `opencc-python` | Optional | No | For simplified→traditional conversion if needed. But PP-OCR is simplified-only, so this is only relevant if you want to serve traditional users via conversion. |
+
+**Rendering approach (Cairo → numpy, no OpenCV needed):**
+The current `rebuild_pix()` method (line 638-655) already demonstrates Cairo stroke rendering. For ONNX:
+```python
+import cairo
+import numpy as np
+
+# Render strokes to offscreen surface
+surface = cairo.ImageSurface(cairo.FORMAT_A8, width, height)
+cr = cairo.Context(surface)
+# ... draw strokes same as rebuild_pix() ...
+buf = surface.get_data()  # returns buffer/memoryview
+img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width)
+# Now img is a grayscale numpy array → feed to _preprocess()
+```
+This reuses Cairo (already a dependency) and adds only `numpy`. Zero additional rendering packages.
 
 ### Step 2.4 Performance & latency analysis
-- [ ] Compare Zinnia inference time (~5ms) vs PP-OCRv4/v6 on CPU (~50-200ms).
-- [ ] Impact on user experience: stroke-end → recognition → candidate display latency.
-- [ ] Options to mitigate: run recognition in a background thread, pre-render during stroke drawing, use smaller model (v4 vs v6).
-- [ ] Model loading time: ONNX models ~10-20 MB, load time ~200-500ms on first inference.
+
+**Current Zinnia latency:** ~5–10ms per recognition (synchronous, on GTK main thread).
+
+**PP-OCRv6 expected latency:** ~50–200ms on CPU for a 21 MB CNN model. PP-OCRv4 (10 MB) is faster (~30–100ms) but user chose v6. The larger dict (18,708 chars vs 6,625) increases the classification head size, adding to inference time.
+
+**Latency budget breakdown (estimated):**
+
+| Stage | Time |
+|---|---|
+| Stroke → Cairo render → numpy array | ~1–5ms |
+| ONNX inference (PP-OCRv6 on CPU) | ~80–200ms |
+| CTC decode + candidate ranking | ~1–5ms |
+| **Total synchronous** | **~80–210ms** |
+
+**Impact analysis:**
+- Current behavior: stroke end → `zinnia.classify()` (5ms) → GTK idle → redraw candidates. Feels instant.
+- With synchronous ONNX: stroke end → UI freezes for 80–200ms → candidates appear. This is noticeable.
+- Humans perceive delays >100ms as lag. At 200ms, it feels sluggish.
+
+**Mitigation options:**
+
+| Option | Approach | Trade-off |
+|---|---|---|
+| **A. Background thread** | Run ONNX inference in a `threading.Thread`, emit results via `GLib.idle_add` back to main thread | Adds thread safety complexity; Cairo render still on main thread (fast). Best UX. |
+| **B. chinese-brush-ime style pause** | Wait ~50ms after last stroke before triggering recognition. Acts as debounce, gives user time to finish multi-stroke chars. | Total latency = 50ms pause + 80–200ms inference = ~130–250ms from last stroke. Some users may find the delay frustrating. |
+| **C. Accept sync latency** | Run ONNX synchronously. 80–200ms might be tolerable for a handwriting input. | Perceptibly slower than Zinnia but might be acceptable for accuracy gains. |
+| **D. Model distillation** | Use PP-OCRv4 (10 MB, ~30–100ms) as primary, v6 as fallback or optional upgrade. | User chose v6; this contradicts the requirement. |
+
+**Recommended:** **Option A** — run ONNX inference in a background thread. The rendering (Cairo → numpy) stays on the main thread (~1–5ms). The result callback updates candidates via `GLib.idle_add`. This keeps the UI responsive.
+
+**Model loading time:** ~200–500ms on first session load. Load during daemon/engine startup, not on first stroke.
 
 ### Step 2.5 Traditional Chinese strategy
 PP-OCR does NOT support Traditional Chinese. This is not a model-size question — the training data is exclusively simplified. Options:
@@ -77,45 +123,46 @@ PP-OCR does NOT support Traditional Chinese. This is not a model-size question �
 
 ---
 
-## Phase 3 — Design Options
+## Phase 3 — Design Decision
 
-### CRITICAL: These options apply ONLY to `handwrite-chinese-simplified`
-The `handwrite-chinese-traditional` engine will continue using Zinnia (tegaki zh_TW) in all scenarios unless a Traditional Chinese ONNX model is separately sourced. See Step 2.5 for traditional options.
+### User decisions (confirmed)
+- **Target model:** PP-OCRv6 (21 MB, 18,708 chars)
+- **Backward compatibility:** NOT needed for simplified — PP-OCR fully replaces Zinnia
+- **Handwriting accuracy:** PP-OCRv6 is good enough out of the box — no fine-tuning needed
 
-### Option A: Full Replacement (PP-OCR only, simplified only)
-- Replace ZinniaHandle with OnnxHandle for simplified engine.
-- Traditional engine stays on Zinnia (asymmetric architecture).
-- Remove libzinnia dependency from packaging? NO — traditional still needs it.
-- Pros: Cleaner simplified path.
-- Cons: libzinnia still needed for traditional; no fallback if ONNX fails.
+### Chosen design: Full Replacement for simplified, Zinnia unchanged for traditional
 
-### Option B: Hybrid Primary (PP-OCR primary, Zinnia fallback)
-- Keep ZinniaHandle. Add OnnxHandle as new class.
-- Simplified: PP-OCR first → low confidence → Zinnia fallback.
-- Traditional: Zinnia only (unchanged).
-- Pros: Best simplified accuracy; instant fallback; traditional untouched.
-- Cons: libzinnia remains a dependency; two code paths for simplified.
+```
+┌──────────────────────────────────────────────────┐
+│  ibus-handwrite-chinese                          │
+│                                                  │
+│  handwrite-chinese-simplified  ──►  OnnxHandle   │
+│                                    (PP-OCRv6,    │
+│                                     ONNX Runtime, │
+│                                     Cairo→numpy,  │
+│                                     background    │
+│                                     thread)       │
+│                                                  │
+│  handwrite-chinese-traditional ──►  ZinniaHandle  │
+│                                    (tegaki zh_TW, │
+│                                     unchanged)    │
+└──────────────────────────────────────────────────┘
+```
 
-### Option C: Hybrid Parallel (both run on simplified, pick best)
-- Run Zinnia and PP-OCR in parallel for simplified.
-- Merge candidate lists with score weighting.
-- Pros: Highest simplified accuracy.
-- Cons: Double compute; complex merging; traditional still Zinnia-only.
+### What this means:
+- **Simplified engine:** Remove ZinniaHandle, replace with `OnnxHandle`. Cairo renders strokes → numpy → ONNX Runtime inference → CTC decode → candidates.
+- **Traditional engine:** Completely untouched. Still uses Zinnia + tegaki zh_TW model.
+- **libzinnia dependency:** Still required for traditional engine. Cannot remove from packaging.
+- **`OnnxHandle` class:** No need for abstract interface if simplified engine is the sole adopter. But designing one makes future backends easier.
+- **Background thread:** ONNX inference runs off the main thread to avoid UI freezing (~80–200ms inference).
 
-### Option D: Dual-Mode Configurable (per engine)
-- Add backend selection via env var or config.
-- `IBUS_HANDWRITE_RECOGNIZER` = `zinnia` (default) or `ppocr`.
-- If set to `ppocr` on traditional engine → fallback to Zinnia with warning.
-- Implement abstract `RecognizerBackend` interface.
-- Pros: Backward compatible; user choice; incremental migration path.
-- Cons: Two code paths; asymmetric behavior between engines.
-
-### Recommendation
-**Start with Option D on simplified only, then migrate to Option B**:
-1. Implement `RecognizerBackend` abstract interface + `OnnxHandle` class.
-2. Add PP-OCR as opt-in for simplified engine (`IBUS_HANDWRITE_RECOGNIZER=ppocr`).
-3. After validation, make PP-OCR the default primary for simplified, Zinnia fallback (Option B).
-4. Traditional engine stays Zinnia-only throughout.
+### Execution plan:
+1. Create `OnnxHandle` class with: Cairo → numpy rendering, ONNX session loading, `_preprocess()` tensor construction, inference, CTC decode (`_score_characters()`)
+2. Wire into `HandwriteEngine.__init__()` — load ONNX model + dict on engine start
+3. Replace `self.zinnia.add_stroke()` / `self.zinnia.classify()` calls with OnnxHandle equivalents
+4. Offload classification to `threading.Thread` + `GLib.idle_add` for candidate update
+5. Update `TestCommitEngine` with equivalent OnnxHandle path
+6. Traditional engine: zero changes
 
 ---
 
@@ -210,13 +257,15 @@ The `handwrite-chinese-traditional` engine will continue using Zinnia (tegaki zh
 | `/tmp/chinese-brush-ime/daemon/chinese_brush_ime/preprocessing.py` | Stroke → image rendering (reference) |
 | `/tmp/chinese-brush-ime/daemon/chinese_brush_ime/ranking.py` | Candidate ranking + LM + user freq (reference) |
 
-## Appendix — Key Questions to Resolve
+## Appendix — Answered Questions (Decisions Recorded)
 
-1. **ONNX model source**: Use PP-OCRv4_rec (10 MB, 6625 chars) from HuggingFace? Or fine-tune on handwriting?
-2. **Rendering dependency**: Cairo (already have GTK) vs OpenCV (heavy) vs Pillow (lightweight)?
-3. **Latency acceptability**: What's the maximum acceptable latency between stroke end and candidate display? If >100ms, need background thread.
-4. **Backward compatibility**: Should Zinnia remain the default until PP-OCR is validated, or switch immediately?
-5. **Model fine-tuning**: Is the PP-OCR general OCR model good enough for handwriting, or does it need fine-tuning on handwriting data?
-6. ~~Traditional Chinese: Does PP-OCR support traditional characters?~~ **CONFIRMED: PP-OCR does NOT support Traditional Chinese.** This is a hard constraint, not a question. See Step 2.5 for Traditional Chinese strategy options.
-7. **Model version**: Which PP-OCR version to target? v4 (10 MB, 6625 chars) vs v5 vs v6 (21 MB, 18708 chars). Trade-off between coverage and size/latency.
-8. **Engine separation**: Should the `RecognizerBackend` selection be per-engine (simplified vs traditional) or global? Simplified can default to PP-OCR; traditional must default to Zinnia.
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | ONNX model source | **PP-OCRv6** from HuggingFace (`PaddlePaddle/PP-OCRv6_small_rec_onnx`) or chinese-brush-ime mirror |
+| 2 | Rendering dependency | **Cairo** (already a dep via GTK3) → numpy. No OpenCV, no Pillow. |
+| 3 | Latency acceptability | **~80–200ms expected**. Must use **background thread** to avoid UI freeze. |
+| 4 | Backward compatibility | **Not needed** for simplified. Zinnia fully replaced by PP-OCRv6. |
+| 5 | Model fine-tuning | **Not needed** — PP-OCRv6 is good enough for handwriting out of the box. |
+| 6 | Traditional Chinese support | **PP-OCR does NOT support Traditional Chinese** (hard constraint). Traditional engine stays on Zinnia. |
+| 7 | Model version | **PP-OCRv6** (21 MB, 18,708 chars). |
+| 8 | Engine separation | **Per-engine**: Simplified → PP-OCRv6. Traditional → Zinnia (unchanged). |
