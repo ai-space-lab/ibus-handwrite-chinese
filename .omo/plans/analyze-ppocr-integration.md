@@ -3,6 +3,13 @@
 ## Goal
 Analyze the feasibility, architecture, and phased approach for replacing or supplementing the current Zinnia-based recognition in `handwrite-chinese-simplified` with a PP-OCR deep-learning model (via ONNX Runtime), informed by the implementation in `ai-space-lab/chinese-brush-ime`.
 
+### CRITICAL CONSTRAINT — Simplified Chinese only
+**PP-OCR models (v4/v5/v6) recognize Simplified Chinese characters only.** They do NOT support Traditional Chinese. This repo has two separate IBus engines:
+- `handwrite-chinese-simplified` — currently uses 幽兰百合 (9374 chars, primarily simplified) with tegaki zh_CN fallback
+- `handwrite-chinese-traditional` — currently uses tegaki zh_TW (11853 chars, traditional)
+
+Any integration plan must account for this asymmetry. PP-OCR cannot replace the traditional engine's recognizer.
+
 ---
 
 ## Phase 1 — Information Gathering & Reference Study
@@ -61,40 +68,54 @@ Analyze the feasibility, architecture, and phased approach for replacing or supp
 - [ ] Options to mitigate: run recognition in a background thread, pre-render during stroke drawing, use smaller model (v4 vs v6).
 - [ ] Model loading time: ONNX models ~10-20 MB, load time ~200-500ms on first inference.
 
+### Step 2.5 Traditional Chinese strategy
+PP-OCR does NOT support Traditional Chinese. This is not a model-size question — the training data is exclusively simplified. Options:
+- [ ] **Zinnia remains forever** for `handwrite-chinese-traditional`. No change to traditional engine.
+- [ ] **Find a Traditional Chinese ONNX model** — trOCR (HuggingFace), or fine-tune a separate PP-OCR model on traditional data (requires PaddlePaddle training pipeline, large effort).
+- [ ] **Use OpenCC for conversion** — recognize simplified, convert output to traditional via OpenCC (lossy, may miss region-specific characters).
+- [ ] **Accept asymmetry**: simplified engine gets the new ONNX backend; traditional engine keeps Zinnia. Both engines coexist as separate IBus components (already the current architecture).
+
 ---
 
 ## Phase 3 — Design Options
 
-### Option A: Full Replacement (PP-OCR only)
-- Replace ZinniaHandle with OnnxHandle class.
-- Remove libzinnia dependency from packaging.
-- Pros: Cleaner codebase, one recognition path.
-- Cons: Loses fast Zinnia fallback; latency impact on all inputs.
+### CRITICAL: These options apply ONLY to `handwrite-chinese-simplified`
+The `handwrite-chinese-traditional` engine will continue using Zinnia (tegaki zh_TW) in all scenarios unless a Traditional Chinese ONNX model is separately sourced. See Step 2.5 for traditional options.
+
+### Option A: Full Replacement (PP-OCR only, simplified only)
+- Replace ZinniaHandle with OnnxHandle for simplified engine.
+- Traditional engine stays on Zinnia (asymmetric architecture).
+- Remove libzinnia dependency from packaging? NO — traditional still needs it.
+- Pros: Cleaner simplified path.
+- Cons: libzinnia still needed for traditional; no fallback if ONNX fails.
 
 ### Option B: Hybrid Primary (PP-OCR primary, Zinnia fallback)
-- Keep ZinniaHandle as-is. Add OnnxHandle as new class.
-- `HandwriteEngine` tries PP-OCR first. If confidence < threshold or model missing, falls back to Zinnia.
-- Pros: Best accuracy when PP-OCR works; instant fallback when it doesn't.
-- Cons: Two model loading paths, twice the code to maintain.
+- Keep ZinniaHandle. Add OnnxHandle as new class.
+- Simplified: PP-OCR first → low confidence → Zinnia fallback.
+- Traditional: Zinnia only (unchanged).
+- Pros: Best simplified accuracy; instant fallback; traditional untouched.
+- Cons: libzinnia remains a dependency; two code paths for simplified.
 
-### Option C: Hybrid Parallel (both run, pick best)
-- Run Zinnia and PP-OCR in parallel.
+### Option C: Hybrid Parallel (both run on simplified, pick best)
+- Run Zinnia and PP-OCR in parallel for simplified.
 - Merge candidate lists with score weighting.
-- Pros: Highest potential accuracy.
-- Cons: Double the compute, complex merging logic.
+- Pros: Highest simplified accuracy.
+- Cons: Double compute; complex merging; traditional still Zinnia-only.
 
-### Option D: Dual-Mode Configurable
-- Add backend selection via env var / config file.
+### Option D: Dual-Mode Configurable (per engine)
+- Add backend selection via env var or config.
 - `IBUS_HANDWRITE_RECOGNIZER` = `zinnia` (default) or `ppocr`.
+- If set to `ppocr` on traditional engine → fallback to Zinnia with warning.
 - Implement abstract `RecognizerBackend` interface.
-- Pros: Backward compatible, user choice, incremental migration.
-- Cons: Two code paths to maintain.
+- Pros: Backward compatible; user choice; incremental migration path.
+- Cons: Two code paths; asymmetric behavior between engines.
 
 ### Recommendation
-**Start with Option D, then migrate to Option B**:
-1. Phase 4a: Implement `RecognizerBackend` abstract interface + `OnnxHandle` class.
-2. Phase 4b: Add PP-OCR as an opt-in backend (`IBUS_HANDWRITE_RECOGNIZER=ppocr`).
-3. Phase 5: After validation, make PP-OCR the default primary with Zinnia fallback (Option B).
+**Start with Option D on simplified only, then migrate to Option B**:
+1. Implement `RecognizerBackend` abstract interface + `OnnxHandle` class.
+2. Add PP-OCR as opt-in for simplified engine (`IBUS_HANDWRITE_RECOGNIZER=ppocr`).
+3. After validation, make PP-OCR the default primary for simplified, Zinnia fallback (Option B).
+4. Traditional engine stays Zinnia-only throughout.
 
 ---
 
@@ -196,4 +217,6 @@ Analyze the feasibility, architecture, and phased approach for replacing or supp
 3. **Latency acceptability**: What's the maximum acceptable latency between stroke end and candidate display? If >100ms, need background thread.
 4. **Backward compatibility**: Should Zinnia remain the default until PP-OCR is validated, or switch immediately?
 5. **Model fine-tuning**: Is the PP-OCR general OCR model good enough for handwriting, or does it need fine-tuning on handwriting data?
-6. **Traditional Chinese**: Does PP-OCR support traditional characters? v4 dict has 6625 (mostly simplified), v6 has 18708 (broader coverage).
+6. ~~Traditional Chinese: Does PP-OCR support traditional characters?~~ **CONFIRMED: PP-OCR does NOT support Traditional Chinese.** This is a hard constraint, not a question. See Step 2.5 for Traditional Chinese strategy options.
+7. **Model version**: Which PP-OCR version to target? v4 (10 MB, 6625 chars) vs v5 vs v6 (21 MB, 18708 chars). Trade-off between coverage and size/latency.
+8. **Engine separation**: Should the `RecognizerBackend` selection be per-engine (simplified vs traditional) or global? Simplified can default to PP-OCR; traditional must default to Zinnia.
