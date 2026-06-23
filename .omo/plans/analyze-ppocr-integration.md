@@ -169,10 +169,12 @@ PP-OCR does NOT support Traditional Chinese. This is not a model-size question �
 ## Phase 4 — Implementation Research (Pre-coding)
 
 ### Step 4.1 ONNX model sourcing
-- [ ] Check chinese-brush-ime's HuggingFace sources for pre-trained ONNX models.
-- [ ] Evaluate PP-OCRv4_rec (6625 chars, 10 MB) vs v6_rec (18708 chars, 21 MB).
-- [ ] Determine if fine-tuning on handwriting data is needed (PaddleOCR colab notebook exists).
-- [ ] Plan model download/install path (similar to Gitee for 幽兰百合).
+- [ ] Source PP-OCRv6 model from official `PaddlePaddle/PaddleOCR` GitHub releases: https://github.com/PaddlePaddle/PaddleOCR
+- [ ] Export Paddle inference model → ONNX format via `paddle2onnx`, following chinese-brush-ime's colab notebook (`model/colab_training/finetune_ppocrv4_colab.ipynb`).
+- [ ] Alternatively, use pre-exported ONNX model if available in chinese-brush-ime's model directory as reference.
+- [ ] Determine minimum model files: `model.onnx` + `dict.txt` (18,708 characters for v6).
+- [ ] Plan model download/install path (similar to Gitee for 幽兰百合; possible mirror or direct GitHub release asset).
+- [ ] Note: `paddle2onnx` conversion is a one-time build step, not a runtime dependency.
 
 ### Step 4.2 Stroke → image conversion design
 - [ ] Design the image rendering pipeline using **Cairo** (already a GTK dependency):
@@ -261,7 +263,7 @@ PP-OCR does NOT support Traditional Chinese. This is not a model-size question �
 
 | # | Question | Decision |
 |---|----------|----------|
-| 1 | ONNX model source | **PP-OCRv6** from HuggingFace (`PaddlePaddle/PP-OCRv6_small_rec_onnx`) or chinese-brush-ime mirror |
+| 1 | ONNX model source | **PP-OCRv6** from official `PaddlePaddle/PaddleOCR` GitHub releases (https://github.com/PaddlePaddle/PaddleOCR). Export from Paddle format to ONNX via `paddle2onnx` as shown in chinese-brush-ime's colab notebook. |
 | 2 | Rendering dependency | **Cairo** (already a dep via GTK3) → numpy. No OpenCV, no Pillow. |
 | 3 | Latency acceptability | **~80–200ms expected**. Must use **background thread** to avoid UI freeze. |
 | 4 | Backward compatibility | **Not needed** for simplified. Zinnia fully replaced by PP-OCRv6. |
