@@ -172,18 +172,26 @@ PP-OCR does NOT support Traditional Chinese. This is not a model-size question �
 
 **Confirmed: Pre-exported ONNX models are available — no `paddle2onnx` conversion needed.**
 
-Sources:
+Source: **Official HuggingFace PaddlePaddle collection**
+- `PaddlePaddle/PP-OCRv6_tiny_rec_onnx` — 1.5M params
+- `PaddlePaddle/PP-OCRv6_small_rec_onnx` — 7.7M params
+- `PaddlePaddle/PP-OCRv6_medium_rec_onnx` — 34.5M params
 
-| Source | Model Link | Dict | Notes |
-|--------|-----------|------|-------|
-| **HuggingFace (official)** | `PaddlePaddle/PP-OCRv6_tiny_rec_onnx` / `_small_rec_onnx` / `_medium_rec_onnx` | Included | Official PaddlePaddle collection. Tiny (1.5M), Small (7.7M), Medium (34.5M) params. |
-| **chinese-brush-ime** | `model/rec/ch_PP-OCRv6_rec/ppocrv6_rec.onnx` (20.2 MB) | `dict.txt` (73 KB, 18,708 chars) | Already ships with pre-exported ONNX model. Can be used directly. |
-| **AIwork4me/ppocrv6_onnx** | Baidu Cloud direct download | Included | Community-maintained pure ONNX Runtime implementation. |
+All three include the recognition model `.onnx` file + `dict.txt` vocabulary. Download via HuggingFace `hf_hub_download` or direct `wget`.
 
-- [ ] Choose model tier: **small** (7.7M params, good balance of accuracy and CPU latency) or **tiny** (1.5M params, fastest). Medium (34.5M) may be too slow for CPU inference (~200ms+).
-- [ ] Minimum model files: `ppocrv6_rec.onnx` (~20 MB for small) + `dict.txt` (18,708 characters).
-- [ ] Plan model download/install path (similar to Gitee for 幽兰百合; use HuggingFace `hf_hub_download` or direct `wget` from Baidu Cloud mirror).
-- [ ] Note: chinese-brush-ime ships **all three** variants (v4, v5, v5_server, v6) — use their `ch_PP-OCRv6_rec/` directory as reference for file layout.
+### Model tier selection
+The engine should support all 3 tiers as options, **user-configurable** (e.g., via `IBUS_HANDWRITE_PPOCR_MODEL` env var or config file). Default to **small** (7.7M params) for best balance of accuracy and CPU inference speed.
+
+| Tier | Params | ONNX Size | Est. CPU Latency | Recommended for |
+|------|--------|-----------|-----------------|-----------------|
+| Tiny | 1.5M | ~5 MB | ~20–50ms | Low-end hardware / netbooks |
+| Small | 7.7M | ~10 MB | ~50–100ms | **Default** — most desktops |
+| Medium | 34.5M | ~20 MB | ~100–250ms | High-end CPUs / optional upgrade |
+
+- [ ] Minimum model files per tier: `model.onnx` + `dict.txt`.
+- [ ] Plan model download/install path: `tools/install.sh` downloads from HuggingFace (or Gitee mirror). Each tier is a separate download; only the selected one is fetched.
+- [ ] Fallback: if Gitee/HuggingFace unreachable, warn and fall back to Zinnia (traditional engine's existing model is unchanged anyway).
+- [ ] Model file naming convention: `ppocrv6_{tier}_rec.onnx` + `dict_{tier}.txt` for multi-tier support.
 
 ### Step 4.2 Stroke → image conversion design
 - [ ] Design the image rendering pipeline using **Cairo** (already a GTK dependency):
@@ -272,7 +280,7 @@ Sources:
 
 | # | Question | Decision |
 |---|----------|----------|
-| 1 | ONNX model source | **PP-OCRv6** directly as pre-exported ONNX from HuggingFace (`PaddlePaddle/PP-OCRv6_*_rec_onnx`) or chinese-brush-ime's shipped model (`ppocrv6_rec.onnx`, 20.2 MB). No `paddle2onnx` conversion needed. Choose tier: small (7.7M params) or tiny (1.5M params) for CPU runtime. |
+| 1 | ONNX model source | **PP-OCRv6** pre-exported ONNX from HuggingFace `PaddlePaddle/PP-OCRv6_*_rec_onnx`. All 3 tiers available as user-configurable options (default: small 7.7M). No `paddle2onnx` conversion needed. |
 | 2 | Rendering dependency | **Cairo** (already a dep via GTK3) → numpy. No OpenCV, no Pillow. |
 | 3 | Latency acceptability | **~80–200ms expected**. Must use **background thread** to avoid UI freeze. |
 | 4 | Backward compatibility | **Not needed** for simplified. Zinnia fully replaced by PP-OCRv6. |
