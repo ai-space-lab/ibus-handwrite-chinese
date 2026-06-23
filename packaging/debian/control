@@ -14,8 +14,10 @@ Architecture: all
 Depends: python3 (>= 3.6),
          python3-evdev,
          python3-gi,
-         libzinnia0,
-         ibus,
+          libzinnia0,
+          python3-numpy,
+          python3-onnxruntime,
+          ibus,
          wget,
          unzip
 Recommends: tegaki-zinnia-simplified-chinese,

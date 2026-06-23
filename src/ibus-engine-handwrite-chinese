@@ -5,6 +5,13 @@ import sys
 import ctypes
 import time
 import os
+import threading
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -24,6 +31,8 @@ ZINNIA_MODEL_LILY = "/usr/local/share/ibus-handwrite-chinese/models/ZJHandWritin
 ZINNIA_MODEL_BACKUP = None
 MAX_CANDIDATES = 24
 _USE_FREQ = True
+_USE_ONNX = False
+_PPOCR_TIER = os.environ.get('IBUS_HANDWRITE_PPOCR_MODEL', 'small')
 
 _handwrite_dir = os.path.dirname(os.path.abspath(__file__))
 if _handwrite_dir not in sys.path:
@@ -263,6 +272,154 @@ class ZinniaHandle:
             self.ptr = None
 
 
+class OnnxHandle:
+    """PP-OCRv6 ONNX-based handwriting recognition backend."""
+
+    def __init__(self, model_path, dict_path, max_candidates=MAX_CANDIDATES):
+        if not HAS_NUMPY:
+            raise RuntimeError("numpy is required for ONNX recognition")
+        import onnxruntime
+        self.session = onnxruntime.InferenceSession(
+            model_path, providers=["CPUExecutionProvider"]
+        )
+        self.dict = []
+        with open(dict_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    self.dict.append(line)
+        # blank(0) + N chars + unknown(N+1)
+        self.num_classes = len(self.dict) + 2
+        self.max_candidates = max_candidates
+        self.all_points = []
+        self._last_results = []
+        self._infer_lock = threading.Lock()
+
+    def clear(self):
+        self.all_points = []
+        self._last_results = []
+
+    def add_stroke(self, points):
+        self.all_points.append(points)
+
+    def _resize_bilinear(self, img, target_h):
+        """Resize image to target_h height preserving aspect ratio."""
+        h, w = img.shape
+        scale = target_h / h
+        target_w = max(int(w * scale), 1)
+        src_y = np.arange(target_h, dtype=np.float32) * h / target_h
+        src_x = np.arange(target_w, dtype=np.float32) * w / target_w
+        y0 = np.floor(src_y).astype(np.int32)
+        y1 = np.minimum(y0 + 1, h - 1)
+        dy = src_y - y0
+        x0 = np.floor(src_x).astype(np.int32)
+        x1 = np.minimum(x0 + 1, w - 1)
+        dx = src_x - x0
+        return (
+            img[y0[:, None], x0[None, :]] * (1 - dy[:, None]) * (1 - dx[None, :])
+            + img[y1[:, None], x0[None, :]] * dy[:, None] * (1 - dx[None, :])
+            + img[y0[:, None], x1[None, :]] * (1 - dy[:, None]) * dx[None, :]
+            + img[y1[:, None], x1[None, :]] * dy[:, None] * dx[None, :]
+        )
+
+    def _preprocess(self):
+        """Render strokes to numpy array and preprocess for ONNX inference."""
+        if not self.all_points or not HAS_NUMPY:
+            return None
+        import cairo
+
+        flat = [pt for stroke in self.all_points for pt in stroke]
+        if not flat:
+            return None
+        xs = [p[0] for p in flat]
+        ys = [p[1] for p in flat]
+        xmin, xmax = min(xs), max(xs)
+        ymin, ymax = min(ys), max(ys)
+        # Canvas with padding, minimum 200px
+        pad = 20
+        cw = max(xmax - xmin + 2 * pad, 200)
+        ch = max(ymax - ymin + 2 * pad, 200)
+        width = int(cw)
+        height = int(ch)
+        # Render to ARGB32 offscreen surface
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        cr = cairo.Context(surface)
+        # White background
+        cr.set_source_rgb(1, 1, 1)
+        cr.paint()
+        # Draw black strokes
+        cr.set_source_rgb(0, 0, 0)
+        cr.set_line_width(6)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_JOIN_ROUND)
+        for stroke in self.all_points:
+            if len(stroke) < 2:
+                continue
+            cr.move_to(
+                stroke[0][0] - xmin + pad, stroke[0][1] - ymin + pad
+            )
+            for pt in stroke[1:]:
+                cr.line_to(pt[0] - xmin + pad, pt[1] - ymin + pad)
+            cr.stroke()
+        # Extract R channel (ARGB32 little-endian: B,G,R,A)
+        buf = surface.get_data()
+        arr = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4)
+        gray = arr[:, :, 2].astype(np.float32)  # R channel
+        # Resize to 48px height preserving aspect ratio
+        resized = self._resize_bilinear(gray, 48)  # [48, W]
+        # Normalize to [-1, 1]: pixel / 127.5 - 1.0
+        normalized = resized / 127.5 - 1.0
+        # Add batch & channel dims -> [1, 3, 48, W]
+        normalized = normalized[np.newaxis, np.newaxis, :, :]  # [1, 1, 48, W]
+        normalized = np.repeat(normalized, 3, axis=1)  # [1, 3, 48, W]
+        return np.ascontiguousarray(normalized, dtype=np.float32)
+
+    def _decode(self, output):
+        """CTC decode via aggregation: average softmax across time, exclude blank."""
+        probs = output[0]  # [T, num_classes]
+        avg_probs = np.mean(probs, axis=0)  # [num_classes]
+        # Exclude blank (index 0) and unknown (last index)
+        char_probs = avg_probs[1:-1]
+        k = min(self.max_candidates, len(char_probs))
+        top_indices = np.argpartition(char_probs, -k)[-k:]
+        top_indices = top_indices[np.argsort(char_probs[top_indices])[::-1]]
+        return [(self.dict[idx], float(char_probs[idx])) for idx in top_indices]
+
+    def classify(self):
+        """Run inference synchronously, return [(char, score), ...]."""
+        if not self.all_points or not HAS_NUMPY:
+            return []
+        input_tensor = self._preprocess()
+        if input_tensor is None:
+            return []
+        output = self.session.run(None, {"x": input_tensor})[0]
+        return self._decode(output)
+
+    def get_results(self):
+        """Non-blocking get last results."""
+        return list(self._last_results)
+
+    def classify_async(self, callback):
+        """Run inference in background thread, call callback via GLib.idle_add."""
+        if not self._infer_lock.acquire(blocking=False):
+            return  # inference already in progress
+
+        def _run():
+            try:
+                results = self.classify()
+                self._last_results = results
+                GLib.idle_add(callback, results)
+            finally:
+                self._infer_lock.release()
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+
+    def destroy(self):
+        self.all_points = []
+        self._last_results = []
+
+
 class HandwriteWin(Gtk.Window):
 
     @staticmethod
@@ -492,8 +649,8 @@ class HandwriteWin(Gtk.Window):
         self.pix = None
         self.queue_draw()
         self.show_candidates([])
-        self.engine.zinnia.clear()
-        if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
+        self.engine.recognizer.clear()
+        if not _USE_ONNX and hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
             self.engine.zinnia_backup.clear()
         self.engine.last_results = []
 
@@ -505,9 +662,10 @@ class HandwriteWin(Gtk.Window):
 
     def _do_clear_strokes(self):
         self.strokes.clear()
-        self.engine.zinnia.clear()
-        self.engine.zinnia.stroke_id = 0
-        if hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
+        self.engine.recognizer.clear()
+        if hasattr(self.engine.recognizer, 'stroke_id'):
+            self.engine.recognizer.stroke_id = 0
+        if not _USE_ONNX and hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
             self.engine.zinnia_backup.clear()
             self.engine.zinnia_backup.stroke_id = 0
         self.pix = None
@@ -601,7 +759,7 @@ class HandwriteWin(Gtk.Window):
         pixel_pts = [(fx * alloc.width, fy * alloc.height) for fx, fy in points_frac]
         self.drawing = False
         self.strokes.append(pixel_pts)
-        self.engine.zinnia.add_stroke(pixel_pts)
+        self.engine.recognizer.add_stroke(pixel_pts)
         self.cur_stroke = []
         self.pix = None
         self.queue_draw()
@@ -670,7 +828,7 @@ class HandwriteWin(Gtk.Window):
         if self.cur_stroke:
             self.cur_stroke.append((ev.x, ev.y))
             self.strokes.append(self.cur_stroke)
-            self.engine.zinnia.add_stroke(self.cur_stroke)
+            self.engine.recognizer.add_stroke(self.cur_stroke)
             self.cur_stroke = []
             self.pix = None
         self.queue_draw()
@@ -780,13 +938,19 @@ class HandwriteWin(Gtk.Window):
 class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def __init__(self):
         super().__init__()
-        self.zinnia = ZinniaHandle(ZINNIA_MODEL)
-        self.zinnia_backup = None
-        if ZINNIA_MODEL_BACKUP:
-            try:
-                self.zinnia_backup = ZinniaHandle(ZINNIA_MODEL_BACKUP)
-            except:
-                pass
+        if _USE_ONNX:
+            self.onnx = self._create_onnx_handle()
+            self.zinnia = None
+            self.zinnia_backup = None
+        else:
+            self.zinnia = ZinniaHandle(ZINNIA_MODEL)
+            self.zinnia_backup = None
+            if ZINNIA_MODEL_BACKUP:
+                try:
+                    self.zinnia_backup = ZinniaHandle(ZINNIA_MODEL_BACKUP)
+                except:
+                    pass
+            self.onnx = None
         self.win = None
         self.last_results = []
         self._bus = None
@@ -796,6 +960,47 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._cw = 0
         self._ch = 0
         self._engine_name = None
+
+    @property
+    def recognizer(self):
+        """Return the active recognizer backend."""
+        if _USE_ONNX:
+            return self.onnx
+        return self.zinnia
+
+    @staticmethod
+    def _create_onnx_handle():
+        """Resolve PP-OCR model paths and create OnnxHandle."""
+        tier = _PPOCR_TIER
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        candidates = [
+            os.path.join(base, 'data', 'models', f'ppocrv6_{tier}_rec.onnx'),
+            f'/usr/local/share/ibus-handwrite-chinese/models/ppocrv6_{tier}_rec.onnx',
+            f'/tmp/models/ppocrv6_{tier}.onnx',
+        ]
+        dict_candidates = [
+            os.path.join(base, 'data', 'models', f'dict_v6.txt'),
+            f'/usr/local/share/ibus-handwrite-chinese/models/dict_v6.txt',
+            '/tmp/models/dict_v6.txt',
+        ]
+        model_path = None
+        dict_path = None
+        for mp, dp in zip(candidates, dict_candidates):
+            if os.path.exists(mp):
+                model_path = mp
+                dict_path = dp
+                break
+        if not model_path or not os.path.exists(model_path):
+            raise FileNotFoundError(
+                f"PP-OCR model not found for tier '{tier}'. "
+                f"Tried: {candidates}"
+            )
+        if not os.path.exists(dict_path):
+            raise FileNotFoundError(
+                f"PP-OCR dict not found for tier '{tier}'. "
+                f"Tried: {dict_candidates}"
+            )
+        return OnnxHandle(model_path, dict_path)
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d visible=%s' % (keyval, str(self.win.get_visible() if self.win else False)))
@@ -863,8 +1068,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         current = self._bus.get_global_engine()
         if current:
             self._engine_name = current.get_name()
-        self.zinnia.clear()
-        if self.zinnia_backup:
+        self.recognizer.clear()
+        if not _USE_ONNX and self.zinnia_backup:
             self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
@@ -883,8 +1088,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             self.win.stop_trackpad()
         if self.win:
             self.win.hide()
-        self.zinnia.clear()
-        if self.zinnia_backup:
+        self.recognizer.clear()
+        if not _USE_ONNX and self.zinnia_backup:
             self.zinnia_backup.clear()
         self.last_results = []
 
@@ -926,12 +1131,20 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def do_reset(self):
         if self.win:
             self.win._do_reset()
-        self.zinnia.clear()
-        if self.zinnia_backup:
+        self.recognizer.clear()
+        if not _USE_ONNX and self.zinnia_backup:
             self.zinnia_backup.clear()
         self.last_results = []
 
+    def _on_results(self, results):
+        self.last_results = results
+        if self.win:
+            self.win.show_candidates(results)
+
     def update_candidates(self):
+        if _USE_ONNX:
+            self.onnx.classify_async(self._on_results)
+            return
         results = self.zinnia.classify()
         if not results and self.zinnia_backup and self.zinnia.all_points:
             self.zinnia_backup.all_points = list(self.zinnia.all_points)
@@ -955,12 +1168,17 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if self.win:
             self.win.destroy()
             self.win = None
-        if self.zinnia:
-            self.zinnia.destroy()
-            self.zinnia = None
-        if hasattr(self, "zinnia_backup") and self.zinnia_backup:
-            self.zinnia_backup.destroy()
-            self.zinnia_backup = None
+        if _USE_ONNX:
+            if self.onnx:
+                self.onnx.destroy()
+                self.onnx = None
+        else:
+            if self.zinnia:
+                self.zinnia.destroy()
+                self.zinnia = None
+            if self.zinnia_backup:
+                self.zinnia_backup.destroy()
+                self.zinnia_backup = None
         super().destroy()
 
 
@@ -977,28 +1195,44 @@ class TestCommitEngine:
         self.committed = []
         self.win = None
 
-        if traditional:
+        if _USE_ONNX:
+            self.onnx = HandwriteEngine._create_onnx_handle()
+        elif traditional:
             primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
             backup = None
+            for mp in [primary]:
+                if mp:
+                    try:
+                        self.zinnia = ZinniaHandle(mp)
+                        break
+                    except:
+                        continue
+            if not self.zinnia:
+                raise RuntimeError(f"No model found (tried: {[primary]})")
         else:
             primary = ZINNIA_MODEL_LILY
             backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-
-        for mp in [primary, backup] if backup else [primary]:
-            if mp:
+            for mp in [primary, backup] if backup else [primary]:
+                if mp:
+                    try:
+                        self.zinnia = ZinniaHandle(mp)
+                        break
+                    except:
+                        continue
+            if not self.zinnia:
+                raise RuntimeError(f"No model found (tried: {[primary, backup]})")
+            if backup and backup != primary:
                 try:
-                    self.zinnia = ZinniaHandle(mp)
-                    break
+                    self.zinnia_backup = ZinniaHandle(backup)
                 except:
-                    continue
-        if not self.zinnia:
-            raise RuntimeError(f"No model found (tried: {[primary, backup]})")
+                    pass
 
-        if backup and backup != primary:
-            try:
-                self.zinnia_backup = ZinniaHandle(backup)
-            except:
-                pass
+    @property
+    def recognizer(self):
+        """Return the active recognizer backend."""
+        if _USE_ONNX:
+            return self.onnx
+        return self.zinnia
 
     def commit_text(self, text):
         self.committed.append(text)
@@ -1007,8 +1241,8 @@ class TestCommitEngine:
     def do_reset(self):
         if self.win:
             self.win._do_reset()
-        self.zinnia.clear()
-        if self.zinnia_backup:
+        self.recognizer.clear()
+        if not _USE_ONNX and self.zinnia_backup:
             self.zinnia_backup.clear()
         self.last_results = []
 
@@ -1023,11 +1257,14 @@ class TestCommitEngine:
             self.do_reset()
 
     def update_candidates(self):
-        results = self.zinnia.classify()
-        if not results and self.zinnia_backup and self.zinnia.all_points:
-            self.zinnia_backup.all_points = list(self.zinnia.all_points)
-            self.zinnia_backup.stroke_id = self.zinnia.stroke_id
-            results = self.zinnia_backup.classify()
+        if _USE_ONNX:
+            results = self.onnx.classify()
+        else:
+            results = self.zinnia.classify()
+            if not results and self.zinnia_backup and self.zinnia.all_points:
+                self.zinnia_backup.all_points = list(self.zinnia.all_points)
+                self.zinnia_backup.stroke_id = self.zinnia.stroke_id
+                results = self.zinnia_backup.classify()
         self.last_results = results
         if self.win:
             self.win.show_candidates(results)
@@ -1040,45 +1277,56 @@ class TestCommitEngine:
     def switch_model(self, traditional=False):
         if self.win:
             self.win._do_reset()
-        if self.zinnia:
-            self.zinnia.destroy()
-            self.zinnia = None
-        if self.zinnia_backup:
-            self.zinnia_backup.destroy()
-            self.zinnia_backup = None
-
-        if traditional:
-            primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
-            backup = None
+        if _USE_ONNX:
+            if self.onnx:
+                self.onnx.destroy()
+                self.onnx = None
+            self.onnx = HandwriteEngine._create_onnx_handle()
         else:
-            primary = ZINNIA_MODEL_LILY
-            backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+            if self.zinnia:
+                self.zinnia.destroy()
+                self.zinnia = None
+            if self.zinnia_backup:
+                self.zinnia_backup.destroy()
+                self.zinnia_backup = None
 
-        for mp in [primary, backup] if backup else [primary]:
-            if mp:
+            if traditional:
+                primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
+                backup = None
+            else:
+                primary = ZINNIA_MODEL_LILY
+                backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
+
+            for mp in [primary, backup] if backup else [primary]:
+                if mp:
+                    try:
+                        self.zinnia = ZinniaHandle(mp)
+                        break
+                    except:
+                        continue
+
+            if backup and backup != primary and self.zinnia:
                 try:
-                    self.zinnia = ZinniaHandle(mp)
-                    break
+                    self.zinnia_backup = ZinniaHandle(backup)
                 except:
-                    continue
-
-        if backup and backup != primary and self.zinnia:
-            try:
-                self.zinnia_backup = ZinniaHandle(backup)
-            except:
-                pass
+                    pass
 
         self.last_results = []
         if self.win:
             self.win.show_candidates([])
 
     def destroy(self):
-        if self.zinnia:
-            self.zinnia.destroy()
-            self.zinnia = None
-        if self.zinnia_backup:
-            self.zinnia_backup.destroy()
-            self.zinnia_backup = None
+        if _USE_ONNX:
+            if self.onnx:
+                self.onnx.destroy()
+                self.onnx = None
+        else:
+            if self.zinnia:
+                self.zinnia.destroy()
+                self.zinnia = None
+            if self.zinnia_backup:
+                self.zinnia_backup.destroy()
+                self.zinnia_backup = None
 
 
 def main():
@@ -1089,7 +1337,7 @@ def main():
     parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
 
-    global ZINNIA_MODEL, ZINNIA_MODEL_BACKUP, _USE_FREQ
+    global ZINNIA_MODEL, ZINNIA_MODEL_BACKUP, _USE_FREQ, _USE_ONNX
     if args.traditional:
         engine_name = "handwrite-chinese-traditional"
         engine_longname = "Chinese Handwriting (Traditional)"
@@ -1098,6 +1346,7 @@ def main():
         ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
         ZINNIA_MODEL_BACKUP = None
         _USE_FREQ = False
+        _USE_ONNX = False
     else:
         engine_name = "handwrite-chinese-simplified"
         engine_longname = "Chinese Handwriting (Simplified)"
@@ -1106,6 +1355,7 @@ def main():
         ZINNIA_MODEL = ZINNIA_MODEL_LILY
         ZINNIA_MODEL_BACKUP = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
         _USE_FREQ = False
+        _USE_ONNX = True
 
     Gtk.init(sys.argv)
 

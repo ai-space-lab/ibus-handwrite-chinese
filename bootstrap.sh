@@ -170,6 +170,59 @@ else
 fi
 
 echo ""
+echo "  Downloading PP-OCRv6 model for text recognition..."
+PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
+case "$PPOCR_TIER" in
+    tiny|small|medium) ;;
+    *)
+        echo "  ⚠ Warning: Unknown PP-OCRv6 model tier '$PPOCR_TIER'. Valid: tiny, small, medium. Defaulting to 'small'."
+        PPOCR_TIER="small"
+        ;;
+esac
+
+PPOCR_DIR="/usr/local/share/ibus-handwrite-chinese/models"
+PPOCR_MODEL="$PPOCR_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx"
+PPOCR_DICT="$PPOCR_DIR/dict_v6.txt"
+
+if [ -f "$PPOCR_MODEL" ] && [ -f "$PPOCR_DICT" ]; then
+    echo "  ✓ PP-OCRv6 ($PPOCR_TIER) model already installed"
+else
+    tmpdir="$(mktemp -d)"
+    prev_dir="$(pwd)"
+    cd "$tmpdir"
+
+    MODEL_URL="https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
+    DICT_URL="https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"
+
+    echo "  Downloading PP-OCRv6 ($PPOCR_TIER) ONNX model from HuggingFace..."
+    download_ok=true
+
+    if ! wget -q --timeout=30 "$MODEL_URL" -O inference.onnx; then
+        echo "  ⚠ Warning: Failed to download PP-OCRv6 model from HuggingFace."
+        echo "    Manual download: $MODEL_URL"
+        echo "    Place the file in $PPOCR_DIR"
+        download_ok=false
+    fi
+
+    if ! wget -q --timeout=30 "$DICT_URL" -O dict.txt; then
+        echo "  ⚠ Warning: Failed to download PP-OCRv6 dict from PaddleOCR GitHub."
+        echo "    Manual download: $DICT_URL"
+        echo "    Place the file in $PPOCR_DIR"
+        download_ok=false
+    fi
+
+    if [ "$download_ok" = true ]; then
+        mkdir -p "$PPOCR_DIR"
+        cp inference.onnx "$PPOCR_MODEL"
+        cp dict.txt "$PPOCR_DICT"
+        echo "  ✓ PP-OCRv6 ($PPOCR_TIER) model installed"
+    fi
+
+    cd "$prev_dir"
+    rm -rf "$tmpdir"
+fi
+
+echo ""
 echo "=== Dependencies installed. Running install.sh... ==="
 echo ""
 

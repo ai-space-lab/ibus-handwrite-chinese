@@ -104,6 +104,52 @@ if ! install_lily_model; then
     echo "  No 幽兰百合 model installed"
 fi
 
+echo "[PP-OCR] Downloading PP-OCRv6 recognition model..."
+PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
+case "$PPOCR_TIER" in
+    tiny|small|medium) ;;
+    *)
+        echo "  ⚠ Warning: Invalid PP-OCR model tier '$PPOCR_TIER'. Valid: tiny, small, medium. Defaulting to small."
+        PPOCR_TIER="small"
+        ;;
+esac
+PPOCR_MODEL_DIR="/usr/local/share/ibus-handwrite-chinese/models"
+PPOCR_MODEL_FILE="$PPOCR_MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx"
+PPOCR_DICT_FILE="$PPOCR_MODEL_DIR/dict_v6.txt"
+if [ -f "$PPOCR_MODEL_FILE" ] && [ -f "$PPOCR_DICT_FILE" ]; then
+    echo "  ✓ PP-OCRv6 ${PPOCR_TIER} model already installed"
+else
+    mkdir -p "$PPOCR_MODEL_DIR"
+    tmpdir="$(mktemp -d)"
+    ppocr_ok=true
+    if [ ! -f "$PPOCR_MODEL_FILE" ]; then
+        echo "  Downloading PP-OCRv6 ${PPOCR_TIER} recognition model..."
+        if wget -q --timeout=30 -O "$tmpdir/inference.onnx" \
+            "https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"; then
+            cp "$tmpdir/inference.onnx" "$PPOCR_MODEL_FILE"
+            echo "  ✓ PP-OCRv6 ${PPOCR_TIER} model downloaded"
+        else
+            echo "  ⚠ Warning: Failed to download PP-OCRv6 ${PPOCR_TIER} model"
+            ppocr_ok=false
+        fi
+    fi
+    if [ ! -f "$PPOCR_DICT_FILE" ]; then
+        echo "  Downloading PP-OCRv6 dictionary..."
+        if wget -q --timeout=30 -O "$tmpdir/dict.txt" \
+            "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"; then
+            cp "$tmpdir/dict.txt" "$PPOCR_DICT_FILE"
+            echo "  ✓ PP-OCRv6 dictionary downloaded"
+        else
+            echo "  ⚠ Warning: Failed to download PP-OCRv6 dictionary"
+            ppocr_ok=false
+        fi
+    fi
+    rm -rf "$tmpdir"
+    if [ "$ppocr_ok" = true ]; then
+        echo "  ✓ PP-OCRv6 ${PPOCR_TIER} model installed"
+    fi
+fi
+
 echo "=== Installing Chinese Handwriting IBus Engine ==="
 echo ""
 

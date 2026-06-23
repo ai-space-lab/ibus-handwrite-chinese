@@ -16,6 +16,8 @@ BuildRequires:  python3
 Requires:       python3-evdev
 Requires:       python3-gobject
 Requires:       zinnia
+Requires:       python3-numpy
+Requires:       python3-onnxruntime
 Requires:       ibus
 Requires:       wget
 Requires:       unzip
