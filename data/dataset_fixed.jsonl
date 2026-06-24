@@ -1,0 +1,5 @@
+{"ground_truth": "一", "top5": [["一", 0.0717], ["0", 0.0074], ["二", 0.0047], ["1", 0.0044], ["—", 0.0024]], "num_strokes": 1, "num_points": 150, "latency_ms": 22.63, "top1_correct": true, "correct_in_top5": true, "correct_rank": 1}
+{"ground_truth": "十", "top5": [["十", 0.2481], ["干", 0.0011], ["千", 0.0003], ["+", 0.0001], ["七", 0.0001]], "num_strokes": 2, "num_points": 283, "latency_ms": 22.19, "top1_correct": true, "correct_in_top5": true, "correct_rank": 1}
+{"ground_truth": "人", "top5": [["人", 0.0829], ["L", 0.0199], ["1", 0.0039], ["V", 0.002], ["一", 0.0018]], "num_strokes": 2, "num_points": 284, "top1_correct": true, "correct_in_top5": true, "correct_rank": 1}
+{"ground_truth": "大", "top5": [["大", 0.1662], ["天", 0.0002], ["犬", 0.0001], ["丈", 0.0001], ["太", 0.0]], "num_strokes": 3, "num_points": 308, "top1_correct": true, "correct_in_top5": true, "correct_rank": 1}
+{"ground_truth": "口", "top5": [["口", 0.0783], ["Q", 0.0251], ["O", 0.0073], ["□", 0.0057], ["曰", 0.0033]], "num_strokes": 3, "num_points": 396, "top1_correct": true, "correct_in_top5": true, "correct_rank": 1}

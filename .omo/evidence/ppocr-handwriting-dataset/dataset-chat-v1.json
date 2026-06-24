@@ -1,0 +1,1668 @@
+{
+  "version": 1,
+  "timestamp": "2026-06-24",
+  "chars_collected": [
+    "一",
+    "七",
+    "三",
+    "上",
+    "下",
+    "不",
+    "中",
+    "九",
+    "二",
+    "五",
+    "人",
+    "入",
+    "八",
+    "六",
+    "十",
+    "口",
+    "四",
+    "土",
+    "士",
+    "大",
+    "天",
+    "太",
+    "女",
+    "好",
+    "小",
+    "山",
+    "己",
+    "已",
+    "心",
+    "文",
+    "日",
+    "曰",
+    "月",
+    "木",
+    "未",
+    "末",
+    "水",
+    "火",
+    "王",
+    "田"
+  ],
+  "samples": [
+    {
+      "ground_truth": "一",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "一",
+            0.8475
+          ],
+          [
+            "—",
+            0.0181
+          ],
+          [
+            "-",
+            0.0127
+          ],
+          [
+            "1",
+            0.0123
+          ],
+          [
+            "0",
+            0.0098
+          ]
+        ],
+        "top24": [
+          [
+            "一",
+            0.8475
+          ],
+          [
+            "—",
+            0.0181
+          ],
+          [
+            "-",
+            0.0127
+          ],
+          [
+            "1",
+            0.0123
+          ],
+          [
+            "0",
+            0.0098
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.8475,
+        "inference_latency_ms": 37.13
+      },
+      "pipeline_stats": {
+        "num_strokes": 1,
+        "total_points": 151
+      }
+    },
+    {
+      "ground_truth": "二",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "二",
+            0.9918
+          ],
+          [
+            "三",
+            0.008
+          ],
+          [
+            "一",
+            0.0003
+          ],
+          [
+            "八",
+            0.0001
+          ],
+          [
+            "十",
+            0.0001
+          ]
+        ],
+        "top24": [
+          [
+            "二",
+            0.9918
+          ],
+          [
+            "三",
+            0.008
+          ],
+          [
+            "一",
+            0.0003
+          ],
+          [
+            "八",
+            0.0001
+          ],
+          [
+            "十",
+            0.0001
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9918,
+        "inference_latency_ms": 16.3
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 146
+      }
+    },
+    {
+      "ground_truth": "三",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "三",
+            0.9976
+          ],
+          [
+            "，",
+            0.0245
+          ],
+          [
+            "。",
+            0.0036
+          ],
+          [
+            "二",
+            0.0017
+          ],
+          [
+            "：",
+            0.0006
+          ]
+        ],
+        "top24": [
+          [
+            "三",
+            0.9976
+          ],
+          [
+            "，",
+            0.0245
+          ],
+          [
+            "。",
+            0.0036
+          ],
+          [
+            "二",
+            0.0017
+          ],
+          [
+            "：",
+            0.0006
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9976,
+        "inference_latency_ms": 88.63
+      },
+      "pipeline_stats": {
+        "num_strokes": 5,
+        "total_points": 180
+      }
+    },
+    {
+      "ground_truth": "四",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "四",
+            0.9667
+          ],
+          [
+            "西",
+            0.0132
+          ],
+          [
+            "D",
+            0.0116
+          ],
+          [
+            "L",
+            0.0014
+          ],
+          [
+            "口",
+            0.0008
+          ]
+        ],
+        "top24": [
+          [
+            "四",
+            0.9667
+          ],
+          [
+            "西",
+            0.0132
+          ],
+          [
+            "D",
+            0.0116
+          ],
+          [
+            "L",
+            0.0014
+          ],
+          [
+            "口",
+            0.0008
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9667,
+        "inference_latency_ms": 16.08
+      },
+      "pipeline_stats": {
+        "num_strokes": 5,
+        "total_points": 270
+      }
+    },
+    {
+      "ground_truth": "五",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "五",
+            1.0
+          ],
+          [
+            "丑",
+            0.0
+          ],
+          [
+            "石",
+            0.0
+          ],
+          [
+            "—",
+            0.0
+          ],
+          [
+            "二",
+            0.0
+          ]
+        ],
+        "top24": [
+          [
+            "五",
+            1.0
+          ],
+          [
+            "丑",
+            0.0
+          ],
+          [
+            "石",
+            0.0
+          ],
+          [
+            "—",
+            0.0
+          ],
+          [
+            "二",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 1.0,
+        "inference_latency_ms": 16.66
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 190
+      }
+    },
+    {
+      "ground_truth": "六",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "六",
+            1.0
+          ],
+          [
+            "、",
+            0.0
+          ],
+          [
+            "方",
+            0.0
+          ],
+          [
+            "穴",
+            0.0
+          ],
+          [
+            ".",
+            0.0
+          ]
+        ],
+        "top24": [
+          [
+            "六",
+            1.0
+          ],
+          [
+            "、",
+            0.0
+          ],
+          [
+            "方",
+            0.0
+          ],
+          [
+            "穴",
+            0.0
+          ],
+          [
+            ".",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 1.0,
+        "inference_latency_ms": 8.22
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 69
+      }
+    },
+    {
+      "ground_truth": "七",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "七",
+            1.0
+          ],
+          [
+            "匕",
+            0.0
+          ],
+          [
+            "，",
+            0.0
+          ],
+          [
+            "。",
+            0.0
+          ],
+          [
+            "乜",
+            0.0
+          ]
+        ],
+        "top24": [
+          [
+            "七",
+            1.0
+          ],
+          [
+            "匕",
+            0.0
+          ],
+          [
+            "，",
+            0.0
+          ],
+          [
+            "。",
+            0.0
+          ],
+          [
+            "乜",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 1.0,
+        "inference_latency_ms": 20.71
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 79
+      }
+    },
+    {
+      "ground_truth": "八",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "八",
+            0.6745
+          ],
+          [
+            "1",
+            0.1005
+          ],
+          [
+            "V",
+            0.0382
+          ],
+          [
+            "7",
+            0.026
+          ],
+          [
+            "L",
+            0.0252
+          ]
+        ],
+        "top24": [
+          [
+            "八",
+            0.6745
+          ],
+          [
+            "1",
+            0.1005
+          ],
+          [
+            "V",
+            0.0382
+          ],
+          [
+            "7",
+            0.026
+          ],
+          [
+            "L",
+            0.0252
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.6745,
+        "inference_latency_ms": 17.01
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 75
+      }
+    },
+    {
+      "ground_truth": "九",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "九",
+            0.9993
+          ],
+          [
+            "丸",
+            0.0005
+          ],
+          [
+            "尤",
+            0.0002
+          ],
+          [
+            "兀",
+            0.0
+          ],
+          [
+            "。",
+            0.0
+          ]
+        ],
+        "top24": [
+          [
+            "九",
+            0.9993
+          ],
+          [
+            "丸",
+            0.0005
+          ],
+          [
+            "尤",
+            0.0002
+          ],
+          [
+            "兀",
+            0.0
+          ],
+          [
+            "。",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9993,
+        "inference_latency_ms": 11.08
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 125
+      }
+    },
+    {
+      "ground_truth": "十",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "十",
+            0.9287
+          ],
+          [
+            "+",
+            0.0514
+          ],
+          [
+            "干",
+            0.0083
+          ],
+          [
+            "七",
+            0.0031
+          ],
+          [
+            "士",
+            0.0017
+          ]
+        ],
+        "top24": [
+          [
+            "十",
+            0.9287
+          ],
+          [
+            "+",
+            0.0514
+          ],
+          [
+            "干",
+            0.0083
+          ],
+          [
+            "七",
+            0.0031
+          ],
+          [
+            "士",
+            0.0017
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9287,
+        "inference_latency_ms": 13.09
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 160
+      }
+    },
+    {
+      "ground_truth": "人",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "人",
+            0.9833
+          ],
+          [
+            "L",
+            0.008
+          ],
+          [
+            "以",
+            0.0029
+          ],
+          [
+            "大",
+            0.0017
+          ],
+          [
+            "又",
+            0.0006
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9833,
+        "inference_latency_ms": 16.6
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 151
+      }
+    },
+    {
+      "ground_truth": "大",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "大",
+            0.9976
+          ],
+          [
+            "太",
+            0.0016
+          ],
+          [
+            "天",
+            0.0006
+          ],
+          [
+            "夫",
+            0.0001
+          ],
+          [
+            "犬",
+            0.0001
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9976,
+        "inference_latency_ms": 15.75
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 94
+      }
+    },
+    {
+      "ground_truth": "小",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "小",
+            0.3447
+          ],
+          [
+            "门",
+            0.2247
+          ],
+          [
+            "山",
+            0.0732
+          ],
+          [
+            "」",
+            0.0717
+          ],
+          [
+            "中",
+            0.0574
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.3447,
+        "inference_latency_ms": 14.88
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 88
+      }
+    },
+    {
+      "ground_truth": "天",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "天",
+            0.9991
+          ],
+          [
+            "夭",
+            0.0006
+          ],
+          [
+            "无",
+            0.0001
+          ],
+          [
+            "大",
+            0.0001
+          ],
+          [
+            "夫",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9991,
+        "inference_latency_ms": 45.34
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 151
+      }
+    },
+    {
+      "ground_truth": "不",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "不",
+            0.9994
+          ],
+          [
+            "工",
+            0.0001
+          ],
+          [
+            ".",
+            0.0001
+          ],
+          [
+            "下",
+            0.0001
+          ],
+          [
+            "个",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9994,
+        "inference_latency_ms": 20.61
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 96
+      }
+    },
+    {
+      "ground_truth": "月",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "月",
+            1.0
+          ],
+          [
+            "1",
+            0.0
+          ],
+          [
+            "I",
+            0.0
+          ],
+          [
+            ".",
+            0.0
+          ],
+          [
+            "(",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 1.0,
+        "inference_latency_ms": 7.77
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 129
+      }
+    },
+    {
+      "ground_truth": "中",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "中",
+            0.9999
+          ],
+          [
+            "申",
+            0.0
+          ],
+          [
+            "由",
+            0.0
+          ],
+          [
+            "巾",
+            0.0
+          ],
+          [
+            "冲",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9999,
+        "inference_latency_ms": 13.0
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 196
+      }
+    },
+    {
+      "ground_truth": "口",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "口",
+            0.888
+          ],
+          [
+            "□",
+            0.0711
+          ],
+          [
+            "ロ",
+            0.008
+          ],
+          [
+            "O",
+            0.0049
+          ],
+          [
+            "☐",
+            0.0049
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.888,
+        "inference_latency_ms": 8.28
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 139
+      }
+    },
+    {
+      "ground_truth": "火",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "火",
+            0.9992
+          ],
+          [
+            "水",
+            0.0005
+          ],
+          [
+            "大",
+            0.0002
+          ],
+          [
+            "灯",
+            0.0
+          ],
+          [
+            ".",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9992,
+        "inference_latency_ms": 7.0
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 119
+      }
+    },
+    {
+      "ground_truth": "山",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "山",
+            0.961
+          ],
+          [
+            "上",
+            0.0137
+          ],
+          [
+            "工",
+            0.0107
+          ],
+          [
+            "I",
+            0.0053
+          ],
+          [
+            "正",
+            0.0025
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.961,
+        "inference_latency_ms": 14.61
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 155
+      }
+    },
+    {
+      "ground_truth": "土",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "土",
+            0.9959
+          ],
+          [
+            "王",
+            0.0039
+          ],
+          [
+            "上",
+            0.0
+          ],
+          [
+            "士",
+            0.0
+          ],
+          [
+            "，",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9959,
+        "inference_latency_ms": 14.34
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 109
+      }
+    },
+    {
+      "ground_truth": "士",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "士",
+            0.8239
+          ],
+          [
+            "十",
+            0.1674
+          ],
+          [
+            "土",
+            0.0023
+          ],
+          [
+            "±",
+            0.0011
+          ],
+          [
+            "+",
+            0.001
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.8239,
+        "inference_latency_ms": 13.77
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 203
+      }
+    },
+    {
+      "ground_truth": "未",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "未",
+            0.957
+          ],
+          [
+            "朱",
+            0.0373
+          ],
+          [
+            "禾",
+            0.0017
+          ],
+          [
+            "夫",
+            0.0016
+          ],
+          [
+            "赤",
+            0.0007
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.957,
+        "inference_latency_ms": 13.34
+      },
+      "pipeline_stats": {
+        "num_strokes": 5,
+        "total_points": 194
+      }
+    },
+    {
+      "ground_truth": "末",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "末",
+            0.9991
+          ],
+          [
+            "未",
+            0.0006
+          ],
+          [
+            "木",
+            0.0001
+          ],
+          [
+            "丰",
+            0.0001
+          ],
+          [
+            "朱",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9991,
+        "inference_latency_ms": 14.07
+      },
+      "pipeline_stats": {
+        "num_strokes": 5,
+        "total_points": 211
+      }
+    },
+    {
+      "ground_truth": "日",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "日",
+            0.987
+          ],
+          [
+            "曰",
+            0.0066
+          ],
+          [
+            "白",
+            0.0038
+          ],
+          [
+            "A",
+            0.001
+          ],
+          [
+            "月",
+            0.001
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.987,
+        "inference_latency_ms": 14.45
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 127
+      }
+    },
+    {
+      "ground_truth": "曰",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "曰",
+            0.8725
+          ],
+          [
+            "日",
+            0.0905
+          ],
+          [
+            "白",
+            0.0302
+          ],
+          [
+            "A",
+            0.0039
+          ],
+          [
+            "月",
+            0.0027
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.8725,
+        "inference_latency_ms": 13.75
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 160
+      }
+    },
+    {
+      "ground_truth": "入",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "入",
+            0.8928
+          ],
+          [
+            "X",
+            0.072
+          ],
+          [
+            "又",
+            0.0114
+          ],
+          [
+            "λ",
+            0.0077
+          ],
+          [
+            "7",
+            0.0057
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.8928,
+        "inference_latency_ms": 12.94
+      },
+      "pipeline_stats": {
+        "num_strokes": 2,
+        "total_points": 100
+      }
+    },
+    {
+      "ground_truth": "太",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "太",
+            0.9383
+          ],
+          [
+            "大",
+            0.0602
+          ],
+          [
+            "天",
+            0.0014
+          ],
+          [
+            "夫",
+            0.0
+          ],
+          [
+            "犬",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9383,
+        "inference_latency_ms": 14.19
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 87
+      }
+    },
+    {
+      "ground_truth": "已",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "已",
+            0.9806
+          ],
+          [
+            "己",
+            0.0193
+          ],
+          [
+            ".",
+            0.0001
+          ],
+          [
+            "巳",
+            0.0001
+          ],
+          [
+            ",",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9806,
+        "inference_latency_ms": 9.99
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 177
+      }
+    },
+    {
+      "ground_truth": "己",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "己",
+            0.9855
+          ],
+          [
+            "已",
+            0.0086
+          ],
+          [
+            "2",
+            0.0042
+          ],
+          [
+            "乙",
+            0.0015
+          ],
+          [
+            ".",
+            0.0002
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9855,
+        "inference_latency_ms": 14.56
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 176
+      }
+    },
+    {
+      "ground_truth": "王",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "王",
+            0.9986
+          ],
+          [
+            "玉",
+            0.0011
+          ],
+          [
+            "旺",
+            0.0001
+          ],
+          [
+            "主",
+            0.0
+          ],
+          [
+            "土",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9986,
+        "inference_latency_ms": 14.16
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 106
+      }
+    },
+    {
+      "ground_truth": "田",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "田",
+            0.9982
+          ],
+          [
+            "由",
+            0.0011
+          ],
+          [
+            "因",
+            0.0001
+          ],
+          [
+            "巴",
+            0.0001
+          ],
+          [
+            "曰",
+            0.0001
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9982,
+        "inference_latency_ms": 10.51
+      },
+      "pipeline_stats": {
+        "num_strokes": 5,
+        "total_points": 129
+      }
+    },
+    {
+      "ground_truth": "女",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "女",
+            1.0
+          ],
+          [
+            "安",
+            0.0
+          ],
+          [
+            "汝",
+            0.0
+          ],
+          [
+            "如",
+            0.0
+          ],
+          [
+            "。",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 1.0,
+        "inference_latency_ms": 18.51
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 148
+      }
+    },
+    {
+      "ground_truth": "心",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "心",
+            0.9999
+          ],
+          [
+            "！",
+            0.0339
+          ],
+          [
+            "!",
+            0.0061
+          ],
+          [
+            "/",
+            0.0002
+          ],
+          [
+            "i",
+            0.0002
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9999,
+        "inference_latency_ms": 15.67
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 93
+      }
+    },
+    {
+      "ground_truth": "水",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "水",
+            0.9994
+          ],
+          [
+            "冰",
+            0.0005
+          ],
+          [
+            "氷",
+            0.0001
+          ],
+          [
+            "永",
+            0.0
+          ],
+          [
+            "火",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9994,
+        "inference_latency_ms": 9.83
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 128
+      }
+    },
+    {
+      "ground_truth": "木",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "木",
+            0.9937
+          ],
+          [
+            "本",
+            0.0034
+          ],
+          [
+            "大",
+            0.0007
+          ],
+          [
+            "林",
+            0.0005
+          ],
+          [
+            "禾",
+            0.0004
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9937,
+        "inference_latency_ms": 7.97
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 117
+      }
+    },
+    {
+      "ground_truth": "好",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "好",
+            0.9999
+          ],
+          [
+            "女",
+            0.0004
+          ],
+          [
+            "妃",
+            0.0
+          ],
+          [
+            "妤",
+            0.0
+          ],
+          [
+            "一",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9999,
+        "inference_latency_ms": 15.74
+      },
+      "pipeline_stats": {
+        "num_strokes": 6,
+        "total_points": 171
+      }
+    },
+    {
+      "ground_truth": "上",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "上",
+            0.9887
+          ],
+          [
+            "卜",
+            0.0046
+          ],
+          [
+            "下",
+            0.0042
+          ],
+          [
+            "ト",
+            0.0006
+          ],
+          [
+            "F",
+            0.0006
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9887,
+        "inference_latency_ms": 15.49
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 113
+      }
+    },
+    {
+      "ground_truth": "下",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "下",
+            0.9995
+          ],
+          [
+            "上",
+            0.0002
+          ],
+          [
+            "不",
+            0.0001
+          ],
+          [
+            "卜",
+            0.0001
+          ],
+          [
+            "工",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9995,
+        "inference_latency_ms": 26.82
+      },
+      "pipeline_stats": {
+        "num_strokes": 3,
+        "total_points": 71
+      }
+    },
+    {
+      "ground_truth": "文",
+      "ppocr_v6": {
+        "top5": [
+          [
+            "文",
+            0.9997
+          ],
+          [
+            "交",
+            0.0003
+          ],
+          [
+            "立",
+            0.0
+          ],
+          [
+            "又",
+            0.0
+          ],
+          [
+            "汶",
+            0.0
+          ]
+        ],
+        "correct_top1": true,
+        "correct_top5": true,
+        "confidence_top1": 0.9997,
+        "inference_latency_ms": 10.75
+      },
+      "pipeline_stats": {
+        "num_strokes": 4,
+        "total_points": 77
+      }
+    }
+  ]
+}

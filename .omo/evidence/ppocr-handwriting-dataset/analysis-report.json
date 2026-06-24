@@ -1,0 +1,207 @@
+{
+  "dataset": {
+    "version": 1,
+    "timestamp": "2026-06-24",
+    "chars_collected": [
+      "一",
+      "七",
+      "三",
+      "上",
+      "下",
+      "不",
+      "中",
+      "九",
+      "二",
+      "五",
+      "人",
+      "入",
+      "八",
+      "六",
+      "十",
+      "口",
+      "四",
+      "土",
+      "士",
+      "大",
+      "天",
+      "太",
+      "女",
+      "好",
+      "小",
+      "山",
+      "己",
+      "已",
+      "心",
+      "文",
+      "日",
+      "曰",
+      "月",
+      "木",
+      "未",
+      "末",
+      "水",
+      "火",
+      "王",
+      "田"
+    ],
+    "total_samples": 40
+  },
+  "overall_accuracy": {
+    "top1": {
+      "correct": 40,
+      "total": 40,
+      "accuracy": 100.0
+    },
+    "top5": {
+      "correct": 40,
+      "total": 40,
+      "accuracy": 100.0
+    },
+    "top10": {
+      "correct": 10,
+      "total": 40,
+      "accuracy": 25.0
+    },
+    "top24": {
+      "correct": 10,
+      "total": 40,
+      "accuracy": 25.0
+    }
+  },
+  "confidence_histogram": [
+    {
+      "range_low": 0.0,
+      "range_high": 0.1,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.1,
+      "range_high": 0.2,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.2,
+      "range_high": 0.3,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.3,
+      "range_high": 0.4,
+      "count": 1,
+      "pct": 2.5
+    },
+    {
+      "range_low": 0.4,
+      "range_high": 0.5,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.5,
+      "range_high": 0.6,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.6,
+      "range_high": 0.7,
+      "count": 1,
+      "pct": 2.5
+    },
+    {
+      "range_low": 0.7,
+      "range_high": 0.8,
+      "count": 0,
+      "pct": 0.0
+    },
+    {
+      "range_low": 0.8,
+      "range_high": 0.9,
+      "count": 5,
+      "pct": 12.5
+    },
+    {
+      "range_low": 0.9,
+      "range_high": 1.0,
+      "count": 33,
+      "pct": 82.5
+    }
+  ],
+  "confidence_calibration": {
+    "correct": {
+      "avg": 0.95,
+      "median": 1.0,
+      "n": 40
+    },
+    "wrong": {
+      "avg": 0,
+      "median": 0.0,
+      "n": 0
+    },
+    "ratio": 0
+  },
+  "per_character": {},
+  "stroke_complexity": {
+    "1-3 strokes": {
+      "total": 19,
+      "top1_correct": 19,
+      "top1_accuracy": 100.0,
+      "top5_correct": 19,
+      "top5_accuracy": 100.0
+    },
+    "4-6 strokes": {
+      "total": 21,
+      "top1_correct": 21,
+      "top1_accuracy": 100.0,
+      "top5_correct": 21,
+      "top5_accuracy": 100.0
+    },
+    "7-9 strokes": {
+      "total": 0,
+      "top1_correct": 0,
+      "top1_accuracy": 0,
+      "top5_correct": 0,
+      "top5_accuracy": 0
+    },
+    "10+ strokes": {
+      "total": 0,
+      "top1_correct": 0,
+      "top1_accuracy": 0,
+      "top5_correct": 0,
+      "top5_accuracy": 0
+    }
+  },
+  "dict_index_analysis": {
+    "0-1000": {
+      "total": 0,
+      "top1_correct": 0,
+      "top1_accuracy": 0,
+      "top5_correct": 0,
+      "top5_accuracy": 0
+    },
+    "1000-5000": {
+      "total": 26,
+      "top1_correct": 26,
+      "top1_accuracy": 100.0,
+      "top5_correct": 26,
+      "top5_accuracy": 100.0
+    },
+    "5000+": {
+      "total": 14,
+      "top1_correct": 14,
+      "top1_accuracy": 100.0,
+      "top5_correct": 14,
+      "top5_accuracy": 100.0
+    },
+    "unknown": {
+      "total": 0,
+      "top1_correct": 0,
+      "top1_accuracy": 0,
+      "top5_correct": 0,
+      "top5_accuracy": 0
+    }
+  }
+}
