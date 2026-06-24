@@ -6,6 +6,8 @@ import ctypes
 import time
 import os
 import threading
+import json
+import uuid
 
 try:
     import numpy as np
@@ -285,7 +287,7 @@ class OnnxHandle:
         self.dict = []
         with open(dict_path, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
+                line = line.rstrip('\n')
                 if line:
                     self.dict.append(line)
         # blank(0) + N chars + unknown(N+1)
@@ -294,6 +296,16 @@ class OnnxHandle:
         self.all_points = []
         self._last_results = []
         self._infer_lock = threading.Lock()
+        self._log_session_id = str(uuid.uuid4())[:8]
+
+    def _log(self, data):
+        try:
+            entry = {"session_id": self._log_session_id, "t": time.time(), **data}
+            with open("/tmp/ppocr-recognition.log", "a") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                f.flush()
+        except Exception:
+            pass
 
     def clear(self):
         self.all_points = []
@@ -349,7 +361,7 @@ class OnnxHandle:
         cr.paint()
         # Draw black strokes
         cr.set_source_rgb(0, 0, 0)
-        cr.set_line_width(6)
+        cr.set_line_width(8)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         cr.set_line_join(cairo.LINE_JOIN_ROUND)
         for stroke in self.all_points:
@@ -372,28 +384,56 @@ class OnnxHandle:
         # Add batch & channel dims -> [1, 3, 48, W]
         normalized = normalized[np.newaxis, np.newaxis, :, :]  # [1, 1, 48, W]
         normalized = np.repeat(normalized, 3, axis=1)  # [1, 3, 48, W]
+        try:
+            self._log({
+                "event": "preprocess",
+                "num_strokes": len(self.all_points),
+                "num_points": sum(len(s) for s in self.all_points),
+                "canvas_size": [width, height],
+                "resized_width": resized.shape[1],
+                "img_min": round(float(normalized.min()), 4),
+                "img_max": round(float(normalized.max()), 4),
+                "img_mean": round(float(normalized.mean()), 4),
+            })
+        except Exception:
+            pass
         return np.ascontiguousarray(normalized, dtype=np.float32)
 
     def _decode(self, output):
         """CTC decode via aggregation: average softmax across time, exclude blank."""
         probs = output[0]  # [T, num_classes]
-        avg_probs = np.mean(probs, axis=0)  # [num_classes]
+        avg_probs = np.max(probs, axis=0)  # [num_classes] — max over time steps (CTC peak confidence)
         # Exclude blank (index 0) and unknown (last index)
         char_probs = avg_probs[1:-1]
         k = min(self.max_candidates, len(char_probs))
         top_indices = np.argpartition(char_probs, -k)[-k:]
         top_indices = top_indices[np.argsort(char_probs[top_indices])[::-1]]
+        try:
+            top5 = [(self.dict[idx], round(float(char_probs[idx]), 4)) for idx in top_indices[:5]]
+            self._log({
+                "event": "decode",
+                "top5": top5,
+                "num_classes": self.num_classes,
+                "time_steps": int(output.shape[1]),
+            })
+        except Exception:
+            pass
         return [(self.dict[idx], float(char_probs[idx])) for idx in top_indices]
 
     def classify(self):
         """Run inference synchronously, return [(char, score), ...]."""
         if not self.all_points or not HAS_NUMPY:
             return []
+        t0 = time.time()
         input_tensor = self._preprocess()
         if input_tensor is None:
+            self._log({"event": "classify", "latency_ms": 0, "input_shape": None})
             return []
+        input_shape = list(input_tensor.shape)
         output = self.session.run(None, {"x": input_tensor})[0]
-        return self._decode(output)
+        result = self._decode(output)
+        self._log({"event": "classify", "latency_ms": round((time.time() - t0) * 1000, 2), "input_shape": input_shape})
+        return result
 
     def get_results(self):
         """Non-blocking get last results."""
@@ -835,6 +875,7 @@ class HandwriteWin(Gtk.Window):
         self.engine.update_candidates()
 
     def on_draw(self, w, cr):
+        import cairo
         alloc = self.darea.get_allocation()
         ww, hh = alloc.width, alloc.height
         if self._state == 1:
@@ -863,7 +904,6 @@ class HandwriteWin(Gtk.Window):
         cr.set_source_surface(self.pix, 0, 0)
         cr.paint()
         if self.cur_stroke and len(self.cur_stroke) > 1:
-            import cairo
             cr.set_source_rgb(1, 1, 1)
             cr.set_line_width(3)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
@@ -1005,7 +1045,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d visible=%s' % (keyval, str(self.win.get_visible() if self.win else False)))
         if state & IBus.ModifierType.RELEASE_MASK:
-            return super().do_process_key_event(keyval, keycode, state)
+            return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
         if keyval in (IBus.KEY_Escape, IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible():
             if keyval == IBus.KEY_Escape:
                 self.win.on_key_esc()
@@ -1015,7 +1055,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             elif keyval == IBus.KEY_Return:
                 self.commit_first()
             return True
-        return super().do_process_key_event(keyval, keycode, state)
+        return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
 
     def do_set_cursor_location(self, x, y, w, h):
         self._cx = x
@@ -1365,6 +1405,7 @@ def main():
         engine.win = win
         win.show_all()
         win.present()
+        win.start_trackpad()
         Gtk.main()
         return
 
