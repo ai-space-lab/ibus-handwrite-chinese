@@ -144,7 +144,7 @@ jobs:
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
         run: |
-          pacman -S --noconfirm python-evdev python-gobject gtk3 ibus xorg-server-xvfb wget unzip
+          pacman -S --noconfirm python-evdev python-gobject python-cairo gtk3 ibus xorg-server-xvfb wget unzip
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
