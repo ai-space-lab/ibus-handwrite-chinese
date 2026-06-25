@@ -15,7 +15,6 @@ Depends: python3 (>= 3.6),
          python3-evdev,
          python3-gi,
          python3-numpy,
-         python3-onnxruntime,
          ibus,
          wget,
          unzip
