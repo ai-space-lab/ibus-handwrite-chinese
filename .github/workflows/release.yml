@@ -203,7 +203,7 @@ jobs:
                 done
                 [ "$refresh_ok" = true ]
               fi
-              zypper install -y python3-evdev python3-gobject python3-numpy \
+              zypper --no-refresh install -y python3-evdev python3-gobject python3-numpy \
                 python3-pip ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
                 xvfb-run wget unzip p7zip
