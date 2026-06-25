@@ -1,9 +1,5 @@
 # Maintainer: ibus-handwrite-chinese developers <dev@ibus-handwrite-chinese.example.com>
 # Contributor: Your Name <your@email.com>
-#
-# NOTE: zinnia is an AUR dependency. Install it first:
-#   yay -S zinnia
-# or build manually from https://aur.archlinux.org/packages/zinnia
 
 pkgname=ibus-handwrite-chinese
 pkgver=0.1.0
@@ -12,7 +8,7 @@ pkgdesc="Chinese handwriting input method with macOS-style floating panel, evdev
 arch=('any')
 url="https://github.com/vinceyap88/ibus-handwrite-chinese"
 license=('GPL3')
-depends=('python' 'python-evdev' 'python-gobject' 'ibus' 'zinnia' 'python-numpy' 'python-onnxruntime' 'wget' 'unzip' 'p7zip')
+depends=('python' 'python-evdev' 'python-gobject' 'ibus' 'python-numpy' 'python-onnxruntime' 'wget' 'unzip' 'p7zip')
 makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vinceyap88/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
@@ -25,13 +21,11 @@ package() {
     install -Dm755 src/ibus-engine-handwrite-chinese "${pkgdir}/usr/local/bin/ibus-engine-handwrite-chinese"
     install -Dm644 src/handwrite_evdev.py "${pkgdir}/usr/local/bin/handwrite_evdev.py"
 
-    # Install IBus component files
-    install -Dm644 xml/handwrite-chinese-simplified.xml "${pkgdir}/usr/share/ibus/component/handwrite-chinese-simplified.xml"
-    install -Dm644 xml/handwrite-chinese-traditional.xml "${pkgdir}/usr/share/ibus/component/handwrite-chinese-traditional.xml"
+    # Install IBus component file
+    install -Dm644 xml/handwrite-chinese.xml "${pkgdir}/usr/share/ibus/component/handwrite-chinese.xml"
 
-    # Install icons
-    install -Dm644 icons/handwrite-chinese-simplified.svg "${pkgdir}/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-simplified.svg"
-    install -Dm644 icons/handwrite-chinese-traditional.svg "${pkgdir}/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-traditional.svg"
+    # Install icon
+    install -Dm644 icons/handwrite-chinese.svg "${pkgdir}/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg"
 
     # Install restore script
     install -Dm755 tools/restore.sh "${pkgdir}/usr/local/share/ibus-handwrite-chinese/restore.sh"

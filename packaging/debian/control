@@ -20,8 +20,6 @@ Depends: python3 (>= 3.6),
           ibus,
          wget,
          unzip
-Recommends: tegaki-zinnia-simplified-chinese,
-            tegaki-zinnia-traditional-chinese
 Description: Chinese handwriting input method with macOS-style floating panel
  A Chinese handwriting input method for Linux with a macOS-style floating
  panel, evdev touchpad integration, and Zinnia-based recognition.
@@ -34,5 +32,5 @@ Description: Chinese handwriting input method with macOS-style floating panel
   * ESC pause/resume/close state machine
   * Delete button and always-visible close button
   * Cursor-proximity window positioning
-  * Both Simplified and Traditional Chinese (separate IBus engines)
+  * Chinese Handwriting (single unified IBus engine)
   * 幽兰百合 Community v1.1.0 model (9,374 chars, downloaded post-install)

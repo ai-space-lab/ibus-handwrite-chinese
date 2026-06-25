@@ -3,7 +3,7 @@
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
 [![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
 
-一款 Linux 平台的中文手写输入法，采用 macOS 风格浮动面板、evdev 触摸板集成和双识别引擎：幽兰百合 Zinnia 和 PP-OCRv6 ONNX 深度学习引擎。
+一款 Linux 平台的中文手写输入法，采用 macOS 风格浮动面板、evdev 触摸板集成和 PP-OCRv6 ONNX 深度学习引擎。
 
 ![screenshot](docs/screenshot.png)
 
@@ -28,12 +28,12 @@
 
 | 发行版 | 安装方式 | 模型来源 |
 |--------|----------|----------|
-| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + 镜像下载 | 系统包 + 幽兰百合（首选 Gitee，备用 GitHub） |
-| Fedora 39+ | `dnf` + 下载 | tegaki + 幽兰百合模型 |
-| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + 下载 | tegaki + 幽兰百合模型 |
-| openSUSE Tumbleweed | `zypper` + 下载 | tegaki + 幽兰百合模型 |
+| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + 下载 | 系统包 + PP-OCRv6 ONNX 模型 |
+| Fedora 39+ | `dnf` + 下载 | PP-OCRv6 ONNX 模型 |
+| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + 下载 | PP-OCRv6 ONNX 模型 |
+| openSUSE Tumbleweed | `zypper` + 下载 | PP-OCRv6 ONNX 模型 |
 
-安装程序从 [tegaki GitHub releases](https://github.com/tegaki/tegaki-models/releases) 下载 tegaki v0.3 模型（`zh_CN.model` — 6763 字，`zh_TW.model` — 11853 字），并从 [Gitee](https://gitee.com/LZQingXi/handwriting-zh_CN_Community) 下载 **幽兰百合 Community v1.1.0** 模型（`ZJHandWriting-zh_CN.model` — 9374 字）。简体中文以幽兰百合为主识别器，tegaki zh_CN 为后备。
+安装程序自动下载 PP-OCRv6 ONNX 模型（覆盖 18710 个汉字）用于深度学习识别。
 
 ## 系统要求
 
@@ -41,8 +41,8 @@
 - IBus 输入法框架（大多数桌面环境默认安装）
 - **Debian 系列**：Debian 11+，Ubuntu 22.04+，Linux Mint 21+
 - **Fedora**：Fedora 40+
-- **Arch**：Arch Linux，Manjaro（zinnia 来自 AUR）
-- **openSUSE**：Tumbleweed（Leap 不提供 zinnia）
+- **Arch**：Arch Linux，Manjaro
+- **openSUSE**：Tumbleweed
 
 ## 快速安装
 
@@ -54,23 +54,22 @@ ibus restart
 **Debian/Ubuntu/Mint** 用户也可使用传统方式：
 
 ```bash
-sudo apt install python3-evdev tegaki-zinnia-simplified-chinese tegaki-zinnia-traditional-chinese
+sudo apt install python3-evdev
 git clone https://github.com/vinceyap88/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
 sudo ./install.sh          # 已安装依赖可加 --skip-deps
 ibus restart
 ```
 
-`install.sh` 自动下载缺失的模型：tegaki 繁体模型从 GitHub 获取，幽兰百合 Community v1.1.0 模型（9374 字）从 Gitee 获取，用于提升简体中文识别精度。
+`install.sh` 自动下载 PP-OCRv6 ONNX 模型（覆盖 18710 个汉字）用于深度学习识别。
 
 切换输入法：
 
 ```bash
-ibus engine handwrite-chinese-simplified   # 简体中文
-ibus engine handwrite-chinese-traditional  # 繁体中文
+ibus engine handwrite-chinese
 ```
 
-或者从桌面环境的 IBus 菜单中选择 **Chinese Handwriting (Simplified)** 或 **Chinese Handwriting (Traditional)**。
+或者从桌面环境的 IBus 菜单中选择 **Chinese Handwriting**。
 
 ## 软件包
 
@@ -82,11 +81,11 @@ ibus engine handwrite-chinese-traditional  # 繁体中文
 | `.rpm` | `sudo rpm -i <file>` | Fedora 40+, openSUSE Tumbleweed |
 | `PKGBUILD` | 参考 `packaging/PKGBUILD` | Arch Linux（需手动提交到 AUR）|
 
-软件包在推送标签时由 CI 自动构建。安装后自动下载 tegaki 模型（GitHub）和幽兰百合模型（Gitee，非致命失败）。
+软件包在推送标签时由 CI 自动构建。安装后自动下载 PP-OCRv6 ONNX 模型（非致命失败）。
 
 ## 使用方法
 
-1. 从 IBus 菜单切换到 **Chinese Handwriting (Simplified)** 或 **Chinese Handwriting (Traditional)**
+1. 从 IBus 菜单切换到 **Chinese Handwriting**
 2. 深色浮动面板将在屏幕右下角出现
 3. 用单指在触摸板上书写汉字
 4. 候选字显示在面板顶部
@@ -113,7 +112,7 @@ ibus engine handwrite-chinese-traditional  # 繁体中文
 
 [主 CI](.github/workflows/ci.yml) 在每次推送/PR 到 `main` 时运行，覆盖 5 个 Docker 容器：
 - **lint**：shellcheck、xmllint、Python 语法检查
-- **test-install**：按发行版安装依赖，验证 `libzinnia.so` 加载，检查 Python 语法
+- **test-install**：按发行版安装依赖，验证 ONNX 运行时加载，检查 Python 语法
 - **test-bootstrap**：完整运行 bootstrap.sh，验证安装文件和模型，运行识别冒烟测试
 - **test-gtk-write**：在 10 个发行版版本上运行 GTK 书写模拟，并上传截图产物
 
@@ -151,28 +150,25 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 ## 已知限制
 
 - **实机测试**：在 MacBook Pro（bcm5974）上测试通过 —— 应适用于任何支持 `BTN_TOUCH + ABS_X` 的触摸板，但 Fedora/Arch 上的 Wayland 弹出面板定位和 SELinux evdev 访问尚未测试
-- **识别精度**：简体中文以 PP-OCRv6（18710 字，ONNX）深度学习引擎为主，幽兰百合 Zinnia（9374 字）为后备。经 40 个真实手写字符验证（36 个不同字，含 7 组相似字：土/士、未/末、日/曰、人/入、大/太、已/己、上/下），首选识别率 100%，平均置信度 94.97%。繁体中文使用 tegaki zh_TW（11853 字）
+- **识别精度**：使用 PP-OCRv6（18710 字，ONNX）深度学习引擎。经 40 个真实手写字符验证（36 个不同字，含 7 组相似字：土/士、未/末、日/曰、人/入、大/太、已/己、上/下），首选识别率 100%，平均置信度 94.97%
 - **单字输入**：暂不支持多字组合（一次输入一个字）。V2 版本可能加入空间分割实现连续输入
-- **openSUSE Leap**：zinnia 库在 Leap 16.0 默认源中不可用。请使用 openSUSE Tumbleweed，或从 OBS 手动安装 zinnia
-- **第三方模型**：幽兰百合模型托管在 Gitee（中国）。如果 Gitee 无法访问，安装程序将回退到本地 `models/` 缓存，或发出警告并继续。CI 容器优雅跳过下载
+- **ONNX 模型下载**：PP-OCRv6 模型托管在 GitHub Releases。如果下载失败，安装程序将发出警告并继续。CI 容器优雅跳过下载
 
 ## 许可协议
 
-GPLv3 — 由依赖库要求（libzinnia、python3-evdev、ibus）。
+GPLv3 — 由依赖库要求（python3-evdev、ibus）。
 
 ## PP-OCRv6 集成
 
-简体中文使用 PP-OCRv6 ONNX 模型（MobileNetV3 small，训练于 18710 个汉字）作为主要识别引擎。
+PP-OCRv6 ONNX 模型（MobileNetV3 small，训练于 18710 个汉字）是唯一识别引擎。
 
 ### 架构
 
-引擎支持两种识别后端，由 `_USE_ONNX` 标志控制：
-- **PP-OCRv6**（`_USE_ONNX = True`）：简体中文默认。ONNX 运行时，CTC 解码和 MAX 池化置信度评分。
-- **幽兰百合 Zinnia**（`_USE_ONNX = False`）：繁体中文默认。基于格子的 Zinnia 识别引擎。
+引擎使用 PP-OCRv6 ONNX 运行时，采用 CTC 解码和 MAX 池化置信度评分。
 
 ### 设置
 
-1. 通过 `bootstrap.sh` 或 `install.sh` 下载模型（PP-OCRv6 ONNX + 字典，或 Zinnia 模型）
+1. 通过 `bootstrap.sh` 或 `install.sh` 下载 PP-OCRv6 ONNX 模型及字典
 2. 通过环境变量设置 ONNX 模型路径：
    ```bash
    export IBUS_HANDWRITE_PPOCR_MODEL=small  # 或 large、server（默认：small）
@@ -181,7 +177,7 @@ GPLv3 — 由依赖库要求（libzinnia、python3-evdev、ibus）。
    ```
 3. 照常切换引擎：
    ```bash
-   ibus engine handwrite-chinese-simplified
+   ibus engine handwrite-chinese
    ```
 
 ### 无需 IBus 测试
@@ -228,14 +224,12 @@ python3 src/ibus-engine-handwrite-chinese --test
 │   ├── gtk_collect_loop.py            基于日志的 GTK 采集脚本
 │   └── read_last_log.py               识别日志读取器
 ├── src/
-│   ├── ibus-engine-handwrite-chinese    主引擎（Python、Zinnia ctypes、GTK 弹出面板、evdev 集成）
+│   ├── ibus-engine-handwrite-chinese    主引擎（Python、PP-OCRv6 ONNX、GTK 弹出面板、evdev 集成）
 │   └── handwrite_evdev.py               Evdev 多点触控读取模块
 ├── xml/
-│   ├── handwrite-chinese-simplified.xml IBus 组件：简体中文
-│   └── handwrite-chinese-traditional.xml IBus 组件：繁体中文
+│   └── handwrite-chinese.xml            IBus 组件
 ├── icons/
-│   ├── handwrite-chinese-simplified.svg 引擎图标：简体
-│   └── handwrite-chinese-traditional.svg 引擎图标：繁体
+│   └── handwrite-chinese.svg            引擎图标
 ├── tools/
 │   ├── install.sh                       安装脚本（Debian 原生，支持 `--skip-deps`）
 │   ├── restore.sh                       回滚/恢复脚本
@@ -245,7 +239,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 │   └── test_data/                      测试笔画数据
 ├── docs/
 │   └── screenshot.png                   应用截图
-│   ├── plan-handwriting-accuracy-test.md tegaki 与幽兰百合精度对比测试方案
+│   ├── plan-handwriting-accuracy-test.md 识别精度测试方案（历史文档）
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 功能规划
 ├── models/                              本地模型缓存（gitignore）
 ├── packaging/                            Debian 打包、RPM spec、PKGBUILD
