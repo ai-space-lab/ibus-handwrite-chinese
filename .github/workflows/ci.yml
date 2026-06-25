@@ -167,13 +167,12 @@ jobs:
           fi
       - name: Download PP-OCRv6 ONNX model
         run: |
-          wget -q -O /usr/local/share/ibus-handwrite-chinese/models/ppocrv6_small_rec.onnx \
-            https://github.com/ai-space-lab/ibus-handwrite-chinese/releases/download/v0.1.0/ppocrv6_small_rec.onnx || \
-          wget -q -O /usr/local/share/ibus-handwrite-chinese/models/ppocrv6_small_rec.onnx \
-            https://github.com/ai-space-lab/ibus-handwrite-chinese/releases/download/v0.1.0/ppocrv6_small.onnx || \
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
+          wget -q --timeout=60 -O /usr/local/share/ibus-handwrite-chinese/models/ppocrv6_small_rec.onnx \
+            https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx || \
           echo "WARNING: ONNX model download failed"
-          wget -q -O /usr/local/share/ibus-handwrite-chinese/models/dict_v6.txt \
-            https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/data/models/dict_v6.txt || \
+          wget -q --timeout=60 -O /usr/local/share/ibus-handwrite-chinese/models/dict_v6.txt \
+            https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt || \
           echo "WARNING: dict download failed"
           ls -la /usr/local/share/ibus-handwrite-chinese/models/
       - name: Install python3-onnxruntime (Debian/Ubuntu)
