@@ -212,7 +212,7 @@ jobs:
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             archlinux:*)
-              pacman -S --noconfirm python-evdev python-gobject python-numpy \
+              pacman -S --noconfirm python-evdev python-gobject python-cairo python-numpy \
                 python-pip gtk3 ibus \
                 xorg-server-xvfb wget unzip p7zip
               pip install onnxruntime --break-system-packages 2>/dev/null || \
