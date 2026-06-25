@@ -45,7 +45,9 @@ jobs:
       - name: Verify .deb installs
         run: |
           apt install -y python3-evdev python3-gi python3-gi-cairo \
-            python3-numpy python3-onnxruntime ibus wget unzip p7zip-full
+            python3-numpy python3-pip ibus wget unzip p7zip-full
+          pip3 install onnxruntime --break-system-packages 2>/dev/null || \
+            pip3 install onnxruntime
           dpkg -i ibus-handwrite-chinese_*.deb
           dpkg --audit ibus-handwrite-chinese || true
       - name: Upload .deb artifact
