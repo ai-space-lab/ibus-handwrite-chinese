@@ -29,5 +29,5 @@ If shell scripts or IBus XML changed, also run:
 
 ```bash
 shellcheck -e SC1091 bootstrap.sh tools/install.sh tools/restore.sh
-xmllint --noout xml/handwrite-chinese-simplified.xml xml/handwrite-chinese-traditional.xml
+xmllint --noout xml/handwrite-chinese.xml
 ```

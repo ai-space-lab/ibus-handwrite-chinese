@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component>
+  <name>com.github.vinceyap88.ibus-handwrite-chinese</name>
+  <description>Chinese Handwriting Input Method</description>
+  <exec>/usr/local/bin/ibus-engine-handwrite-chinese --ibus</exec>
+  <version>0.1.0</version>
+  <author>vinceyap88</author>
+  <license>GPLv3</license>
+  <homepage></homepage>
+  <textdomain>ibus-handwrite-chinese</textdomain>
+  <engines>
+    <engine>
+      <name>handwrite-chinese</name>
+      <longname>Chinese Handwriting</longname>
+      <description>Chinese handwriting input using touchpad</description>
+      <language>zh</language>
+      <license>GPLv3</license>
+      <author>vinceyap88</author>
+      <layout>us</layout>
+      <icon>/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg</icon>
+    </engine>
+  </engines>
+</component>

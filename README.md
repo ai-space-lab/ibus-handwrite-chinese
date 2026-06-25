@@ -3,9 +3,9 @@
 [![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
 [![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
 
-**English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
+**English** · [简体中文](README.zh-Hans.md) · [繁體中文](README.zh-Hant.md)
 
-A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev touchpad integration, and Zinnia-based recognition.
+A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev touchpad integration, and PP-OCRv6 ONNX deep-learning recognition (18710 chars).
 
 ![screenshot](docs/screenshot.png)
 
@@ -21,19 +21,21 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle in the top bar to reposition the window
 - **Mouse fallback**: if no evdev touchpad is available, draw with the mouse
+- **PP-OCRv6 deep-learning engine**: ONNX-based CNN recognition covering 18,710 characters, with MAX-pooled confidence scoring for reliable top-1 predictions
+- **'--test' mode**: standalone GTK window (no IBus dependency) for quick testing, data collection, and debugging
 
 ## Cross-Distro Support
 
 `bootstrap.sh` auto-detects your Linux distribution and installs everything:
 
-| Distro | Method | Models |
-|--------|--------|--------|
-| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + Gitee download | System packages + 幽兰百合 from Gitee (fallback: GitHub download) |
-| Fedora 39+ | `dnf` + GitHub/Gitee download | tegaki + 幽兰百合 models downloaded |
-| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + download | tegaki + 幽兰百合 models downloaded |
-| openSUSE Tumbleweed | `zypper` + download | tegaki + 幽兰百合 models downloaded |
+| Distro | Method |
+|--------|--------|
+| Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + model download |
+| Fedora 39+ | `dnf` + model download |
+| Arch Linux, Manjaro | `pacman` + `yay` (AUR) + download |
+| openSUSE Tumbleweed | `zypper` + download |
 
-The installer fetches tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.model` — 11853 chars) from [tegaki GitHub releases](https://github.com/tegaki/tegaki-models/releases), and the **幽兰百合 Community v1.1.0** model (`ZJHandWriting-zh_CN.model` — 9374 chars) from [Gitee](https://gitee.com/LZQingXi/handwriting-zh_CN_Community). For Simplified Chinese, 幽兰百合 is the primary recognizer with tegaki zh_CN as fallback.
+The installer downloads the PP-OCRv6 ONNX model and character dictionary for recognition.
 
 ## Requirements
 
@@ -41,8 +43,8 @@ The installer fetches tegaki v0.3 models (`zh_CN.model` — 6763 chars, `zh_TW.m
 - IBus input method framework (default on most desktops)
 - **Debian family**: Debian 11+, Ubuntu 22.04+, Linux Mint 21+
 - **Fedora**: Fedora 40+
-- **Arch**: Arch Linux, Manjaro (zinnia from AUR)
-- **openSUSE**: Tumbleweed (zinnia not available on Leap)
+- **Arch**: Arch Linux, Manjaro
+- **openSUSE**: Tumbleweed
 
 ## Quick Install
 
@@ -54,23 +56,22 @@ ibus restart
 **Debian/Ubuntu/Mint** users can also use the traditional method:
 
 ```bash
-sudo apt install python3-evdev tegaki-zinnia-simplified-chinese tegaki-zinnia-traditional-chinese
+sudo apt install python3-evdev
 git clone https://github.com/vinceyap88/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
 sudo ./install.sh          # add --skip-deps if you already installed dependencies
 ibus restart
 ```
 
-`install.sh` automatically downloads missing models: tegaki traditional from GitHub and the 幽兰百合 Community v1.1.0 model (9374 chars) from Gitee for improved Simplified Chinese accuracy.
+`install.sh` automatically downloads the PP-OCRv6 ONNX model and character dictionary.
 
 Then switch the engine:
 
 ```bash
-ibus engine handwrite-chinese-simplified   # Simplified Chinese
-ibus engine handwrite-chinese-traditional  # Traditional Chinese
+ibus engine handwrite-chinese
 ```
 
-Or select **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditional)** from your desktop's IBus menu.
+Or select **Chinese Handwriting** from your desktop's IBus menu.
 
 ## Packages
 
@@ -82,11 +83,11 @@ Pre-built packages are available on the [GitHub Release](https://github.com/vinc
 | `.rpm` | `sudo rpm -i <file>` | Fedora 40+, openSUSE Tumbleweed |
 | `PKGBUILD` | Reference in `packaging/PKGBUILD` | Arch Linux (submit to AUR manually) |
 
-Packages are built automatically by CI on tag push. Post-install downloads tegaki models from GitHub and 幽兰百合 from Gitee (best-effort, non-fatal if Gitee is unreachable).
+Packages are built automatically by CI on tag push. Post-install downloads the PP-OCRv6 ONNX model and character dictionary.
 
 ## Usage
 
-1. Switch to **Chinese Handwriting (Simplified)** or **Chinese Handwriting (Traditional)** from your IBus menu
+1. Switch to **Chinese Handwriting** from your IBus menu
 2. A dark floating panel appears near your text cursor
 3. Draw Chinese characters on your laptop's touchpad with one finger
 4. Candidate characters appear at the top of the panel
@@ -96,6 +97,7 @@ Packages are built automatically by CI on tag push. Post-install downloads tegak
 8. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
 9. **ESC** again closes and restores previous input method
 10. Click the window to resume after pausing
+11. For testing without IME switching, run `python3 src/ibus-engine-handwrite-chinese --test` in a terminal — a standalone GTK window appears and recognition results are logged to `/tmp/ppocr-recognition.log`
 
 ## Troubleshooting
 
@@ -112,7 +114,7 @@ Two workflows cover development and releases:
 
 [Main CI](.github/workflows/ci.yml) runs on every push/PR to `main` across 5 Docker containers:
 - **lint**: shellcheck, xmllint, Python syntax checks
-- **test-install**: installs dependencies per distro, verifies `libzinnia.so` loads, checks Python syntax
+- **test-install**: installs dependencies per distro, checks Python syntax
 - **test-bootstrap**: full bootstrap.sh end-to-end run, verifies installed files and model placement, runs recognition smoke test
 - **test-gtk-write**: GTK writing simulation across 10 distro versions, captures screenshots as artifacts
 
@@ -134,41 +136,97 @@ The recognition smoke test (`tests/test_recognition.py`) creates synthetic strok
 
 CI tests GTK under Xvfb, but not live IBus, evdev, or real touchpad hardware in containers.
 
+### PP-OCRv6 Accuracy Validation
+
+Analysis scripts for validating PP-OCRv6 recognition accuracy:
+- `scripts/collect_ppocr_data.py` — Interactive data collection via `--test` mode (or `--prompt` / `--free` modes)
+- `scripts/analyze_ppocr_data.py` — Accuracy, confidence histogram, calibration, stroke complexity, and dict index analysis
+- `scripts/capture_one.py` — Single-stroke capture and recognition test
+- `scripts/gtk_collect_loop.py` — Batch collection using log-file polling with `--test` mode
+
+Run the full analysis pipeline:
+```bash
+python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-dataset/dataset-chat-v1.json --verbose
+```
+
 ## Known Limitations
 
 - **Real hardware**: Tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
-- **Recognition accuracy**: Simplified Chinese uses the 幽兰百合 Community v1.1.0 model (9374 chars) as primary with tegaki zh_CN (6763 chars) as fallback. Tested at ~80% top-1 accuracy on real handwriting (MacBook trackpad, 20 common characters). Traditional Chinese uses tegaki zh_TW (11853 chars).
+- **Recognition accuracy**: Pure PP-OCRv6 ONNX recognition (18710 chars). Validated at 100% top-1 accuracy on 40 real handwriting characters (36 distinct chars, including 7 similar-pair groups: 土/士, 未/末, 日/曰, 人/入, 大/太, 已/己, 上/下). Average confidence: 94.97%.
 - **Single character**: No multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
-- **openSUSE Leap**: `zinnia` library not available in Leap 16.0 default repos. Use openSUSE Tumbleweed instead, or install zinnia from OBS manually.
-- **Third-party model**: The 幽兰百合 model is hosted on Gitee (China). If Gitee is unreachable, the installer falls back to the local `models/` cache or warns and continues. CI containers skip the download gracefully.
 
 ## License
 
-GPLv3 — required by dependencies (libzinnia, python3-evdev, ibus).
+GPLv3 — required by dependencies (python3-evdev, ibus).
 
-## Traditional Chinese
+## PP-OCRv6 Integration
 
-The engine supports both Simplified and Traditional Chinese as separate IBus engines. After installing, select from your IBus menu or switch with:
+The engine uses a PP-OCRv6 ONNX model (MobileNetV3 small, trained on 18,710 Chinese characters) for recognition.
 
+### Setup
+
+1. Download the PP-OCRv6 ONNX model and dictionary via `bootstrap.sh` or `install.sh`
+2. Set the ONNX model path via environment variable:
+   ```bash
+   export IBUS_HANDWRITE_PPOCR_MODEL=small  # or: large, server (default: small)
+   export IBUS_HANDWRITE_PPOCR_MODEL_PATH=/tmp/models/ppocrv6_small.onnx
+   export IBUS_HANDWRITE_PPOCR_DICT_PATH=/tmp/models/dict_v6.txt
+   ```
+3. Switch the engine as normal:
+   ```bash
+   ibus engine handwrite-chinese
+   ```
+
+### Testing Without IBus
+
+Run the engine in standalone `--test` mode to test recognition without switching IME:
 ```bash
-ibus engine handwrite-chinese-simplified   # Simplified (幽兰百合 9374 chars + tegaki zh_CN fallback)
-ibus engine handwrite-chinese-traditional  # Traditional (tegaki zh_TW model, 11853 chars)
+python3 src/ibus-engine-handwrite-chinese --test
 ```
+This opens a GTK floating window where you can draw characters. Recognition results appear in `/tmp/ppocr-recognition.log`.
 
-Both engines can be added to your input sources simultaneously — switch between them like any two input methods.
+### Bug Fixes Applied
+
+Three bugs were identified and fixed in the PP-OCRv6 pipeline during validation:
+
+1. **Dict index corruption** (line 290): `line.strip()` stripped U+3000 (ideographic space) from a dict entry, shifting all subsequent character indices by 1. Fixed with `line.rstrip('\n')`.
+2. **Confidence pooling** (line 405): `np.mean(probs, axis=0)` averaged across all CTC time steps including blank frames, diluting true confidence by ~10×. Fixed with `np.max(probs, axis=0)` (MAX pooling) which matches CTC argmax behavior for single-character recognition.
+3. **Stroke line width** (line 364): `cr.set_line_width(6)` rendered strokes thinner than the training data distribution. Increased to `set_line_width(8)`.
+
+### Validation Results
+
+40 real handwriting characters collected via `--test` mode and touchpad input:
+
+| Metric | Result |
+|--------|--------|
+| Top-1 accuracy | 40/40 (100%) |
+| Top-5 accuracy | 40/40 (100%) |
+| Average confidence | 94.97% |
+| Min confidence | 34.47% (小) |
+| Max confidence | 100.00% (月, 女, etc.) |
+| Similar pairs tested | 7 groups, 14/14 correct |
+
+Characters tested: 一 七 三 上 下 不 中 九 二 五 人 入 八 六 十 口 四 土 士 大 天 太 女 好 小 山 己 已 心 文 日 曰 月 木 未 末 水 火 王 田
+
+Full analysis report: `.omo/evidence/ppocr-handwriting-dataset/analysis-report.json`
+Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.txt`
 
 ## Repository Structure
 
 ```
+├── scripts/
+│   ├── analyze_ppocr_data.py          PP-OCRv6 accuracy analysis pipeline
+│   ├── collect_ppocr_data.py          Interactive handwriting data collection
+│   ├── capture_one.py                 Single-shot capture helper
+│   ├── gtk_collect_loop.py            Log-based GTK collection script
+│   └── read_last_log.py               Recognition log reader
 ├── src/
-│   ├── ibus-engine-handwrite-chinese    Main engine (Python, Zinnia ctypes, GTK popup, evdev integration)
+│   ├── ibus-engine-handwrite-chinese    Main engine (Python, GTK popup, evdev integration)
 │   └── handwrite_evdev.py               Evdev multitouch reader module
 ├── xml/
-│   ├── handwrite-chinese-simplified.xml IBus component: Simplified Chinese
-│   └── handwrite-chinese-traditional.xml IBus component: Traditional Chinese
+│   └── handwrite-chinese.xml               IBus component XML
 ├── icons/
-│   ├── handwrite-chinese-simplified.svg Engine icon: Simplified
-│   └── handwrite-chinese-traditional.svg Engine icon: Traditional
+│   └── handwrite-chinese.svg               Engine icon
 ├── tools/
 │   ├── install.sh                       Install script (Debian-native, accepts `--skip-deps`)
 │   ├── restore.sh                       Rollback/restore script
@@ -178,15 +236,20 @@ Both engines can be added to your input sources simultaneously — switch betwee
 │   └── test_data/                      Test stroke data
 ├── docs/
 │   └── screenshot.png                  App screenshot
-│   ├── plan-handwriting-accuracy-test.md Methodology for comparing tegaki vs 幽兰百合 accuracy
+│   ├── plan-handwriting-accuracy-test.md Historical accuracy test methodology
 │   └── multi-char-composition-with-phrase-boost-plan.md  V2 feature plan
 ├── models/                              Local model cache (gitignored)
 ├── packaging/                            Debian packaging, RPM spec, PKGBUILD
 ├── .github/workflows/
 │   ├── ci.yml                          Main CI — 5 distros
 │   └── release.yml                     Release build, verify, upload
+├── .omo/
+│   └── evidence/ppocr-handwriting-dataset/  Accuracy validation evidence
+│       ├── dataset-chat-v1.json             40 handwriting samples, 100% accuracy
+│       ├── analysis-report.json             Full analysis report with metrics
+│       └── bottleneck-report.txt            Bug fix and validation report
 ├── bootstrap.sh                        Cross-distro install entry point
 ├── README.md
-├── README.zh-CN.md
-└── README.zh-TW.md
+├── README.zh-Hans.md
+└── README.zh-Hant.md
 ```

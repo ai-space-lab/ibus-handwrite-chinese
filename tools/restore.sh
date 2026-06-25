@@ -12,7 +12,7 @@ echo ""
 echo "[1] Removing engine files..."
 rm -f /usr/local/bin/ibus-engine-handwrite-chinese
 rm -f /usr/local/bin/handwrite_evdev.py
-rm -f /usr/share/ibus/component/handwrite-chinese-simplified.xml /usr/share/ibus/component/handwrite-chinese-traditional.xml
+rm -f /usr/share/ibus/component/handwrite-chinese.xml
 rm -f /etc/udev/rules.d/99-trackpad-handwrite.rules
 rm -rf /usr/local/share/ibus-handwrite-chinese
 
