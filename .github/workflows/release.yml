@@ -172,14 +172,18 @@ jobs:
             debian:*|ubuntu:*)
               apt update
               apt install -y python3-evdev python3-gi python3-gi-cairo \
-                ibus xvfb wget unzip p7zip-full
+                python3-numpy python3-pip ibus xvfb wget unzip p7zip-full
+              pip3 install onnxruntime --break-system-packages 2>/dev/null || \
+                pip3 install onnxruntime
               dpkg -i release-artifacts/deb-package/ibus-handwrite-chinese_*.deb
               apt install -f -y
               ;;
             fedora:*)
-              dnf install -y python3-evdev python3-gobject gtk3 ibus ibus-libs \
+              dnf install -y python3-evdev python3-gobject python3-numpy \
+                python3-pip gtk3 ibus ibus-libs \
                 gobject-introspection xorg-x11-server-Xvfb \
                 wget unzip p7zip
+              pip3 install onnxruntime
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             opensuse/*)
@@ -198,14 +202,18 @@ jobs:
                 done
                 [ "$refresh_ok" = true ]
               fi
-              zypper install -y python3-evdev python3-gobject ibus \
+              zypper install -y python3-evdev python3-gobject python3-numpy \
+                python3-pip ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
                 xvfb-run wget unzip p7zip
+              pip3 install onnxruntime
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             archlinux:*)
-              pacman -S --noconfirm python-evdev python-gobject gtk3 ibus \
+              pacman -S --noconfirm python-evdev python-gobject python-numpy \
+                python-pip gtk3 ibus \
                 xorg-server-xvfb wget unzip p7zip
+              pip install onnxruntime
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
               (cd "$tmpdir" && ./tools/install.sh --skip-deps --no-restart)
