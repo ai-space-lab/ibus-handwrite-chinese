@@ -15,17 +15,15 @@ BuildRequires:  python3
 
 Requires:       python3-evdev
 Requires:       python3-gobject
-Requires:       zinnia
 Requires:       python3-numpy
 Requires:       python3-onnxruntime
 Requires:       ibus
 Requires:       wget
 Requires:       unzip
-Requires:       p7zip
 
 %description
 A Chinese handwriting input method for Linux with a macOS-style floating
-panel, evdev touchpad integration, and Zinnia-based recognition.
+panel, evdev touchpad integration, and PP-OCRv6 ONNX-based recognition.
 
 Features:
 - macOS-style dark floating popup with embedded candidates
@@ -56,21 +54,6 @@ install -m 755 tools/restore.sh %{buildroot}/usr/local/share/ibus-handwrite-chin
 install -m 644 tools/99-trackpad-handwrite.rules %{buildroot}/etc/udev/rules.d/
 
 %post
-LILY_DIR="/usr/local/share/ibus-handwrite-chinese/models"
-mkdir -p "$LILY_DIR"
-
-if [ ! -f "$LILY_DIR/ZJHandWriting-zh_CN.model" ]; then
-    echo "Downloading 幽兰百合 model from Gitee..."
-    if wget -q -O /tmp/lily.7z \
-        https://gitee.com/LZQingXi/handwriting-zh_CN_Community/releases/download/v1.1.0/handwriting-zh_CN-community.7z; then
-        7zr x -o"$LILY_DIR" /tmp/lily.7z 2>/dev/null || echo "Warning: extraction failed"
-        rm -f /tmp/lily.7z
-    else
-        echo "Warning: download failed. Install separately."
-        rm -f /tmp/lily.7z
-    fi
-fi
-
 if command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules 2>/dev/null || true
     udevadm trigger 2>/dev/null || true
