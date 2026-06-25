@@ -191,7 +191,7 @@ def run_test():
 
             char_name, strokes = CHAR_STROKES_SIMPLIFIED[idx]
             for stroke in strokes:
-                engine.zinnia.add_stroke(stroke)
+                engine.recognizer.add_stroke(stroke)
                 win.strokes.append(stroke)
 
             win.pix = None
