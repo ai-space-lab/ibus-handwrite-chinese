@@ -177,16 +177,16 @@ jobs:
           ls -la /usr/local/share/ibus-handwrite-chinese/models/
       - name: Install python3-onnxruntime (Debian/Ubuntu)
         if: startsWith(matrix.distro, 'debian') || startsWith(matrix.distro, 'ubuntu')
-        run: pip3 install --break-system-packages onnxruntime numpy || apt install -y python3-onnxruntime python3-numpy || true
+        run: pip3 install onnxruntime numpy 2>/dev/null || pip3 install --break-system-packages onnxruntime numpy || apt install -y python3-onnxruntime python3-numpy || true
       - name: Install python3-onnxruntime (Fedora)
         if: startsWith(matrix.distro, 'fedora')
-        run: pip3 install --break-system-packages onnxruntime numpy || dnf install -y python3-onnxruntime python3-numpy || true
+        run: pip3 install onnxruntime numpy 2>/dev/null || pip3 install --break-system-packages onnxruntime numpy || dnf install -y python3-onnxruntime python3-numpy || true
       - name: Install python3-onnxruntime (Arch)
         if: startsWith(matrix.distro, 'arch')
-        run: pip3 install --break-system-packages onnxruntime numpy || pacman -S --noconfirm python-onnxruntime python-numpy || true
+        run: pip3 install onnxruntime numpy 2>/dev/null || pip3 install --break-system-packages onnxruntime numpy || pacman -S --noconfirm python-onnxruntime python-numpy || true
       - name: Install python3-onnxruntime (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
-        run: pip3 install --break-system-packages onnxruntime numpy || zypper install -y python3-onnxruntime python3-numpy || true
+        run: pip3 install onnxruntime numpy 2>/dev/null || pip3 install --break-system-packages onnxruntime numpy || zypper install -y python3-onnxruntime python3-numpy || true
       - name: Start Xvfb
         run: |
           Xvfb :99 -screen 0 1280x1024x24 &
