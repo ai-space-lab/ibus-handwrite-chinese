@@ -29,7 +29,6 @@ sys.path.insert(0, SRC_DIR)
 with open(engine_path) as f:
     exec(f.read(), mod.__dict__)
 
-ZinniaHandle = mod.ZinniaHandle
 HandwriteWin = mod.HandwriteWin
 TestCommitEngine = mod.TestCommitEngine
 
