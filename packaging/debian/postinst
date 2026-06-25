@@ -4,33 +4,7 @@ set -e
 MODEL_DIR="/usr/share/tegaki/models/zinnia"
 LILY_DIR="/usr/local/share/ibus-handwrite-chinese/models"
 
-mkdir -p "$MODEL_DIR" "$LILY_DIR"
-
-# Download tegaki zh_CN model if missing (freely distributable from GitHub)
-if [ ! -f "$MODEL_DIR/handwriting-zh_CN.model" ]; then
-    echo "Downloading tegaki zh_CN model..."
-    if wget -q -O /tmp/tegaki-cn.zip \
-        https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-simplified-chinese-0.3.zip; then
-        unzip -q -o -j /tmp/tegaki-cn.zip "*.model" "*.meta" -d "$MODEL_DIR" 2>/dev/null || true
-        rm -f /tmp/tegaki-cn.zip
-    else
-        echo "Warning: tegaki zh_CN download failed"
-        rm -f /tmp/tegaki-cn.zip
-    fi
-fi
-
-# Download tegaki zh_TW model if missing
-if [ ! -f "$MODEL_DIR/handwriting-zh_TW.model" ]; then
-    echo "Downloading tegaki zh_TW model..."
-    if wget -q -O /tmp/tegaki-tw.zip \
-        https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-traditional-chinese-0.3.zip; then
-        unzip -q -o -j /tmp/tegaki-tw.zip "*.model" "*.meta" -d "$MODEL_DIR" 2>/dev/null || true
-        rm -f /tmp/tegaki-tw.zip
-    else
-        echo "Warning: tegaki zh_TW download failed"
-        rm -f /tmp/tegaki-tw.zip
-    fi
-fi
+mkdir -p "$LILY_DIR"
 
 # Download 幽兰百合 model (best-effort, from Gitee)
 if [ ! -f "$LILY_DIR/ZJHandWriting-zh_CN.model" ]; then

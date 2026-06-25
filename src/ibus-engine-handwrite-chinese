@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""IBus Chinese Handwriting Engine — macOS-style, uses Zinnia + GTK popup + evdev"""
+"""IBus Chinese Handwriting Engine — macOS-style, uses PP-OCRv6 ONNX + GTK popup + evdev"""
 
 import sys
-import ctypes
 import time
 import os
 import threading
@@ -28,12 +27,7 @@ except ValueError:
     IBus = None
     HAS_IBUS = False
 
-ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-ZINNIA_MODEL_LILY = "/usr/local/share/ibus-handwrite-chinese/models/ZJHandWriting-zh_CN.model"
-ZINNIA_MODEL_BACKUP = None
 MAX_CANDIDATES = 24
-_USE_FREQ = True
-_USE_ONNX = False
 _PPOCR_TIER = os.environ.get('IBUS_HANDWRITE_PPOCR_MODEL', 'small')
 
 _handwrite_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,217 +55,9 @@ if EVDEV_AVAILABLE:
     except Exception as e:
         import traceback
 
-try:
-    libz = ctypes.CDLL("libzinnia.so.0")
-except OSError:
-    libz = ctypes.CDLL("libzinnia.so")
-
-libz.zinnia_character_new.restype = ctypes.c_void_p
-libz.zinnia_character_destroy.restype = None
-libz.zinnia_character_destroy.argtypes = [ctypes.c_void_p]
-libz.zinnia_character_clear.restype = None
-libz.zinnia_character_clear.argtypes = [ctypes.c_void_p]
-libz.zinnia_character_set_width.restype = None
-libz.zinnia_character_set_width.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
-libz.zinnia_character_set_height.restype = None
-libz.zinnia_character_set_height.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
-libz.zinnia_character_add.restype = ctypes.c_int
-libz.zinnia_character_add.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int, ctypes.c_int]
-
-libz.zinnia_recognizer_new.restype = ctypes.c_void_p
-libz.zinnia_recognizer_destroy.restype = None
-libz.zinnia_recognizer_destroy.argtypes = [ctypes.c_void_p]
-libz.zinnia_recognizer_open.restype = ctypes.c_int
-libz.zinnia_recognizer_open.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-libz.zinnia_recognizer_classify.restype = ctypes.c_void_p
-libz.zinnia_recognizer_classify.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t]
-
-libz.zinnia_result_value.restype = ctypes.c_char_p
-libz.zinnia_result_value.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
-libz.zinnia_result_score.restype = ctypes.c_float
-libz.zinnia_result_score.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
-libz.zinnia_result_size.restype = ctypes.c_size_t
-libz.zinnia_result_size.argtypes = [ctypes.c_void_p]
-libz.zinnia_result_destroy.restype = None
-libz.zinnia_result_destroy.argtypes = [ctypes.c_void_p]
-
-libz.zinnia_recognizer_strerror.restype = ctypes.c_char_p
-libz.zinnia_recognizer_strerror.argtypes = [ctypes.c_void_p]
 
 
 
-# Character frequency boost (log-odds, higher = more common)
-_FREQ = {
-    '的': 3.0, '一': 2.8, '是': 2.7, '在': 2.6, '不': 2.5,
-    '了': 2.5, '有': 2.4, '和': 2.4, '人': 2.4, '这': 2.3,
-    '中': 2.3, '大': 2.3, '为': 2.3, '上': 2.3, '个': 2.2,
-    '国': 2.2, '我': 2.2, '以': 2.2, '要': 2.2, '他': 2.2,
-    '时': 2.1, '来': 2.1, '用': 2.1, '们': 2.1, '生': 2.1,
-    '到': 2.1, '作': 2.1, '地': 2.0, '于': 2.0, '出': 2.0,
-    '就': 2.0, '分': 2.0, '对': 2.0, '成': 2.0, '会': 2.0,
-    '可': 2.0, '主': 1.9, '发': 1.9, '年': 1.9, '动': 1.9,
-    '同': 1.9, '工': 1.9, '也': 1.9, '能': 1.9, '下': 1.9,
-    '过': 1.8, '子': 1.8, '说': 1.8, '产': 1.8, '种': 1.8,
-    '面': 1.8, '而': 1.8, '方': 1.8, '后': 1.8, '多': 1.8,
-    '定': 1.8, '行': 1.7, '学': 1.7, '法': 1.7, '所': 1.7,
-    '民': 1.7, '得': 1.7, '经': 1.7, '十': 1.7, '三': 1.7,
-    '之': 1.7, '进': 1.7, '着': 1.7, '等': 1.7, '部': 1.7,
-    '度': 1.6, '家': 1.6, '电': 1.6, '力': 1.6, '里': 1.6,
-    '如': 1.6, '水': 1.6, '化': 1.6, '高': 1.6, '自': 1.6,
-    '二': 1.6, '理': 1.5, '起': 1.5, '小': 1.5, '物': 1.5,
-    '现': 1.5, '实': 1.5, '加': 1.5, '量': 1.5, '都': 1.5,
-    '两': 1.5, '体': 1.5, '制': 1.5, '机': 1.5, '当': 1.5,
-    '使': 1.5, '点': 1.5, '从': 1.5, '业': 1.5, '本': 1.5,
-    '去': 1.5, '把': 1.5, '性': 1.5, '好': 1.5, '开': 1.5,
-    '应': 1.5, '还': 1.5, '它': 1.4, '因': 1.4, '由': 1.4,
-    '其': 1.4, '些': 1.4, '然': 1.4, '前': 1.4, '外': 1.4,
-    '天': 1.4, '政': 1.4, '四': 1.4, '日': 1.4, '那': 1.4,
-    '社': 1.4, '义': 1.4, '事': 1.4, '平': 1.4, '形': 1.4,
-    '相': 1.4, '全': 1.4, '表': 1.4, '间': 1.4, '样': 1.4,
-    '与': 1.4, '关': 1.4, '各': 1.4, '重': 1.4, '新': 1.4,
-    '线': 1.4, '内': 1.4, '数': 1.4, '正': 1.3, '反': 1.3,
-    '明': 1.3, '看': 1.3, '认': 1.3, '件': 1.3, '被': 1.3,
-    '先': 1.3, '已': 1.3, '处': 1.3, '理': 1.3, '最': 1.3,
-    '新': 1.3, '但': 1.3, '更': 1.3, '长': 1.3, '车': 1.3,
-    '门': 1.3, '东': 1.3, '无': 1.3, '手': 1.3, '口': 1.3,
-    '五': 1.3, '头': 1.3, '只': 1.3, '向': 1.3, '教': 1.3,
-    '二': 1.3, '路': 1.3, '通': 1.3, '公': 1.3, '她': 1.3,
-    '十': 1.3, '外': 1.3, '名': 1.3, '南': 1.3, '西': 1.3,
-    '北': 1.3, '太': 1.3, '气': 1.3, '月': 1.3, '心': 1.3,
-    '而': 1.3, '又': 1.3, '今': 1.3, '后': 1.3, '将': 1.3,
-    '小': 1.3, '几': 1.3, '并': 1.3, '目': 1.3, '才': 1.3,
-    '文': 1.2, '战': 1.2, '设': 1.2, '统': 1.2, '报': 1.2,
-    '总': 1.2, '活': 1.2, '保': 1.2, '给': 1.2, '原': 1.2,
-    '问': 1.2, '指': 1.2, '建': 1.2, '位': 1.2, '决': 1.2,
-    '品': 1.2, '军': 1.2, '界': 1.2, '强': 1.2, '海': 1.2,
-    '入': 1.2, '较': 1.2, '世': 1.2, '县': 1.2, '场': 1.2,
-    '平': 1.2, '山': 1.2, '林': 1.2, '比': 1.2, '或': 1.2,
-    '但': 1.2, '任': 1.2, '通': 1.2, '么': 1.2, '代': 1.2,
-    '组': 1.2, '见': 1.2, '第': 1.2, '边': 1.2, '九': 1.2,
-    '老': 1.2, '做': 1.2, '队': 1.2, '七': 1.2, '六': 1.2,
-    '管': 1.1, '干': 1.1, '写': 1.1, '影': 1.1, '八': 1.1,
-    '金': 1.1, '白': 1.1, '住': 1.1, '马': 1.1, '北': 1.1,
-    '放': 1.1, '光': 1.1, '打': 1.1, '百': 1.1, '花': 1.1,
-    '知': 1.1, '据': 1.1, '党': 1.1, '斯': 1.1, '具': 1.1,
-    '政': 1.1, '接': 1.1, '思': 1.1, '东': 1.1, '世': 1.1,
-    '解': 1.1, '受': 1.1, '持': 1.1, '志': 1.1, '结': 1.1,
-    '目': 1.1, '联': 1.1, '度': 1.1, '计': 1.1, '情': 1.1,
-    '集': 1.1, '无': 1.1, '难': 1.0, '便': 1.0, '走': 1.0,
-    '象': 1.0, '程': 1.0, '市': 1.0, '书': 1.0, '百': 1.0,
-    '土': 1.0, '万': 1.0, '广': 1.0, '半': 1.0, '片': 1.0,
-    '装': 1.0, '备': 1.0, '红': 1.0, '青': 1.0, '布': 1.0,
-    '且': 1.0, '每': 1.0, '必': 1.0, '术': 1.0, '真': 1.0,
-    '风': 1.0, '回': 1.0, '品': 1.0, '千': 1.0, '张': 1.0,
-    '电': 1.0, '许': 1.0, '听': 1.0, '华': 1.0, '往': 1.0,
-    '教': 1.0, '少': 1.0, '达': 1.0, '再': 1.0, '整': 1.0,
-    '想': 1.0, '际': 1.0, '必': 1.0, '象': 1.0, '育': 1.0,
-    '志': 1.0, '具': 1.0, '海': 1.0, '专': 1.0, '间': 1.0,
-    '细': 1.0, '色': 1.0, '识': 1.0, '众': 1.0, '路': 1.0,
-    '从': 1.0, '报': 1.0, '转': 1.0, '万': 1.0, '斗': 1.0,
-    '孩': 1.0, '言': 1.0, '团': 1.0, '图': 1.0, '务': 1.0,
-    '石': 1.0, '劳': 1.0, '斯': 1.0, '照': 1.0, '收': 1.0,
-    '包': 1.0, '史': 1.0, '委': 1.0, '争': 1.0, '基': 1.0,
-    '张': 1.0, '笑': 1.0, '调': 1.0, '深': 1.0, '斗': 1.0,
-    '充': 1.0, '火': 1.0, '期': 1.0, '空': 1.0, '办': 1.0,
-    '验': 1.0, '低': 1.0, '须': 1.0, '王': 1.0, '清': 1.0,
-    '率': 1.0, '利': 1.0, '则': 1.0, '标': 1.0, '交': 1.0,
-    '省': 1.0, '府': 1.0, '研': 1.0, '众': 1.0, '外': 1.0,
-    '具': 1.0, '声': 1.0, '向': 1.0, '安': 1.0, '青': 1.0,
-    '色': 1.0, '计': 1.0, '风': 1.0, '液': 1.0, '行': 1.0,
-    '公': 1.0, '最': 1.0, '广': 1.0, '于': 1.0, '写': 1.0,
-    '百': 1.0, '教': 1.0, '变': 1.0, '书': 1.0, '半': 1.0,
-    '象': 1.0, '切': 1.0, '花': 1.0, '土': 1.0, '光': 1.0,
-}
-
-class ZinniaHandle:
-    def __init__(self, model_path):
-        self.ptr = libz.zinnia_recognizer_new()
-        if not self.ptr:
-            raise RuntimeError("Failed to create zinnia recognizer")
-        ret = libz.zinnia_recognizer_open(self.ptr, model_path.encode())
-        if not ret:
-            err = libz.zinnia_recognizer_strerror(self.ptr)
-            libz.zinnia_recognizer_destroy(self.ptr)
-            raise RuntimeError(f"Failed to open model: {err.decode() if err else 'unknown'}")
-        self.character = None
-        self.stroke_id = 0
-        self.all_points = []
-
-    def clear(self):
-        if self.character:
-            libz.zinnia_character_destroy(self.character)
-        self.character = None
-        self.stroke_id = 0
-        self.all_points = []
-
-    def add_stroke(self, points):
-        self.all_points.append(points)
-        self.stroke_id += 1
-
-    def classify(self):
-        if not self.all_points:
-            return []
-        if self.character:
-            libz.zinnia_character_destroy(self.character)
-        self.character = libz.zinnia_character_new()
-        libz.zinnia_character_clear(self.character)
-        libz.zinnia_character_set_width(self.character, 1000)
-        libz.zinnia_character_set_height(self.character, 1000)
-
-        flat = [pt for stroke in self.all_points for pt in stroke]
-        if not flat:
-            return []
-        xs = [p[0] for p in flat]
-        ys = [p[1] for p in flat]
-        xmin, xmax = min(xs), max(xs)
-        ymin, ymax = min(ys), max(ys)
-        cw = max(xmax - xmin, 1)
-        ch = max(ymax - ymin, 1)
-        scale = min((1000 - 100) / cw, (1000 - 100) / ch)
-        cx = (xmin + xmax) / 2
-        cy = (ymin + ymax) / 2
-
-        for sid, stroke in enumerate(self.all_points):
-            for x, y in stroke:
-                nx = int(500 + (x - cx) * scale)
-                ny = int(500 + (y - cy) * scale)
-                nx = max(0, min(1000, nx))
-                ny = max(0, min(1000, ny))
-                libz.zinnia_character_add(self.character, sid, nx, ny)
-
-        result_ptr = libz.zinnia_recognizer_classify(self.ptr, self.character, MAX_CANDIDATES * 4)
-        if not result_ptr:
-            return []
-        size = libz.zinnia_result_size(result_ptr)
-        raw = []
-        for i in range(size):
-            val = libz.zinnia_result_value(result_ptr, i)
-            score = libz.zinnia_result_score(result_ptr, i)
-            if val:
-                raw.append((val.decode('utf-8'), score))
-        libz.zinnia_result_destroy(result_ptr)
-
-        ranked = []
-        seen = set()
-        for ch, sc in raw:
-            if ch in seen:
-                continue
-            seen.add(ch)
-            if _USE_FREQ:
-                boost = _FREQ.get(ch, -2.0)
-            else:
-                boost = 0.0
-            ranked.append((ch, sc + 0.5 * boost))
-        ranked.sort(key=lambda x: -x[1])
-        return [(ch, sc) for ch, sc in ranked]
-
-    def destroy(self):
-        if self.character:
-            libz.zinnia_character_destroy(self.character)
-            self.character = None
-        if self.ptr:
-            libz.zinnia_recognizer_destroy(self.ptr)
-            self.ptr = None
 
 
 class OnnxHandle:
@@ -690,8 +476,6 @@ class HandwriteWin(Gtk.Window):
         self.queue_draw()
         self.show_candidates([])
         self.engine.recognizer.clear()
-        if not _USE_ONNX and hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
-            self.engine.zinnia_backup.clear()
         self.engine.last_results = []
 
     def _do_disable(self):
@@ -703,11 +487,6 @@ class HandwriteWin(Gtk.Window):
     def _do_clear_strokes(self):
         self.strokes.clear()
         self.engine.recognizer.clear()
-        if hasattr(self.engine.recognizer, 'stroke_id'):
-            self.engine.recognizer.stroke_id = 0
-        if not _USE_ONNX and hasattr(self.engine, "zinnia_backup") and self.engine.zinnia_backup:
-            self.engine.zinnia_backup.clear()
-            self.engine.zinnia_backup.stroke_id = 0
         self.pix = None
         self.queue_draw()
         self.engine.update_candidates()
@@ -978,19 +757,7 @@ class HandwriteWin(Gtk.Window):
 class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def __init__(self):
         super().__init__()
-        if _USE_ONNX:
-            self.onnx = self._create_onnx_handle()
-            self.zinnia = None
-            self.zinnia_backup = None
-        else:
-            self.zinnia = ZinniaHandle(ZINNIA_MODEL)
-            self.zinnia_backup = None
-            if ZINNIA_MODEL_BACKUP:
-                try:
-                    self.zinnia_backup = ZinniaHandle(ZINNIA_MODEL_BACKUP)
-                except:
-                    pass
-            self.onnx = None
+        self.onnx = self._create_onnx_handle()
         self.win = None
         self.last_results = []
         self._bus = None
@@ -1003,10 +770,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     @property
     def recognizer(self):
-        """Return the active recognizer backend."""
-        if _USE_ONNX:
-            return self.onnx
-        return self.zinnia
+        """Return the ONNX recognizer backend."""
+        return self.onnx
 
     @staticmethod
     def _create_onnx_handle():
@@ -1109,8 +874,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if current:
             self._engine_name = current.get_name()
         self.recognizer.clear()
-        if not _USE_ONNX and self.zinnia_backup:
-            self.zinnia_backup.clear()
         self.last_results = []
         self.win.show_all()
         self._position_window()
@@ -1129,8 +892,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if self.win:
             self.win.hide()
         self.recognizer.clear()
-        if not _USE_ONNX and self.zinnia_backup:
-            self.zinnia_backup.clear()
         self.last_results = []
 
     def restore_previous_engine(self):
@@ -1172,8 +933,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if self.win:
             self.win._do_reset()
         self.recognizer.clear()
-        if not _USE_ONNX and self.zinnia_backup:
-            self.zinnia_backup.clear()
         self.last_results = []
 
     def _on_results(self, results):
@@ -1182,17 +941,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             self.win.show_candidates(results)
 
     def update_candidates(self):
-        if _USE_ONNX:
-            self.onnx.classify_async(self._on_results)
-            return
-        results = self.zinnia.classify()
-        if not results and self.zinnia_backup and self.zinnia.all_points:
-            self.zinnia_backup.all_points = list(self.zinnia.all_points)
-            self.zinnia_backup.stroke_id = self.zinnia.stroke_id
-            results = self.zinnia_backup.classify()
-        self.last_results = results
-        if self.win:
-            self.win.show_candidates(results)
+        self.onnx.classify_async(self._on_results)
 
     def commit_first(self):
         if self.last_results:
@@ -1208,17 +957,9 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if self.win:
             self.win.destroy()
             self.win = None
-        if _USE_ONNX:
-            if self.onnx:
-                self.onnx.destroy()
-                self.onnx = None
-        else:
-            if self.zinnia:
-                self.zinnia.destroy()
-                self.zinnia = None
-            if self.zinnia_backup:
-                self.zinnia_backup.destroy()
-                self.zinnia_backup = None
+        if self.onnx:
+            self.onnx.destroy()
+            self.onnx = None
         super().destroy()
 
 
@@ -1228,51 +969,16 @@ if HAS_IBUS:
 
 class TestCommitEngine:
     """Minimal engine for --test mode: no IBus dependency."""
-    def __init__(self, traditional=False):
-        self.zinnia = None
-        self.zinnia_backup = None
+    def __init__(self):
+        self.onnx = HandwriteEngine._create_onnx_handle()
         self.last_results = []
         self.committed = []
         self.win = None
 
-        if _USE_ONNX:
-            self.onnx = HandwriteEngine._create_onnx_handle()
-        elif traditional:
-            primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
-            backup = None
-            for mp in [primary]:
-                if mp:
-                    try:
-                        self.zinnia = ZinniaHandle(mp)
-                        break
-                    except:
-                        continue
-            if not self.zinnia:
-                raise RuntimeError(f"No model found (tried: {[primary]})")
-        else:
-            primary = ZINNIA_MODEL_LILY
-            backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-            for mp in [primary, backup] if backup else [primary]:
-                if mp:
-                    try:
-                        self.zinnia = ZinniaHandle(mp)
-                        break
-                    except:
-                        continue
-            if not self.zinnia:
-                raise RuntimeError(f"No model found (tried: {[primary, backup]})")
-            if backup and backup != primary:
-                try:
-                    self.zinnia_backup = ZinniaHandle(backup)
-                except:
-                    pass
-
     @property
     def recognizer(self):
-        """Return the active recognizer backend."""
-        if _USE_ONNX:
-            return self.onnx
-        return self.zinnia
+        """Return the ONNX recognizer backend."""
+        return self.onnx
 
     def commit_text(self, text):
         self.committed.append(text)
@@ -1282,8 +988,6 @@ class TestCommitEngine:
         if self.win:
             self.win._do_reset()
         self.recognizer.clear()
-        if not _USE_ONNX and self.zinnia_backup:
-            self.zinnia_backup.clear()
         self.last_results = []
 
     def commit_first(self):
@@ -1297,14 +1001,7 @@ class TestCommitEngine:
             self.do_reset()
 
     def update_candidates(self):
-        if _USE_ONNX:
-            results = self.onnx.classify()
-        else:
-            results = self.zinnia.classify()
-            if not results and self.zinnia_backup and self.zinnia.all_points:
-                self.zinnia_backup.all_points = list(self.zinnia.all_points)
-                self.zinnia_backup.stroke_id = self.zinnia.stroke_id
-                results = self.zinnia_backup.classify()
+        results = self.onnx.classify()
         self.last_results = results
         if self.win:
             self.win.show_candidates(results)
@@ -1314,88 +1011,23 @@ class TestCommitEngine:
             self.win._do_reset()
             self.win._do_disable()
 
-    def switch_model(self, traditional=False):
-        if self.win:
-            self.win._do_reset()
-        if _USE_ONNX:
-            if self.onnx:
-                self.onnx.destroy()
-                self.onnx = None
-            self.onnx = HandwriteEngine._create_onnx_handle()
-        else:
-            if self.zinnia:
-                self.zinnia.destroy()
-                self.zinnia = None
-            if self.zinnia_backup:
-                self.zinnia_backup.destroy()
-                self.zinnia_backup = None
-
-            if traditional:
-                primary = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
-                backup = None
-            else:
-                primary = ZINNIA_MODEL_LILY
-                backup = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-
-            for mp in [primary, backup] if backup else [primary]:
-                if mp:
-                    try:
-                        self.zinnia = ZinniaHandle(mp)
-                        break
-                    except:
-                        continue
-
-            if backup and backup != primary and self.zinnia:
-                try:
-                    self.zinnia_backup = ZinniaHandle(backup)
-                except:
-                    pass
-
-        self.last_results = []
-        if self.win:
-            self.win.show_candidates([])
-
     def destroy(self):
-        if _USE_ONNX:
-            if self.onnx:
-                self.onnx.destroy()
-                self.onnx = None
-        else:
-            if self.zinnia:
-                self.zinnia.destroy()
-                self.zinnia = None
-            if self.zinnia_backup:
-                self.zinnia_backup.destroy()
-                self.zinnia_backup = None
+        if self.onnx:
+            self.onnx.destroy()
+            self.onnx = None
 
 
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--ibus', action='store_true')
-    parser.add_argument('--traditional', action='store_true')
     parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
 
-    global ZINNIA_MODEL, ZINNIA_MODEL_BACKUP, _USE_FREQ, _USE_ONNX
-    if args.traditional:
-        engine_name = "handwrite-chinese-traditional"
-        engine_longname = "Chinese Handwriting (Traditional)"
-        engine_language = "zh"
-        component_name = "com.github.vinceyap88.ibus-handwrite-chinese-traditional"
-        ZINNIA_MODEL = "/usr/share/tegaki/models/zinnia/handwriting-zh_TW.model"
-        ZINNIA_MODEL_BACKUP = None
-        _USE_FREQ = False
-        _USE_ONNX = False
-    else:
-        engine_name = "handwrite-chinese-simplified"
-        engine_longname = "Chinese Handwriting (Simplified)"
-        engine_language = "zh"
-        component_name = "com.github.vinceyap88.ibus-handwrite-chinese-simplified"
-        ZINNIA_MODEL = ZINNIA_MODEL_LILY
-        ZINNIA_MODEL_BACKUP = "/usr/share/tegaki/models/zinnia/handwriting-zh_CN.model"
-        _USE_FREQ = False
-        _USE_ONNX = True
+    engine_name = "handwrite-chinese"
+    engine_longname = "Chinese Handwriting"
+    engine_language = "zh"
+    component_name = "com.github.vinceyap88.ibus-handwrite-chinese"
 
     Gtk.init(sys.argv)
 

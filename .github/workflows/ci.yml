@@ -16,7 +16,7 @@ jobs:
       - name: shellcheck
         run: shellcheck -e SC1091 bootstrap.sh tools/install.sh tools/restore.sh
       - name: xmllint
-        run: xmllint --noout xml/handwrite-chinese-simplified.xml xml/handwrite-chinese-traditional.xml
+        run: xmllint --noout xml/handwrite-chinese.xml
       - name: Python syntax — engine
         run: python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Python syntax — evdev reader
@@ -46,27 +46,16 @@ jobs:
         if: startsWith(matrix.distro, 'debian') || startsWith(matrix.distro, 'ubuntu')
         run: |
           apt update
-          apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip
-          if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
-            echo "Traditional model not in apt, downloading from GitHub..."
-            mkdir -p /usr/share/tegaki/models/zinnia
-            wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-traditional-chinese-0.3.zip
-            unzip -q tegaki-zinnia-traditional-chinese-0.3.zip
-            cp tegaki-zinnia-traditional-chinese-0.3/*.model /usr/share/tegaki/models/zinnia/
-            cp tegaki-zinnia-traditional-chinese-0.3/*.meta /usr/share/tegaki/models/zinnia/
-            rm -rf tegaki-zinnia-traditional-chinese-0.3*
-          fi
+          apt install -y python3-evdev wget unzip
       - name: Install deps (Fedora)
         if: startsWith(matrix.distro, 'fedora')
-        run: dnf install -y python3-evdev zinnia zinnia-devel
+        run: dnf install -y python3-evdev
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
-        run: su builder -c "yay -S --noconfirm zinnia"
+        run: echo "Arch deps installed via pacman above"
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
-        run: zypper install -y python3-evdev zinnia zinnia-devel
-      - name: Verify libzinnia loads
-        run: python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')"
+        run: zypper install -y python3-evdev
       - name: Verify Python syntax
         run: |
           python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
@@ -82,7 +71,7 @@ jobs:
         distro: [debian:bookworm, ubuntu:24.04, fedora:latest, archlinux:latest, opensuse/tumbleweed]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Arch + pre-install zinnia
+      - name: Setup Arch
         if: startsWith(matrix.distro, 'arch')
         run: |
           pacman-key --init
@@ -92,23 +81,16 @@ jobs:
           useradd -m builder
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
-          su builder -c "yay -S --noconfirm zinnia"
       - name: Run bootstrap.sh
         run: bash bootstrap.sh
       - name: Verify installed files
         run: |
           test -f /usr/local/bin/ibus-engine-handwrite-chinese
           test -f /usr/local/bin/handwrite_evdev.py
-          test -f /usr/share/ibus/component/handwrite-chinese-simplified.xml
-          test -f /usr/share/ibus/component/handwrite-chinese-traditional.xml
+          test -f /usr/share/ibus/component/handwrite-chinese.xml
           test -f /usr/local/share/ibus-handwrite-chinese/restore.sh
-          test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-simplified.svg
-          test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese-traditional.svg
+          test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg
           test -f /etc/udev/rules.d/99-trackpad-handwrite.rules
-      - name: Verify models
-        run: |
-          test -f /usr/share/tegaki/models/zinnia/handwriting-zh_CN.model
-          test -f /usr/share/tegaki/models/zinnia/handwriting-zh_TW.model
       - name: Verify engine Python syntax
         run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Test recognition with synthetic strokes
@@ -150,56 +132,26 @@ jobs:
         run: |
           apt update
           apt install -y python3-evdev python3-gi python3-gi-cairo \
-            libzinnia0 xvfb wget unzip tegaki-zinnia-simplified-chinese \
+            xvfb wget unzip \
             gir1.2-gtk-3.0 gir1.2-ibus-1.0
-          mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
-            /usr/share/tegaki/models/zinnia
-          if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
-            wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-traditional-chinese-0.3.zip
-            unzip -q tegaki-zinnia-traditional-chinese-0.3.zip
-            cp tegaki-zinnia-traditional-chinese-0.3/*.* /usr/share/tegaki/models/zinnia/
-            rm -rf tegaki-zinnia-traditional-chinese-0.3*
-          fi
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (Fedora)
         if: startsWith(matrix.distro, 'fedora')
         run: |
-          dnf install -y python3-evdev python3-gobject zinnia \
+          dnf install -y python3-evdev python3-gobject \
             xorg-x11-server-Xvfb wget unzip gtk3 ibus-libs gobject-introspection
-          mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
-            /usr/share/tegaki/models/zinnia
-          for m in simplified traditional; do
-            wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-$m-chinese-0.3.zip
-            unzip -q tegaki-zinnia-$m-chinese-0.3.zip
-            cp tegaki-zinnia-$m-chinese-0.3/*.* /usr/share/tegaki/models/zinnia/
-            rm -rf tegaki-zinnia-$m-chinese-0.3*
-          done
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
         run: |
           pacman -S --noconfirm python-evdev python-gobject gtk3 ibus xorg-server-xvfb wget unzip
-          su builder -c "yay -S --noconfirm zinnia"
-          mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
-            /usr/share/tegaki/models/zinnia
-          for m in simplified traditional; do
-            wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-$m-chinese-0.3.zip
-            unzip -q tegaki-zinnia-$m-chinese-0.3.zip
-            cp tegaki-zinnia-$m-chinese-0.3/*.* /usr/share/tegaki/models/zinnia/
-            rm -rf tegaki-zinnia-$m-chinese-0.3*
-          done
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
           zypper install -y python3-evdev python3-gobject typelib-1_0-Gtk-3_0 \
             typelib-1_0-IBus-1_0 xvfb-run wget unzip
-          zypper install -y zinnia || echo "zinnia not in repos, continuing"
-          mkdir -p /usr/local/share/ibus-handwrite-chinese/models \
-            /usr/share/tegaki/models/zinnia
-          for m in simplified traditional; do
-            wget -q https://github.com/tegaki/tegaki/releases/download/v0.3/tegaki-zinnia-$m-chinese-0.3.zip
-            unzip -q tegaki-zinnia-$m-chinese-0.3.zip
-            cp tegaki-zinnia-$m-chinese-0.3/*.* /usr/share/tegaki/models/zinnia/
-            rm -rf tegaki-zinnia-$m-chinese-0.3*
-          done
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Download community model (non-fatal)
         run: |
           wget -q -O /tmp/model.7z \
@@ -211,19 +163,12 @@ jobs:
             cp /tmp/model_extracted/ZJHandWriting-zh_CN.model \
               /usr/local/share/ibus-handwrite-chinese/models/ 2>/dev/null || true
           fi
-      - name: Check libzinnia availability
-        id: check_zinnia
-        run: |
-          python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')" && \
-            echo "available=true" >> $GITHUB_OUTPUT || \
-            echo "available=false" >> $GITHUB_OUTPUT
       - name: Start Xvfb
         run: |
           Xvfb :99 -screen 0 1280x1024x24 &
           sleep 2
           echo "DISPLAY=:99" >> $GITHUB_ENV
       - name: Run GTK write test
-        if: steps.check_zinnia.outputs.available == 'true'
         run: python3 tests/test_gtk_write_phrase.py
       - name: Set artifact name
         run: |
