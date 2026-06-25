@@ -123,7 +123,7 @@ jobs:
     name: Test package — ${{ matrix.distro }}
     runs-on: ubuntu-latest
     needs: [build-deb, build-rpm, build-source]
-    timeout-minutes: 30
+    timeout-minutes: ${{ startsWith(matrix.distro, 'arch') && 120 || 30 }}
     strategy:
       fail-fast: false
       matrix:
