@@ -33,8 +33,10 @@ cp -r "$ROOTDIR/src" "$ROOTDIR/xml" "$ROOTDIR/icons" "$ROOTDIR/tools" \
 tar -czf "$RPMBUILDDIR/SOURCES/$TARBALL" -C /tmp "$TARDIR"
 rm -rf "/tmp/${TARDIR}"
 
-# Copy spec and update version
-sed "s/Version:.*/Version: ${VERSION}/" "$ROOTDIR/packaging/ibus-handwrite-chinese.spec" > "$RPMBUILDDIR/SPECS/${PACKAGE}.spec"
+# Copy spec and update version (both Version and %global srcver)
+sed -e "s/Version:.*/Version: ${VERSION}/" \
+    -e "s/^%global srcver .*/%global srcver ${VERSION}/" \
+    "$ROOTDIR/packaging/ibus-handwrite-chinese.spec" > "$RPMBUILDDIR/SPECS/${PACKAGE}.spec"
 
 # Build RPM (dist auto-detected from container)
 rpmbuild --define "_topdir ${RPMBUILDDIR}" \

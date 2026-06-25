@@ -14,15 +14,14 @@ Architecture: all
 Depends: python3 (>= 3.6),
          python3-evdev,
          python3-gi,
-          libzinnia0,
-          python3-numpy,
-          python3-onnxruntime,
-          ibus,
+         python3-numpy,
+         python3-onnxruntime,
+         ibus,
          wget,
          unzip
 Description: Chinese handwriting input method with macOS-style floating panel
  A Chinese handwriting input method for Linux with a macOS-style floating
- panel, evdev touchpad integration, and Zinnia-based recognition.
+ panel, evdev touchpad integration,   and PP-OCRv6 ONNX-based recognition.
  .
  Features:
   * macOS-style dark floating popup with embedded candidates
@@ -33,4 +32,4 @@ Description: Chinese handwriting input method with macOS-style floating panel
   * Delete button and always-visible close button
   * Cursor-proximity window positioning
   * Chinese Handwriting (single unified IBus engine)
-  * 幽兰百合 Community v1.1.0 model (9,374 chars, downloaded post-install)
+  * PP-OCRv6 ONNX deep-learning model (18,710 chars, downloaded post-install)
