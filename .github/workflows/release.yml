@@ -90,7 +90,7 @@ jobs:
               -czf "ibus-handwrite-chinese-${{ needs.release.outputs.version }}.tar.gz" \
               src/ xml/ icons/ tools/ docs/ tests/ \
               bootstrap.sh LICENSE \
-              README.md README.zh-CN.md README.zh-TW.md \
+              README.md README.zh-Hans.md README.zh-Hant.md \
               packaging/
       - name: Verify source tarball
         run: tar -tzf "ibus-handwrite-chinese-${{ needs.release.outputs.version }}.tar.gz" >/dev/null
