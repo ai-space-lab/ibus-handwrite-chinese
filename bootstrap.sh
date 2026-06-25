@@ -36,12 +36,9 @@ if [ -z "$DISTRO_FAMILY" ]; then
     echo "Unsupported distribution${DISTRO:+: $DISTRO}"
     echo ""
     echo "Manual install:"
-    echo "  1. Install python3-evdev and libzinnia (0.06+) for your distro"
-    echo "  2. Download tegaki models: https://github.com/tegaki/tegaki/releases"
-    echo "     and 幽兰百合 model: https://gitee.com/LZQingXi/handwriting-zh_CN_Community"
-    echo "  3. Place .model files in /usr/share/tegaki/models/zinnia/"
-    echo "     and /usr/local/share/ibus-handwrite-chinese/models/"
-    echo "  4. Clone repo and run: sudo ./install.sh --skip-deps"
+    echo "  1. Install python3-evdev for your distro"
+    echo "  2. Clone repo and run: sudo ./install.sh --skip-deps"
+    echo "  3. The ONNX recognition model (PP-OCRv6) will be downloaded automatically"
     exit 1
 fi
 
@@ -49,82 +46,21 @@ echo "=== ibus-handwrite-chinese — Installing dependencies ==="
 echo "Detected: $DISTRO ($DISTRO_FAMILY)"
 echo ""
 
-download_model() {
-    local lang="$1"
-    local model_dir="/usr/share/tegaki/models/zinnia"
-    local model_file="$model_dir/handwriting-$lang.model"
-
-    if [ -f "$model_file" ]; then
-        echo "  ✓ $lang model already installed"
-        return 0
-    fi
-
-    local zip_name="tegaki-zinnia-simplified-chinese-0.3.zip"
-    [ "$lang" = "zh_TW" ] && zip_name="tegaki-zinnia-traditional-chinese-0.3.zip"
-
-    local zip_url="https://github.com/tegaki/tegaki/releases/download/v0.3/$zip_name"
-
-    echo "  Downloading $lang model..."
-    local tmpdir prev_dir
-    tmpdir="$(mktemp -d)"
-    prev_dir="$(pwd)"
-    cd "$tmpdir"
-    if ! wget -q "$zip_url"; then
-        echo "  ✗ Failed to download $lang model from GitHub."
-        echo "    Manual download: https://github.com/tegaki/tegaki/releases/tag/v0.3"
-        echo "    Place .model and .meta files in $model_dir"
-        echo "    (zh_CN is used as fallback for the primary 幽兰百合 model)"
-        cd "$prev_dir"
-        rm -rf "$tmpdir"
-        exit 1
-    fi
-    unzip -q "$zip_name"
-    local extracted_dir="${zip_name%.zip}"
-    mkdir -p "$model_dir"
-    cp "$extracted_dir"/*.model "$model_dir/"
-    cp "$extracted_dir"/*.meta "$model_dir/"
-    cd "$prev_dir"
-    rm -rf "$tmpdir"
-    echo "  ✓ $lang model installed"
-}
-
 install_debian() {
     apt update
-    apt install -y python3-evdev libzinnia0 tegaki-zinnia-simplified-chinese wget unzip p7zip-full git
-    if ! apt install -y tegaki-zinnia-traditional-chinese 2>/dev/null; then
-        echo "  tegaki-zinnia-traditional-chinese not in apt (not available in this Debian release)"
-        echo "  Downloading traditional model from GitHub..."
-        download_model "zh_TW"
-    fi
+    apt install -y python3-evdev wget unzip p7zip-full git
 }
 
 install_fedora() {
-    dnf install -y python3-evdev zinnia zinnia-devel wget unzip p7zip git
-    download_model "zh_CN"
-    download_model "zh_TW"
+    dnf install -y python3-evdev wget unzip p7zip git
 }
 
 install_arch() {
     pacman -S --noconfirm python-evdev wget unzip p7zip
-    if ! python3 -c "import ctypes; ctypes.CDLL('libzinnia.so')" 2>/dev/null && \
-       ! python3 -c "import ctypes; ctypes.CDLL('libzinnia.so.0')" 2>/dev/null; then
-        echo ""
-        echo "zinnia library not found. Install it from AUR first:"
-        echo "  yay -S zinnia"
-        echo "  # or: paru -S zinnia"
-        echo ""
-        echo "Then re-run bootstrap.sh"
-        exit 1
-    fi
-    echo "  ✓ zinnia library found"
-    download_model "zh_CN"
-    download_model "zh_TW"
 }
 
 install_suse() {
-    zypper install -y python3-evdev zinnia zinnia-devel wget unzip p7zip
-    download_model "zh_CN"
-    download_model "zh_TW"
+    zypper install -y python3-evdev wget unzip p7zip
 }
 
 case "$DISTRO_FAMILY" in
@@ -135,36 +71,54 @@ case "$DISTRO_FAMILY" in
 esac
 
 echo ""
-echo "  Installing improved 幽兰百合 model for Simplified Chinese..."
-LILY_MODEL="/usr/local/share/ibus-handwrite-chinese/models/ZJHandWriting-zh_CN.model"
-if [ -f "$LILY_MODEL" ]; then
-    echo "  ✓ 幽兰百合 model already installed"
+echo "  Downloading PP-OCRv6 model for text recognition..."
+PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
+case "$PPOCR_TIER" in
+    tiny|small|medium) ;;
+    *)
+        echo "  ⚠ Warning: Unknown PP-OCRv6 model tier '$PPOCR_TIER'. Valid: tiny, small, medium. Defaulting to 'small'."
+        PPOCR_TIER="small"
+        ;;
+esac
+
+PPOCR_DIR="/usr/local/share/ibus-handwrite-chinese/models"
+PPOCR_MODEL="$PPOCR_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx"
+PPOCR_DICT="$PPOCR_DIR/dict_v6.txt"
+
+if [ -f "$PPOCR_MODEL" ] && [ -f "$PPOCR_DICT" ]; then
+    echo "  ✓ PP-OCRv6 ($PPOCR_TIER) model already installed"
 else
     tmpdir="$(mktemp -d)"
     prev_dir="$(pwd)"
     cd "$tmpdir"
-    LILY_URL="https://gitee.com/LZQingXi/handwriting-zh_CN_Community/releases/download/1.1.0/handwriting-zh_CN-%E7%A4%BE%E5%8C%BA%E7%89%88_V1.1.0.7z"
-    echo "  Downloading from Gitee..."
-    download_failed=false
-    if ! wget -q --max-redirect=5 -O model.7z "$LILY_URL"; then
-        CACHE_FILE="$prev_dir/models/handwriting-zh_CN-community.7z"
-        if [ -f "$CACHE_FILE" ]; then
-            echo "  Gitee failed, using local cache: models/handwriting-zh_CN-community.7z"
-            cp "$CACHE_FILE" model.7z
-        else
-            echo "  ⚠ Warning: Failed to download 幽兰百合 model from Gitee (no local cache)."
-            echo "    Manual download: https://gitee.com/LZQingXi/handwriting-zh_CN_Community"
-            echo "    Place ZJHandWriting-zh_CN.model in /usr/local/share/ibus-handwrite-chinese/models/"
-            download_failed=true
-        fi
+
+    MODEL_URL="https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
+    DICT_URL="https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"
+
+    echo "  Downloading PP-OCRv6 ($PPOCR_TIER) ONNX model from HuggingFace..."
+    download_ok=true
+
+    if ! wget -q --timeout=30 "$MODEL_URL" -O inference.onnx; then
+        echo "  ⚠ Warning: Failed to download PP-OCRv6 model from HuggingFace."
+        echo "    Manual download: $MODEL_URL"
+        echo "    Place the file in $PPOCR_DIR"
+        download_ok=false
     fi
-    if [ "$download_failed" != true ]; then
-        echo "  Extracting..."
-        7z x -y model.7z >/dev/null 2>&1
-        mkdir -p /usr/local/share/ibus-handwrite-chinese/models
-        cp ZJHandWriting-zh_CN.model "$LILY_MODEL"
-        echo "  ✓ 幽兰百合 model installed (9374 characters)"
+
+    if ! wget -q --timeout=30 "$DICT_URL" -O dict.txt; then
+        echo "  ⚠ Warning: Failed to download PP-OCRv6 dict from PaddleOCR GitHub."
+        echo "    Manual download: $DICT_URL"
+        echo "    Place the file in $PPOCR_DIR"
+        download_ok=false
     fi
+
+    if [ "$download_ok" = true ]; then
+        mkdir -p "$PPOCR_DIR"
+        cp inference.onnx "$PPOCR_MODEL"
+        cp dict.txt "$PPOCR_DICT"
+        echo "  ✓ PP-OCRv6 ($PPOCR_TIER) model installed"
+    fi
+
     cd "$prev_dir"
     rm -rf "$tmpdir"
 fi
