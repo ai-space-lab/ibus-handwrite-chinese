@@ -183,7 +183,8 @@ jobs:
                 python3-pip gtk3 ibus ibus-libs \
                 gobject-introspection xorg-x11-server-Xvfb \
                 wget unzip p7zip
-              pip3 install onnxruntime
+              pip3 install onnxruntime --break-system-packages 2>/dev/null || \
+                pip3 install onnxruntime
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             opensuse/*)
@@ -206,14 +207,16 @@ jobs:
                 python3-pip ibus \
                 typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
                 xvfb-run wget unzip p7zip
-              pip3 install onnxruntime
+              pip3 install onnxruntime --break-system-packages 2>/dev/null || \
+                pip3 install onnxruntime
               rpm -i release-artifacts/rpm-package/ibus-handwrite-chinese-*.rpm
               ;;
             archlinux:*)
               pacman -S --noconfirm python-evdev python-gobject python-numpy \
                 python-pip gtk3 ibus \
                 xorg-server-xvfb wget unzip p7zip
-              pip install onnxruntime
+              pip install onnxruntime --break-system-packages 2>/dev/null || \
+                pip install onnxruntime
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
               (cd "$tmpdir" && ./tools/install.sh --skip-deps --no-restart)
