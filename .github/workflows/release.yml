@@ -221,6 +221,16 @@ jobs:
           esac
           echo "available=true" >> "$GITHUB_OUTPUT"
         id: install
+      - name: Download PP-OCRv6 ONNX model
+        run: |
+          mkdir -p /usr/local/share/ibus-handwrite-chinese/models
+          wget -q --timeout=60 -O /usr/local/share/ibus-handwrite-chinese/models/ppocrv6_small_rec.onnx \
+            https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx || \
+          echo "WARNING: ONNX model download failed"
+          wget -q --timeout=60 -O /usr/local/share/ibus-handwrite-chinese/models/dict_v6.txt \
+            https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt || \
+          echo "WARNING: dict download failed"
+          ls -la /usr/local/share/ibus-handwrite-chinese/models/
       - name: Start Xvfb
         run: |
           Xvfb :99 -screen 0 1280x1024x24 &
