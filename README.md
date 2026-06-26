@@ -49,7 +49,7 @@ The installer downloads the PP-OCRv6 ONNX model and character dictionary for rec
 ## Quick Install
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/vinceyap88/ibus-handwrite-chinese/main/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
 ibus restart
 ```
 
@@ -57,7 +57,7 @@ ibus restart
 
 ```bash
 sudo apt install python3-evdev
-git clone https://github.com/vinceyap88/ibus-handwrite-chinese
+git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
 sudo ./install.sh          # add --skip-deps if you already installed dependencies
 ibus restart
@@ -75,7 +75,7 @@ Or select **Chinese Handwriting** from your desktop's IBus menu.
 
 ## Packages
 
-Pre-built packages are available on the [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) page:
+Pre-built packages are available on the [GitHub Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases) page:
 
 | Format | Command | Distros |
 |--------|---------|---------|
