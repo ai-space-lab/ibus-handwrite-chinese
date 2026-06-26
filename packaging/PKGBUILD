@@ -6,11 +6,11 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc="Chinese handwriting input method with macOS-style floating panel, evdev touchpad integration, and Zinnia-based recognition"
 arch=('any')
-url="https://github.com/vinceyap88/ibus-handwrite-chinese"
+url="https://github.com/ai-space-lab/ibus-handwrite-chinese"
 license=('GPL3')
 depends=('python' 'python-evdev' 'python-gobject' 'ibus' 'python-numpy' 'python-onnxruntime' 'wget' 'unzip' 'p7zip')
 makedepends=('git')
-source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vinceyap88/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ai-space-lab/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
 install="${pkgname}.install"
 

@@ -7,7 +7,7 @@ Release:        1%{?dist}
 Summary:        Chinese handwriting input with macOS-style floating panel
 
 License:        GPLv3
-URL:            https://github.com/vinceyap88/ibus-handwrite-chinese
+URL:            https://github.com/ai-space-lab/ibus-handwrite-chinese
 Source0:        %{srcname}-%{srcver}.tar.gz
 
 BuildArch:      noarch
