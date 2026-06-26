@@ -5,7 +5,7 @@ echo "=============================================="
 echo "  ibus-handwrite-chinese — v0.1.0 Beta"
 echo "  ⚠️  Not yet widely tested on real hardware."
 echo "  Please report issues at:"
-echo "  https://github.com/vinceyap88/ibus-handwrite-chinese/issues"
+echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"
 echo "=============================================="
 echo ""
 
@@ -132,7 +132,7 @@ if [ -f "./tools/install.sh" ]; then
 else
     echo "Cloning repository..."
     SRC_DIR="$(mktemp -d)"
-    git clone --depth 1 https://github.com/vinceyap88/ibus-handwrite-chinese.git "$SRC_DIR"
+    git clone --depth 1 https://github.com/ai-space-lab/ibus-handwrite-chinese.git "$SRC_DIR"
 fi
 
 cd "$SRC_DIR"
