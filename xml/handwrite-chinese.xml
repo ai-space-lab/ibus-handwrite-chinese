@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component>
-  <name>com.github.vinceyap88.ibus-handwrite-chinese</name>
+  <name>com.github.ai-space-lab.ibus-handwrite-chinese</name>
   <description>Chinese Handwriting Input Method</description>
   <exec>/usr/local/bin/ibus-engine-handwrite-chinese --ibus</exec>
   <version>0.1.0</version>
-  <author>vinceyap88</author>
+  <author>ai-space-lab</author>
   <license>GPLv3</license>
   <homepage></homepage>
   <textdomain>ibus-handwrite-chinese</textdomain>
@@ -15,7 +15,7 @@
       <description>Chinese handwriting input using trackpad</description>
       <language>zh</language>
       <license>GPLv3</license>
-      <author>vinceyap88</author>
+      <author>ai-space-lab</author>
       <layout>us</layout>
       <icon>/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg</icon>
     </engine>
