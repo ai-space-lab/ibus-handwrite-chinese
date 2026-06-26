@@ -1027,7 +1027,7 @@ def main():
     engine_name = "handwrite-chinese"
     engine_longname = "Chinese Handwriting"
     engine_language = "zh"
-    component_name = "com.github.vinceyap88.ibus-handwrite-chinese"
+    component_name = "com.github.ai-space-lab.ibus-handwrite-chinese"
 
     Gtk.init(sys.argv)
 
@@ -1052,7 +1052,7 @@ def main():
         "Chinese Handwriting Input Method",
         "0.1.0",
         "GPLv3",
-        "vinceyap88",
+        "ai-space-lab",
         "",
         "",
         "ibus-engine-handwrite-chinese"
@@ -1063,7 +1063,7 @@ def main():
         "Chinese handwriting input using touchpad",
         engine_language,
         "GPLv3",
-        "vinceyap88",
+        "ai-space-lab",
         "",
         "us"
     )
