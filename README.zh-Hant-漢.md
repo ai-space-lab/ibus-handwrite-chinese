@@ -1,7 +1,7 @@
 # IBus 中文手寫輸入法
 
-[![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
-[![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
+[![CI](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml)
+[![Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml)
 
 一款 Linux 平臺的中文手寫輸入法，採用 macOS 風格浮動面板、evdev 觸控板整合和 PP-OCRv6 ONNX 深度學習引擎。
 
@@ -10,13 +10,13 @@
 ## 功能特點
 
 - **macOS 風格彈出面板**：深色浮動視窗，候選詞嵌入面板頂部
-- **evdev 觸控板輸入**：在筆記型電腦觸控板上書寫漢字 —— 支援所有支援 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的現代觸控板（Synaptics、ELAN、ALPS、bcm5974）
+- **evdev 觸控板輸入**：在筆記型電腦觸控板上書寫漢字 —— 支援所有支援 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的觸控板（已在 MacBook Pro bcm5974 上測試通過——其他支援 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的觸控板可能可用，但未經測試）
 - **點擊選擇**：輕觸觸控板即可選擇候選詞 —— 空間映射匹配候選詞位置
 - **雙指滑動**：雙指左右滑動翻頁瀏覽候選詞
 - **刪除筆畫**：⌫ 按鈕可撤銷上一筆畫
 - **關閉按鈕**：左上角始終顯示 × 按鈕，點擊關閉並恢復上一輸入法
 - **ESC 狀態機**：按一次 ESC 暫停（釋放觸控板，顯示「已暫停」遮罩），再按一次 ESC 關閉並恢復上一輸入法；點擊視窗恢復
-- **智慧視窗定位**：彈出面板自動避開當前活動視窗，不遮擋應用程式畫面
+- **智慧視窗定位**：彈出面板自動出現在文字游標附近，不遮擋應用程式畫面
 - **拖曳手柄**：頂部欄自訂拖曳手柄可隨意移動視窗位置
 - **滑鼠備用**：如無 evdev 觸控板，可使用滑鼠繪圖
 - **PP-OCRv6 深度學習引擎**：基於 ONNX 的 CNN 辨識，覆蓋 18710 個漢字，使用 MAX 池化置信度評分
@@ -29,7 +29,7 @@
 | 發行版 | 安裝方式 | 模型來源 |
 |--------|----------|----------|
 | Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + 下載 | 系統套件 + PP-OCRv6 ONNX 模型 |
-| Fedora 39+ | `dnf` + 下載 | PP-OCRv6 ONNX 模型 |
+| Fedora 40+ | `dnf` + 下載 | PP-OCRv6 ONNX 模型 |
 | Arch Linux, Manjaro | `pacman` + `yay` (AUR) + 下載 | PP-OCRv6 ONNX 模型 |
 | openSUSE Tumbleweed | `zypper` + 下載 | PP-OCRv6 ONNX 模型 |
 
@@ -74,7 +74,7 @@ ibus engine handwrite-chinese
 ## 使用方法
 
 1. 從 IBus 選單切換到 **Chinese Handwriting**
-2. 深色浮動面板將在螢幕右下角出現
+2. 深色浮動面板將出現在您的文字游標附近
 3. 用單指在觸控板上書寫漢字
 4. 候選字顯示在面板頂部
 5. 輕觸觸控板選擇候選詞（空間映射）
@@ -253,6 +253,6 @@ python3 src/ibus-engine-handwrite-chinese --test
 │       └── bottleneck-report.txt             Bug 修復與驗證報告
 ├── bootstrap.sh                        跨發行版安裝入口
 ├── README.md
-├── README.zh-Hans.md
-└── README.zh-Hant.md
+├── README.zh-Hans-汉.md
+└── README.zh-Hant-漢.md
 ```

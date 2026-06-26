@@ -115,7 +115,7 @@ for segment i from 1 to k:
 
 ### Phase 3: Regression Prevention
 - [ ] Single-character input works identically to V1 when boost disabled
-- [ ] All existing features (ESC pause/resume, delete, touchpad, window positioning) unchanged
+- [ ] All existing features (ESC pause/resume, delete, trackpad, window positioning) unchanged
 - [ ] No crashes in edge cases (empty strokes, single rapid tap, etc.)
 
 ### Phase 4: UX Validation

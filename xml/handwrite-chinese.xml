@@ -12,7 +12,7 @@
     <engine>
       <name>handwrite-chinese</name>
       <longname>Chinese Handwriting</longname>
-      <description>Chinese handwriting input using touchpad</description>
+      <description>Chinese handwriting input using trackpad</description>
       <language>zh</language>
       <license>GPLv3</license>
       <author>vinceyap88</author>

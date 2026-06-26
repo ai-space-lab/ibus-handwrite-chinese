@@ -1,26 +1,26 @@
 # IBus Chinese Handwriting Input Method
 
-[![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
-[![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
+[![CI](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml)
+[![Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml)
 
-**English** · [简体中文](README.zh-Hans.md) · [繁體中文](README.zh-Hant.md)
+**English** · [简体中文](README.zh-Hans-汉.md) · [繁體中文](README.zh-Hant-漢.md)
 
-A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev touchpad integration, and PP-OCRv6 ONNX deep-learning recognition (18710 chars).
+A Chinese handwriting input method for Linux with a macOS-style floating panel, evdev trackpad integration, and PP-OCRv6 ONNX deep-learning recognition (18710 chars).
 
 ![screenshot](docs/screenshot.png)
 
 ## Features
 
 - **macOS-style popup**: dark floating window with embedded candidates at the top
-- **evdev touchpad input**: draw characters on your laptop's touchpad — works on any touchpad with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support (all modern Synaptics, ELAN, ALPS, and bcm5974 touchpads)
-- **Tap to select**: quickly tap on the touchpad to pick a candidate — spatial mapping matches candidate position
+- **evdev trackpad input**: draw characters on your laptop's trackpad — works on any trackpad with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support (tested on MacBook Pro bcm5974 — other trackpads with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support may work but are untested)
+- **Tap to select**: quickly tap on the trackpad to pick a candidate — spatial mapping matches candidate position
 - **Two-finger swipe**: swipe left/right with two fingers to page through candidates
 - **Delete stroke**: ⌫ button to undo the last stroke
 - **Close button**: × button always visible at top-left, closes and restores previous input method
-- **ESC state machine**: one ESC pauses (ungrab touchpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume
+- **ESC state machine**: one ESC pauses (ungrab trackpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle in the top bar to reposition the window
-- **Mouse fallback**: if no evdev touchpad is available, draw with the mouse
+- **Mouse fallback**: if no evdev trackpad is available, draw with the mouse
 - **PP-OCRv6 deep-learning engine**: ONNX-based CNN recognition covering 18,710 characters, with MAX-pooled confidence scoring for reliable top-1 predictions
 - **'--test' mode**: standalone GTK window (no IBus dependency) for quick testing, data collection, and debugging
 
@@ -31,7 +31,7 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 | Distro | Method |
 |--------|--------|
 | Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + model download |
-| Fedora 39+ | `dnf` + model download |
+| Fedora 40+ | `dnf` + model download |
 | Arch Linux, Manjaro | `pacman` + `yay` (AUR) + download |
 | openSUSE Tumbleweed | `zypper` + download |
 
@@ -39,7 +39,7 @@ The installer downloads the PP-OCRv6 ONNX model and character dictionary for rec
 
 ## Requirements
 
-- Linux with a touchpad (or touchscreen)
+- Linux with a trackpad (or touchscreen)
 - IBus input method framework (default on most desktops)
 - **Debian family**: Debian 11+, Ubuntu 22.04+, Linux Mint 21+
 - **Fedora**: Fedora 40+
@@ -89,9 +89,9 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 
 1. Switch to **Chinese Handwriting** from your IBus menu
 2. A dark floating panel appears near your text cursor
-3. Draw Chinese characters on your laptop's touchpad with one finger
+3. Draw Chinese characters on your laptop's trackpad with one finger
 4. Candidate characters appear at the top of the panel
-5. Tap on the touchpad to select a candidate (spatial mapping)
+5. Tap on the trackpad to select a candidate (spatial mapping)
 6. Use two-finger swipe left/right to page through candidates
 7. Press **⌫** to undo the last stroke
 8. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
@@ -101,10 +101,10 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 
 ## Troubleshooting
 
-- **Touchpad not accessible**: Run `sudo udevadm trigger` to apply the udev rule, or add your user to the `input` group: `sudo usermod -a -G input $USER && reboot`
+- **Trackpad not accessible**: Run `sudo udevadm trigger` to apply the udev rule, or add your user to the `input` group: `sudo usermod -a -G input $USER && reboot`
 - **IBus not seeing the engine**: Run `ibus restart` after installation
 - **Engine won't start**: Check `journalctl -f` while switching to the engine for error messages
-- **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the touchpad device
+- **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device
 
 ## Testing
 
@@ -134,7 +134,7 @@ The recognition smoke test (`tests/test_recognition.py`) creates synthetic strok
 - Horizontal line → recognized as **一** (score > 0.9)
 - Cross shape → recognized as **十** (score > 0.95)
 
-CI tests GTK under Xvfb, but not live IBus, evdev, or real touchpad hardware in containers.
+CI tests GTK under Xvfb, but not live IBus, evdev, or real trackpad hardware in containers.
 
 ### PP-OCRv6 Accuracy Validation
 
@@ -195,7 +195,7 @@ Three bugs were identified and fixed in the PP-OCRv6 pipeline during validation:
 
 ### Validation Results
 
-40 real handwriting characters collected via `--test` mode and touchpad input:
+40 real handwriting characters collected via `--test` mode and trackpad input:
 
 | Metric | Result |
 |--------|--------|
@@ -230,7 +230,7 @@ Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.tx
 ├── tools/
 │   ├── install.sh                       Install script (Debian-native, accepts `--skip-deps`)
 │   ├── restore.sh                       Rollback/restore script
-│   └── 99-trackpad-handwrite.rules      Udev rule for touchpad access
+│   └── 99-trackpad-handwrite.rules      Udev rule for trackpad access
 ├── tests/
 │   ├── test_recognition.py             Synthetic stroke recognition smoke test
 │   └── test_data/                      Test stroke data
@@ -250,6 +250,6 @@ Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.tx
 │       └── bottleneck-report.txt            Bug fix and validation report
 ├── bootstrap.sh                        Cross-distro install entry point
 ├── README.md
-├── README.zh-Hans.md
-└── README.zh-Hant.md
+├── README.zh-Hans-汉.md
+└── README.zh-Hant-漢.md
 ```

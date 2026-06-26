@@ -1,5 +1,8 @@
 # Plan: Real Handwriting Accuracy Test — Tegaki vs 幽兰百合
 
+> ⚠️ **Superseded** — both engines compared (Tegaki, 幽兰百合) were removed in v0.2.0.
+> The project now uses PP-OCRv6 ONNX only. See [README.md PP-OCRv6 Integration section](../README.md#pp-ocrv6-integration) for current validation results.
+
 ## Objective
 
 Compare recognition accuracy of **Tegaki zh_CN** (6,763 chars) vs **幽兰百合 Community v1.1.0** (9,374 chars) using actual handwriting strokes captured from the MacBook Pro touchpad (bcm5974), rather than synthetic strokes.
