@@ -15,6 +15,9 @@ _STATE_IDLE = 0
 _STATE_TOUCH = 1
 _STATE_STROKE = 2
 _STATE_SWIPE = 3
+_STATE_SELECT = 4
+
+VELOCITY_SCALE = 0.5
 
 
 
@@ -28,6 +31,8 @@ class TrackpadReader:
       on_tap(x_frac): quick finger tap; x_frac = 0..1 proportional position
       on_swipe_left(): two-finger swipe left (candidate prev page)
       on_swipe_right(): two-finger swipe right (candidate next page)
+      on_candidate_highlight(x_frac): 1-finger drag in candidate zone — highlight by X position
+      on_candidate_select(x_frac): finger lift in candidate zone — select candidate by X position
     """
 
     def __init__(self, callbacks):
@@ -58,6 +63,13 @@ class TrackpadReader:
         self._swipe_acc = 0
         self._swipe_centroid = 0
         self._pending = False
+        self._swipe_velocities = []       # list of (dx, dt) tuples
+        self._last_ts = 0.0               # timestamp of last swipe event
+        self._velocity = 0.0              # computed velocity
+        self._candidate_zone_frac = 0.25
+        self._last_fx = 0.0
+        self._saved_stroke = []
+        self._saved_t = 0.0
 
     def _map_x(self, raw):
         return (raw - self._cal_x_min) / self._cal_x_range
@@ -175,6 +187,8 @@ class TrackpadReader:
                                 if elapsed < 0.25:
                                     x_frac = self._map_x(self._touch_x)
                                     self._idle(self.callbacks["on_tap"], x_frac)
+                        elif self._state == _STATE_SELECT:
+                            self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
                         self._state = _STATE_IDLE
                         self._stroke = []
                         self._pending = False
@@ -185,18 +199,35 @@ class TrackpadReader:
                 if active >= 2:
                     cx = self._avg_x()
                     if self._state == _STATE_SWIPE:
+                        dt = time.time() - self._last_ts
                         dx = cx - self._swipe_centroid
+                        self._swipe_velocities.append((dx, dt))
+                        self._swipe_velocities = self._swipe_velocities[-5:]
+                        self._last_ts = time.time()
                         self._swipe_acc += dx
                         if abs(self._swipe_acc) > self._swipe_threshold:
-                            if self._swipe_acc > 0:
-                                self._idle(self.callbacks.get("on_swipe_right", lambda: None))
+                            total_dx = sum(v[0] for v in self._swipe_velocities)
+                            total_dt = sum(v[1] for v in self._swipe_velocities)
+                            if total_dt > 0:
+                                vel = total_dx / total_dt
+                                normalized = vel / self._cal_x_range
+                                pages = 1 + int(abs(normalized) * VELOCITY_SCALE)
                             else:
-                                self._idle(self.callbacks.get("on_swipe_left", lambda: None))
+                                pages = 1
+                            if self._swipe_acc > 0:
+                                self._idle(self.callbacks.get("on_swipe_right", lambda p: None), pages)
+                            else:
+                                self._idle(self.callbacks.get("on_swipe_left", lambda p: None), pages)
                             self._swipe_acc = 0
+                            self._swipe_velocities = []
                     else:
                         self._state = _STATE_SWIPE
+                        self._saved_stroke = list(self._stroke)
+                        self._saved_t = time.time()
                         self._stroke = []
                         self._swipe_acc = 0
+                        self._last_ts = time.time()
+                        self._swipe_velocities = []
                     self._swipe_centroid = cx
                     self._pending = False
 
@@ -221,19 +252,34 @@ class TrackpadReader:
                     fy = self._map_y(ry)
 
                     if self._state == _STATE_SWIPE:
-                        self._state = _STATE_IDLE
-                        self._stroke = []
-                        self._pending = False
-                        self._mt_slots = {}
-                        self._ungrab()
+                        if self._saved_stroke and time.time() - self._saved_t < 5.0:
+                            self._state = _STATE_STROKE
+                            first = self._saved_stroke[0]
+                            self._stroke = list(self._saved_stroke)
+                            self._saved_stroke = []
+                            self._idle(self.callbacks["on_stroke_begin"], first[0], first[1])
+                            for pt in self._stroke[1:]:
+                                self._idle(self.callbacks["on_stroke_point"], pt[0], pt[1])
+                        else:
+                            self._state = _STATE_IDLE
+                            self._stroke = []
+                            self._pending = False
+                            self._mt_slots = {}
+                            self._ungrab()
 
                     elif self._state == _STATE_IDLE and self._pending:
-                        self._state = _STATE_TOUCH
-                        self._stroke = []
-                        self._finger_down_t = time.time()
-                        self._touch_x = None
-                        self._touch_y = None
-                        self._pending = False
+                        if fy < self._candidate_zone_frac:
+                            self._state = _STATE_SELECT
+                            self._last_fx = fx
+                            self._pending = False
+                            self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                        else:
+                            self._state = _STATE_TOUCH
+                            self._stroke = []
+                            self._finger_down_t = time.time()
+                            self._touch_x = None
+                            self._touch_y = None
+                            self._pending = False
 
                     elif self._state == _STATE_TOUCH:
                         if self._touch_x is None:
@@ -246,6 +292,11 @@ class TrackpadReader:
                                 self._state = _STATE_STROKE
                                 self._stroke = [(fx, fy)]
                                 self._idle(self.callbacks["on_stroke_begin"], fx, fy)
+
+                    elif self._state == _STATE_SELECT:
+                        self._last_fx = fx
+                        self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                        self._pending = False
 
                     elif self._state == _STATE_STROKE:
                         if self._stroke:

@@ -313,6 +313,11 @@ class HandwriteWin(Gtk.Window):
             .close-btn:hover {
                 color: white;
             }
+            .candidate-btn-highlighted {
+                background: #4a90d9;
+                color: white;
+                border-radius: 3px;
+            }
         """)
         screen = Gdk.Screen.get_default()
         Gtk.StyleContext.add_provider_for_screen(
@@ -393,6 +398,11 @@ class HandwriteWin(Gtk.Window):
         self._delete_timer = None
         self._delete_held = False
         self._drag_hovered = False
+        self._momentum_pages = 0
+        self._momentum_velocity = 0.0
+        self._momentum_source = None
+        self._momentum_dir = 1
+        self._highlighted_idx = -1
 
         self.connect("key-press-event", self.on_key)
         self.connect("button-press-event", self.on_window_click)
@@ -407,10 +417,13 @@ class HandwriteWin(Gtk.Window):
             'on_tap': self.on_trackpad_tap,
             'on_swipe_left': self.on_trackpad_swipe_left,
             'on_swipe_right': self.on_trackpad_swipe_right,
+            'on_candidate_highlight': self.on_trackpad_candidate_highlight,
+            'on_candidate_select': self.on_trackpad_candidate_select,
         })
         return self._trackpad.start()
 
     def stop_trackpad(self):
+        self._cancel_momentum()
         if self._trackpad:
             self._trackpad.stop()
             self._trackpad = None
@@ -522,6 +535,7 @@ class HandwriteWin(Gtk.Window):
             self._delete_timer = None
 
     def show_candidates(self, results):
+        self._highlighted_idx = -1
         for btn in self.candidate_buttons:
             btn.destroy()
         self.candidate_buttons = []
@@ -599,18 +613,99 @@ class HandwriteWin(Gtk.Window):
                 idx = min(start + int(scaled * visible), num - 1)
                 self.engine.pick_candidate(idx)
 
-    def on_trackpad_swipe_left(self):
+    def _cancel_momentum(self):
+        if self._momentum_source is not None:
+            GLib.source_remove(self._momentum_source)
+            self._momentum_source = None
+
+    def _momentum_tick(self):
+        if self._momentum_pages <= 0:
+            self._momentum_source = None
+            return False
+        total = len(self.engine.last_results)
+        if total > 0:
+            max_page = (total - 1) // self._page_size
+            if self._momentum_dir > 0:
+                self._cand_page = min(self._cand_page + 1, max_page)
+            else:
+                self._cand_page = max(self._cand_page - 1, 0)
+            self.show_candidates(self.engine.last_results)
+        self._momentum_pages -= 1
+        self._momentum_velocity *= 0.65
+        if self._momentum_velocity < 0.3:
+            self._momentum_source = None
+            return False
+        self._momentum_pages = max(1, int(self._momentum_velocity))
+        return True
+
+    def on_trackpad_swipe_left(self, pages=1):
         total = len(self.engine.last_results)
         if total > 0:
             max_page = (total - 1) // self._page_size
             self._cand_page = min(self._cand_page + 1, max_page)
             self.show_candidates(self.engine.last_results)
+            if pages > 1:
+                self._momentum_dir = 1
+                self._momentum_pages = pages - 1
+                self._momentum_velocity = float(pages) * 0.65
+                self._cancel_momentum()
+                self._momentum_source = GLib.timeout_add(50, self._momentum_tick)
 
-    def on_trackpad_swipe_right(self):
+    def on_trackpad_swipe_right(self, pages=1):
         total = len(self.engine.last_results)
         if total > 0:
             self._cand_page = max(self._cand_page - 1, 0)
             self.show_candidates(self.engine.last_results)
+            if pages > 1:
+                self._momentum_dir = -1
+                self._momentum_pages = pages - 1
+                self._momentum_velocity = float(pages) * 0.65
+                self._cancel_momentum()
+                self._momentum_source = GLib.timeout_add(50, self._momentum_tick)
+
+    def on_trackpad_candidate_highlight(self, x_frac):
+        delete_at = 0.82
+        if x_frac > delete_at:
+            if self._highlighted_idx >= 0:
+                old = self._candidate_buttons[self._highlighted_idx]
+                old.get_style_context().remove_class("candidate-btn-highlighted")
+                self._highlighted_idx = -1
+            return
+        num = len(self.engine.last_results)
+        if num == 0:
+            return
+        start = self._cand_page * self._page_size
+        visible = min(self._page_size, num - start)
+        if visible <= 0:
+            return
+        scaled = x_frac / delete_at
+        local_idx = min(int(scaled * visible), visible - 1)
+        if local_idx == self._highlighted_idx:
+            return
+        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self._candidate_buttons):
+            old_btn = self._candidate_buttons[self._highlighted_idx]
+            old_btn.get_style_context().remove_class("candidate-btn-highlighted")
+        if local_idx < len(self._candidate_buttons):
+            new_btn = self._candidate_buttons[local_idx]
+            new_btn.get_style_context().add_class("candidate-btn-highlighted")
+            self._highlighted_idx = local_idx
+
+    def on_trackpad_candidate_select(self, x_frac):
+        delete_at = 0.82
+        if x_frac > delete_at:
+            self.on_delete_tap(None)
+            return
+        num = len(self.engine.last_results)
+        if num > 0:
+            start = self._cand_page * self._page_size
+            visible = min(self._page_size, num - start)
+            if visible > 0:
+                scaled = x_frac / delete_at
+                idx = min(start + int(scaled * visible), num - 1)
+                self.engine.pick_candidate(idx)
+        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self._candidate_buttons):
+            self._candidate_buttons[self._highlighted_idx].get_style_context().remove_class("candidate-btn-highlighted")
+            self._highlighted_idx = -1
 
     def rebuild_pix(self, ww, hh):
         import cairo
