@@ -82,7 +82,7 @@ echo "[3] Registering IBus component..."
 mkdir -p /usr/share/ibus/component
 cp xml/handwrite-chinese.xml /usr/share/ibus/component/
 
-echo "[4] Installing udev rule for touchpad access..."
+echo "[4] Installing udev rule for trackpad access..."
 mkdir -p /etc/udev/rules.d
 cp tools/99-trackpad-handwrite.rules /etc/udev/rules.d/
 udevadm control --reload-rules 2>/dev/null || true

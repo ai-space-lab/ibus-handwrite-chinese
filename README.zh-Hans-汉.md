@@ -1,24 +1,24 @@
 # IBus 中文手写输入法
 
-[![CI](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/ci.yml)
-[![Release](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/vinceyap88/ibus-handwrite-chinese/actions/workflows/release.yml)
+[![CI](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml)
+[![Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml)
 
-一款 Linux 平台的中文手写输入法，采用 macOS 风格浮动面板、evdev 触摸板集成和 PP-OCRv6 ONNX 深度学习引擎。
+一款 Linux 平台的中文手写输入法，采用 macOS 风格浮动面板、evdev 触控板集成和 PP-OCRv6 ONNX 深度学习引擎。
 
 ![screenshot](docs/screenshot.png)
 
 ## 功能特点
 
 - **macOS 风格弹出面板**：深色浮动窗口，候选词嵌入面板顶部
-- **evdev 触摸板输入**：在笔记本电脑触摸板上书写汉字 —— 支持所有支持 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的现代触摸板（Synaptics、ELAN、ALPS、bcm5974）
-- **点击选择**：轻触触摸板即可选择候选词 —— 空间映射匹配候选词位置
+- **evdev 触控板输入**：在笔记本电脑触控板上书写汉字 —— 支持所有支持 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的触控板（已在 MacBook Pro bcm5974 上测试通过——其他支持 BTN_TOUCH + ABS_X/ABS_MT_POSITION_X 的触控板可能可用，但未经测试）
+- **点击选择**：轻触触控板即可选择候选词 —— 空间映射匹配候选词位置
 - **双指滑动**：双指左右滑动翻页浏览候选词
 - **删除笔画**：⌫ 按钮可撤销上一笔画
 - **关闭按钮**：左上角始终显示 × 按钮，点击关闭并恢复上一输入法
-- **ESC 状态机**：按一次 ESC 暂停（释放触摸板，显示"已暂停"遮罩），再按一次 ESC 关闭并恢复上一输入法；点击窗口恢复
-- **智能窗口定位**：弹出面板自动避开当前活动窗口，不遮挡应用程序视图
+- **ESC 状态机**：按一次 ESC 暂停（释放触控板，显示"已暂停"遮罩），再按一次 ESC 关闭并恢复上一输入法；点击窗口恢复
+- **智能窗口定位**：弹出面板自动出现在文本光标附近，不遮挡应用程序视图
 - **拖拽手柄**：顶部栏自定义拖拽手柄可随意移动窗口位置
-- **鼠标后备**：如无 evdev 触摸板，可使用鼠标绘图
+- **鼠标后备**：如无 evdev 触控板，可使用鼠标绘图
 - **PP-OCRv6 深度学习引擎**：基于 ONNX 的 CNN 识别，覆盖 18710 个汉字，使用 MAX 池化置信度评分
 - **'--test' 测试模式**：独立 GTK 窗口（无需 IBus），适合快速测试、数据采集和调试
 
@@ -29,7 +29,7 @@
 | 发行版 | 安装方式 | 模型来源 |
 |--------|----------|----------|
 | Debian 12+, Ubuntu 22.04+, Mint 21+ | `apt` + 下载 | 系统包 + PP-OCRv6 ONNX 模型 |
-| Fedora 39+ | `dnf` + 下载 | PP-OCRv6 ONNX 模型 |
+| Fedora 40+ | `dnf` + 下载 | PP-OCRv6 ONNX 模型 |
 | Arch Linux, Manjaro | `pacman` + `yay` (AUR) + 下载 | PP-OCRv6 ONNX 模型 |
 | openSUSE Tumbleweed | `zypper` + 下载 | PP-OCRv6 ONNX 模型 |
 
@@ -37,7 +37,7 @@
 
 ## 系统要求
 
-- Linux 系统，带触摸板（或触摸屏）
+- Linux 系统，带触控板（或触摸屏）
 - IBus 输入法框架（大多数桌面环境默认安装）
 - **Debian 系列**：Debian 11+，Ubuntu 22.04+，Linux Mint 21+
 - **Fedora**：Fedora 40+
@@ -86,23 +86,23 @@ ibus engine handwrite-chinese
 ## 使用方法
 
 1. 从 IBus 菜单切换到 **Chinese Handwriting**
-2. 深色浮动面板将在屏幕右下角出现
-3. 用单指在触摸板上书写汉字
+2. 深色浮动面板将出现在您的文本光标附近
+3. 用单指在触控板上书写汉字
 4. 候选字显示在面板顶部
-5. 轻触触摸板选择候选词（空间映射）
+5. 轻触触控板选择候选词（空间映射）
 6. 双指左右滑动翻页
 7. 按 **⌫** 撤销上一笔画
-8. 点击面板左上角 **×** 关闭并恢复上一输入法，或按 **ESC** 暂停（释放触摸板）
+8. 点击面板左上角 **×** 关闭并恢复上一输入法，或按 **ESC** 暂停（释放触控板）
 9. 再按 **ESC** 关闭并恢复上一输入法
 10. 点击面板恢复（暂停状态下）
 11. 如需不切换 IME 进行测试，在终端运行 `python3 src/ibus-engine-handwrite-chinese --test` — 独立 GTK 窗口将出现，识别结果记录到 `/tmp/ppocr-recognition.log`
 
 ## 故障排除
 
-- **触摸板无法使用**：运行 `sudo udevadm trigger` 应用 udev 规则，或将用户加入 `input` 组：`sudo usermod -a -G input $USER && reboot`
+- **触控板无法使用**：运行 `sudo udevadm trigger` 应用 udev 规则，或将用户加入 `input` 组：`sudo usermod -a -G input $USER && reboot`
 - **IBus 未识别输入法**：安装后运行 `ibus restart`
 - **输入法无法启动**：切换到输入法时查看 `journalctl -f` 获取错误信息
-- **权限被拒绝**：用 `getfacl /dev/input/event*` 验证 —— 您的用户应对触摸板设备有 `rw` 权限
+- **权限被拒绝**：用 `getfacl /dev/input/event*` 验证 —— 您的用户应对触控板设备有 `rw` 权限
 
 ## 测试
 
@@ -132,7 +132,7 @@ ibus engine handwrite-chinese
 - 水平线 → 识别为 **一**（得分 > 0.9）
 - 十字形 → 识别为 **十**（得分 > 0.95）
 
-CI 会在 Xvfb 下测试 GTK，但不会在容器中测试真实 IBus、evdev 或触摸板硬件。
+CI 会在 Xvfb 下测试 GTK，但不会在容器中测试真实 IBus、evdev 或触控板硬件。
 
 ### PP-OCRv6 精度验证
 
@@ -198,7 +198,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 验证结果
 
-通过 `--test` 模式和触摸板采集的 40 个真实手写字符：
+通过 `--test` 模式和触控板采集的 40 个真实手写字符：
 
 | 指标 | 结果 |
 |------|------|
@@ -233,7 +233,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 ├── tools/
 │   ├── install.sh                       安装脚本（Debian 原生，支持 `--skip-deps`）
 │   ├── restore.sh                       回滚/恢复脚本
-│   └── 99-trackpad-handwrite.rules      触摸板访问的 udev 规则
+│   └── 99-trackpad-handwrite.rules      触控板访问的 udev 规则
 ├── tests/
 │   ├── test_recognition.py             合成笔画识别冒烟测试
 │   └── test_data/                      测试笔画数据
@@ -253,6 +253,6 @@ python3 src/ibus-engine-handwrite-chinese --test
 │       └── bottleneck-report.txt             Bug 修复与验证报告
 ├── bootstrap.sh                        跨发行版安装入口
 ├── README.md
-├── README.zh-Hans.md
-└── README.zh-Hant.md
+├── README.zh-Hans-汉.md
+└── README.zh-Hant-漢.md
 ```

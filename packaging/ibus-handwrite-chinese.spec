@@ -66,7 +66,7 @@ fi
 
 %files
 %license LICENSE
-%doc README.md README.zh-Hans.md README.zh-Hant.md
+%doc README.md README.zh-Hans-汉.md README.zh-Hant-漢.md
 /usr/local/bin/ibus-engine-handwrite-chinese
 /usr/local/bin/handwrite_evdev.py
 /usr/share/ibus/component/handwrite-chinese.xml
