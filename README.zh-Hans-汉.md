@@ -47,7 +47,7 @@
 ## 快速安装
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/vinceyap88/ibus-handwrite-chinese/main/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
 ibus restart
 ```
 
@@ -55,7 +55,7 @@ ibus restart
 
 ```bash
 sudo apt install python3-evdev
-git clone https://github.com/vinceyap88/ibus-handwrite-chinese
+git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
 sudo ./install.sh          # 已安装依赖可加 --skip-deps
 ibus restart
@@ -73,7 +73,7 @@ ibus engine handwrite-chinese
 
 ## 软件包
 
-预构建的软件包可在 [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) 页面下载：
+预构建的软件包可在 [GitHub Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases) 页面下载：
 
 | 格式 | 安装命令 | 发行版 |
 |------|----------|--------|

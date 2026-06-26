@@ -47,7 +47,7 @@
 ## 快速安裝
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/vinceyap88/ibus-handwrite-chinese/main/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
 ibus restart
 ```
 
@@ -55,7 +55,7 @@ ibus restart
 
 ```bash
 sudo apt install python3-evdev
-git clone https://github.com/vinceyap88/ibus-handwrite-chinese
+git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
 sudo ./install.sh          # 已安裝依賴可加 --skip-deps
 ibus restart
@@ -148,7 +148,7 @@ GPLv3 — 由相依函式庫要求（python3-evdev、ibus）。
 
 ## 軟體套件
 
-預先建置的軟體套件可在 [GitHub Release](https://github.com/vinceyap88/ibus-handwrite-chinese/releases) 頁面下載：
+預先建置的軟體套件可在 [GitHub Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases) 頁面下載：
 
 | 格式 | 安裝命令 | 發行版 |
 |------|----------|--------|
