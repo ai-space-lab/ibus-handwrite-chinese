@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: ibus-handwrite-chinese
-Upstream-Contact: https://github.com/vinceyap88/ibus-handwrite-chinese
-Source: https://github.com/vinceyap88/ibus-handwrite-chinese
+Upstream-Contact: https://github.com/ai-space-lab/ibus-handwrite-chinese
+Source: https://github.com/ai-space-lab/ibus-handwrite-chinese
 
 Files: *
 Copyright: 2025 ibus-handwrite-chinese developers
