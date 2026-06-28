@@ -667,7 +667,7 @@ class HandwriteWin(Gtk.Window):
         delete_at = 0.82
         if x_frac > delete_at:
             if self._highlighted_idx >= 0:
-                old = self._candidate_buttons[self._highlighted_idx]
+                old = self.candidate_buttons[self._highlighted_idx]
                 old.get_style_context().remove_class("candidate-btn-highlighted")
                 self._highlighted_idx = -1
             return
@@ -682,11 +682,11 @@ class HandwriteWin(Gtk.Window):
         local_idx = min(int(scaled * visible), visible - 1)
         if local_idx == self._highlighted_idx:
             return
-        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self._candidate_buttons):
-            old_btn = self._candidate_buttons[self._highlighted_idx]
+        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self.candidate_buttons):
+            old_btn = self.candidate_buttons[self._highlighted_idx]
             old_btn.get_style_context().remove_class("candidate-btn-highlighted")
-        if local_idx < len(self._candidate_buttons):
-            new_btn = self._candidate_buttons[local_idx]
+        if local_idx < len(self.candidate_buttons):
+            new_btn = self.candidate_buttons[local_idx]
             new_btn.get_style_context().add_class("candidate-btn-highlighted")
             self._highlighted_idx = local_idx
 
@@ -703,8 +703,8 @@ class HandwriteWin(Gtk.Window):
                 scaled = x_frac / delete_at
                 idx = min(start + int(scaled * visible), num - 1)
                 self.engine.pick_candidate(idx)
-        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self._candidate_buttons):
-            self._candidate_buttons[self._highlighted_idx].get_style_context().remove_class("candidate-btn-highlighted")
+        if self._highlighted_idx >= 0 and self._highlighted_idx < len(self.candidate_buttons):
+            self.candidate_buttons[self._highlighted_idx].get_style_context().remove_class("candidate-btn-highlighted")
             self._highlighted_idx = -1
 
     def rebuild_pix(self, ww, hh):
