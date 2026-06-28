@@ -66,7 +66,7 @@ class TrackpadReader:
         self._swipe_velocities = []       # list of (dx, dt) tuples
         self._last_ts = 0.0               # timestamp of last swipe event
         self._velocity = 0.0              # computed velocity
-        self._candidate_zone_frac = 0.25
+        self._candidate_zone_frac = 0.15
         self._last_fx = 0.0
         self._saved_stroke = []
         self._saved_t = 0.0
