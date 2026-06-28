@@ -15,6 +15,9 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **evdev trackpad input**: draw characters on your laptop's trackpad — works on any trackpad with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support (tested on MacBook Pro bcm5974 — other trackpads with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support may work but are untested)
 - **Tap to select**: quickly tap on the trackpad to pick a candidate — spatial mapping matches candidate position
 - **Two-finger swipe**: swipe left/right with two fingers to page through candidates
+- **Swipe momentum**: fast two-finger swipe decelerates through multiple pages — the faster you swipe, the more pages it advances
+- **1-finger candidate drag**: drag one finger in the top 5% trackpad zone to highlight candidates by position, lift to select
+- **Non-destructive multitouch**: accidental second finger during a stroke won't destroy the partial stroke — the engine saves and restores stroke state
 - **Delete stroke**: ⌫ button to undo the last stroke
 - **Close button**: × button always visible at top-left, closes and restores previous input method
 - **ESC state machine**: one ESC pauses (ungrab trackpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume
@@ -92,12 +95,13 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 3. Draw Chinese characters on your laptop's trackpad with one finger
 4. Candidate characters appear at the top of the panel
 5. Tap on the trackpad to select a candidate (spatial mapping)
-6. Use two-finger swipe left/right to page through candidates
-7. Press **⌫** to undo the last stroke
-8. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
-9. **ESC** again closes and restores previous input method
-10. Click the window to resume after pausing
-11. For testing without IME switching, run `python3 src/ibus-engine-handwrite-chinese --test` in a terminal — a standalone GTK window appears and recognition results are logged to `/tmp/ppocr-recognition.log`
+6. Use two-finger swipe left/right to page through candidates — swipe faster to advance more pages with momentum
+7. Drag one finger near the top edge of the trackpad to highlight candidates by position; lift to select
+8. Press **⌫** to undo the last stroke
+9. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
+10. **ESC** again closes and restores previous input method
+11. Click the window to resume after pausing
+12. For testing without IME switching, run `python3 src/ibus-engine-handwrite-chinese --test` in a terminal — a standalone GTK window appears and recognition results are logged to `/tmp/ppocr-recognition.log`
 
 ## Troubleshooting
 
