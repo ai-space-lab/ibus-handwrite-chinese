@@ -145,6 +145,11 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 - **單字輸入**：暫不支援多字組合（一次輸入一個字）。V2 版本可能加入空間分割實現連續輸入
 - **ONNX 模型下載**：PP-OCRv6 模型託管在 GitHub Releases。如果下載失敗，安裝程式將發出警告並繼續。CI 容器優雅跳過下載
 
+## 致謝
+
+- **PP-OCRv6** — 文字辨識模型，由 [PaddlePaddle](https://github.com/PaddlePaddle/PaddleOCR) / 百度開發，採用 [Apache 2.0](https://github.com/PaddlePaddle/PaddleOCR/blob/main/LICENSE) 授權條款。
+- **ONNX Runtime** — 跨平台推論引擎，由微軟開發，採用 [MIT](https://github.com/microsoft/onnxruntime/blob/main/LICENSE) 授權條款。
+
 ## 授權條款
 
 GPLv3 — 由相依函式庫要求（python3-evdev、ibus）。
