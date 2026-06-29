@@ -159,6 +159,11 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 - **Recognition accuracy**: Pure PP-OCRv6 ONNX recognition (18710 chars). Validated at 100% top-1 accuracy on 40 real handwriting characters (36 distinct chars, including 7 similar-pair groups: 土/士, 未/末, 日/曰, 人/入, 大/太, 已/己, 上/下). Average confidence: 94.97%.
 - **Single character**: No multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
 
+## Acknowledgments
+
+- **PP-OCRv6** — text recognition model by [PaddlePaddle](https://github.com/PaddlePaddle/PaddleOCR) / Baidu, licensed under [Apache 2.0](https://github.com/PaddlePaddle/PaddleOCR/blob/main/LICENSE).
+- **ONNX Runtime** — cross-platform inference engine by Microsoft, licensed under [MIT](https://github.com/microsoft/onnxruntime/blob/main/LICENSE).
+
 ## License
 
 GPLv3 — required by dependencies (python3-evdev, ibus).
