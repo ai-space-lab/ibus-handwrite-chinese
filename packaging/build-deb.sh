@@ -30,8 +30,10 @@ mkdir -p "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/icons"
 mkdir -p "$BUILDDIR/usr/share/ibus/component"
 mkdir -p "$BUILDDIR/etc/udev/rules.d"
 
-cp "$ROOTDIR/src/ibus-engine-handwrite-chinese" "$BUILDDIR/usr/local/bin/"
-chmod 755 "$BUILDDIR/usr/local/bin/ibus-engine-handwrite-chinese"
+mkdir -p "$BUILDDIR/usr/local/share/ibus-handwrite-chinese"
+cp "$ROOTDIR/src/ibus-engine-handwrite-chinese" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
+chmod 644 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese"
+# Wrapper at /usr/local/bin/ibus-engine-handwrite-chinese is created by postinst
 cp "$ROOTDIR/src/handwrite_evdev.py" "$BUILDDIR/usr/local/bin/"
 chmod 644 "$BUILDDIR/usr/local/bin/handwrite_evdev.py"
 cp "$ROOTDIR/xml/handwrite-chinese.xml" "$BUILDDIR/usr/share/ibus/component/"
