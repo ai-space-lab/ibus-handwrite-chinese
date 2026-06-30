@@ -1,25 +1,83 @@
 #!/bin/sh
 set -e
 
-MODEL_DIR="/usr/share/tegaki/models/zinnia"
-LILY_DIR="/usr/local/share/ibus-handwrite-chinese/models"
+MODEL_DIR="/usr/local/share/ibus-handwrite-chinese/models"
+SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
+VENV_DIR="$SHARE_DIR/venv"
+WRAPPER="/usr/local/bin/ibus-engine-handwrite-chinese"
 
-mkdir -p "$LILY_DIR"
+# --- Model download ---
+mkdir -p "$MODEL_DIR"
 
-# Download 幽兰百合 model (best-effort, from Gitee)
-if [ ! -f "$LILY_DIR/ZJHandWriting-zh_CN.model" ]; then
-    echo "Downloading 幽兰百合 Community v1.1.0 model from Gitee..."
-    if wget -q -O /tmp/lily.7z \
-        https://gitee.com/LZQingXi/handwriting-zh_CN_Community/releases/download/v1.1.0/handwriting-zh_CN-community.7z; then
-        7zr x -o"$LILY_DIR" /tmp/lily.7z 2>/dev/null || echo "Warning: 幽兰百合 extraction failed"
-        rm -f /tmp/lily.7z
+PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
+case "$PPOCR_TIER" in
+    tiny|small|medium) ;;
+    *)
+        echo "Warning: Unknown PP-OCRv6 model tier '$PPOCR_TIER'. Defaulting to small."
+        PPOCR_TIER="small"
+        ;;
+esac
+
+MODEL_FILE="$MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx"
+DICT_FILE="$MODEL_DIR/dict_v6.txt"
+
+if [ ! -f "$MODEL_FILE" ] || [ ! -f "$DICT_FILE" ]; then
+    echo "Downloading PP-OCRv6 ($PPOCR_TIER) recognition model..."
+    if command -v wget >/dev/null 2>&1; then
+        if [ ! -f "$MODEL_FILE" ]; then
+            wget -q --timeout=60 -O "$MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx" \
+                "https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx" \
+                && echo "PP-OCRv6 model downloaded" \
+                || echo "Warning: PP-OCRv6 model download failed"
+        fi
+        if [ ! -f "$DICT_FILE" ]; then
+            wget -q --timeout=60 -O "$MODEL_DIR/dict_v6.txt" \
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt" \
+                && echo "PP-OCRv6 dictionary downloaded" \
+                || echo "Warning: PP-OCRv6 dictionary download failed"
+        fi
     else
-        echo "Warning: 幽兰百合 download failed (Gitee unreachable). Install separately."
-        rm -f /tmp/lily.7z
+        echo "Warning: wget not available, cannot download PP-OCRv6 model"
+        echo "Manual download: https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx"
     fi
+else
+    echo "PP-OCRv6 $PPOCR_TIER model already installed"
 fi
 
-# Reload udev rules
+# --- Python venv with onnxruntime ---
+if command -v python3 >/dev/null 2>&1; then
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "Creating Python virtual environment with onnxruntime..."
+        if python3 -m venv --system-site-packages "$VENV_DIR"; then
+            "$VENV_DIR/bin/pip" install onnxruntime 2>&1 | tail -3 || \
+                echo "Warning: onnxruntime install in venv failed"
+        else
+            echo "Warning: venv creation failed. Will use system Python."
+            rm -rf "$VENV_DIR"
+        fi
+    fi
+else
+    echo "Warning: python3 not found. Engine will not work."
+fi
+
+# --- Wrapper script ---
+# Replace the raw Python script installed by the package with a wrapper
+# that routes through the venv (if available) for onnxruntime.
+cat > "$WRAPPER" << 'WRAPPER'
+#!/usr/bin/env bash
+set -eu
+VENV="/usr/local/share/ibus-handwrite-chinese/venv"
+ENGINE_DIR="/usr/local/share/ibus-handwrite-chinese"
+if [ -x "$VENV/bin/python3" ]; then
+    exec "$VENV/bin/python3" "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
+else
+    exec /usr/bin/python3 "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
+fi
+WRAPPER
+chmod 755 "$WRAPPER"
+echo "Engine wrapper installed"
+
+# --- Reload udev rules ---
 if command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules 2>/dev/null || true
     udevadm trigger 2>/dev/null || true

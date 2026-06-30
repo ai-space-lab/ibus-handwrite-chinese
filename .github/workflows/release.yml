@@ -240,7 +240,9 @@ jobs:
           sleep 2
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
       - name: Run GTK write test
-        run: IBUS_HANDWRITE_ENGINE=/usr/local/bin/ibus-engine-handwrite-chinese python3 tests/test_gtk_write_phrase.py
+        env:
+          IBUS_HANDWRITE_ENGINE: /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
+        run: python3 tests/test_gtk_write_phrase.py
 
   upload-release:
     name: Upload release assets

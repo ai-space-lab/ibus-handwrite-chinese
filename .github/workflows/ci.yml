@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/light-touch-and-ctrl-space]
   pull_request:
-    branches: [main]
+    branches: [main, fix/light-touch-and-ctrl-space]
 
 jobs:
   lint:
@@ -92,7 +92,7 @@ jobs:
           test -f /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg
           test -f /etc/udev/rules.d/99-trackpad-handwrite.rules
       - name: Verify engine Python syntax
-        run: python3 -c "compile(open('/usr/local/bin/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+        run: python3 -c "compile(open('/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Test recognition with synthetic strokes
         run: python3 tests/test_recognition.py
 
@@ -193,6 +193,8 @@ jobs:
           sleep 2
           echo "DISPLAY=:99" >> $GITHUB_ENV
       - name: Run GTK write test
+        env:
+          IBUS_HANDWRITE_ENGINE: /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
         run: python3 tests/test_gtk_write_phrase.py
       - name: Set artifact name
         run: |
