@@ -60,7 +60,11 @@ install_arch() {
 }
 
 install_suse() {
-    zypper install -y python3-evdev wget unzip p7zip
+    zypper --no-gpg-checks refresh 2>/dev/null || true
+    zypper install -y python3-evdev wget unzip p7zip || {
+        echo "⚠ zypper install failed (transient repo timeout). Retrying with --no-gpg-checks..."
+        zypper --no-gpg-checks install -y python3-evdev wget unzip p7zip || true
+    }
 }
 
 case "$DISTRO_FAMILY" in
