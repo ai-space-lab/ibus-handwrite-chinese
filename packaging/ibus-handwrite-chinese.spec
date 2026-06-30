@@ -16,7 +16,8 @@ BuildRequires:  python3
 Requires:       python3-evdev
 Requires:       python3-gobject
 Requires:       python3-numpy
-Requires:       python3-venv
+# python3-venv not needed on RPM distros (venv is part of python3-libs)
+# Debian-specific python3-venv is handled in the .deb's Depends field
 Requires:       ibus
 Requires:       wget
 Requires:       unzip
