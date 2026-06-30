@@ -57,10 +57,10 @@ ibus restart
 **Debian/Ubuntu/Mint** 使用者也可使用傳統方式：
 
 ```bash
-sudo apt install python3-evdev
+sudo apt install python3-evdev python3-venv
 git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
-sudo ./install.sh          # 已安裝依賴可加 --skip-deps
+sudo ./tools/install.sh    # 已安裝依賴可加 --skip-deps
 ibus restart
 ```
 

@@ -20,8 +20,12 @@ if [ "$SKIP_DEPS" = false ]; then
         exit 1
     fi
     echo "[1] Installing dependencies..."
-    apt update
-    DEBIAN_FRONTEND=noninteractive apt install -y python3-evdev wget unzip
+    apt-get update || echo "  ⚠ apt update failed, attempting install anyway"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip || {
+        echo "  ⚠ Failed to install system packages. Install manually:"
+        echo "     sudo apt install python3-evdev wget unzip"
+        echo "  Then re-run with: sudo ./tools/install.sh --skip-deps"
+    }
 fi
 echo "[PP-OCR] Downloading PP-OCRv6 recognition model..."
 PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
@@ -73,10 +77,44 @@ echo "=== Installing Chinese Handwriting IBus Engine ==="
 echo ""
 
 echo "[2] Installing engine to /usr/local/bin..."
-cp src/ibus-engine-handwrite-chinese /usr/local/bin/
-chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 cp src/handwrite_evdev.py /usr/local/bin/
 chmod 644 /usr/local/bin/handwrite_evdev.py
+
+# Create Python venv with onnxruntime (system GTK/evdev/IBus via --system-site-packages)
+VENV_DIR="/usr/local/share/ibus-handwrite-chinese/venv"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "  Creating Python virtual environment with onnxruntime..."
+    python3 -m venv --system-site-packages "$VENV_DIR" || {
+        echo "  ⚠ Failed to create venv. Will use system Python directly (may lack onnxruntime)."
+        VENV_DIR=""
+    }
+fi
+if [ -n "$VENV_DIR" ]; then
+    echo "  Installing onnxruntime..."
+    "$VENV_DIR/bin/pip" install onnxruntime 2>&1 | tail -5 || {
+        echo "  ⚠ Failed to install onnxruntime in venv. Will use system Python directly."
+        VENV_DIR=""
+    }
+fi
+
+# Install wrapper script as the engine binary
+# (points to venv Python if available, else directly runs the source)
+cat > /usr/local/bin/ibus-engine-handwrite-chinese << 'WRAPPER'
+#!/usr/bin/env bash
+set -eu
+VENV="/usr/local/share/ibus-handwrite-chinese/venv"
+ENGINE_DIR="/usr/local/share/ibus-handwrite-chinese"
+if [ -x "$VENV/bin/python3" ]; then
+    exec "$VENV/bin/python3" "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
+else
+    exec /usr/bin/python3 "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
+fi
+WRAPPER
+chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
+
+# Install main engine script (not executable directly, but run via wrapper)
+cp src/ibus-engine-handwrite-chinese /usr/local/share/ibus-handwrite-chinese/
+chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 
 echo "[3] Registering IBus component..."
 mkdir -p /usr/share/ibus/component

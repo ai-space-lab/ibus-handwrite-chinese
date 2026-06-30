@@ -12,7 +12,7 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 ## Features
 
 - **macOS-style popup**: dark floating window with embedded candidates at the top
-- **evdev trackpad input**: draw characters on your laptop's trackpad — works on any trackpad with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support (tested on MacBook Pro bcm5974 — other trackpads with BTN_TOUCH + ABS_X/ABS_MT_POSITION_X support may work but are untested)
+- **evdev trackpad input**: draw characters on your laptop's trackpad — works on any trackpad with touch detection (BTN_TOUCH or ABS_MT_TRACKING_ID) + ABS_X/ABS_MT_POSITION_X support (tested on Acer Aspire AL16-54P (HTIX5288) and MacBook Pro bcm5974 — other trackpads may work but are untested)
 - **Tap to select**: quickly tap on the trackpad to pick a candidate — spatial mapping matches candidate position
 - **Two-finger swipe**: swipe left/right with two fingers to page through candidates
 - **Swipe momentum**: fast two-finger swipe decelerates through multiple pages — the faster you swipe, the more pages it advances
@@ -44,10 +44,14 @@ The installer downloads the PP-OCRv6 ONNX model and character dictionary for rec
 
 - Linux with a trackpad (or touchscreen)
 - IBus input method framework (default on most desktops)
+- Python 3.8+ with `python3-venv` (for onnxruntime virtual environment)
 - **Debian family**: Debian 11+, Ubuntu 22.04+, Linux Mint 21+
 - **Fedora**: Fedora 40+
 - **Arch**: Arch Linux, Manjaro
 - **openSUSE**: Tumbleweed
+
+The engine uses **ONNX Runtime** for PP-OCRv6 recognition. The install script
+automatically creates a Python venv with onnxruntime — no manual pip needed.
 
 ## Quick Install
 
@@ -59,14 +63,17 @@ ibus restart
 **Debian/Ubuntu/Mint** users can also use the traditional method:
 
 ```bash
-sudo apt install python3-evdev
+sudo apt install python3-evdev python3-venv
 git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
-sudo ./install.sh          # add --skip-deps if you already installed dependencies
+sudo ./tools/install.sh    # add --skip-deps if deps already installed
 ibus restart
 ```
 
-`install.sh` automatically downloads the PP-OCRv6 ONNX model and character dictionary.
+`install.sh` automatically:
+- Downloads the PP-OCRv6 ONNX model and character dictionary
+- Creates a Python virtual environment with onnxruntime installed
+- Installs a wrapper script as the engine binary
 
 Then switch the engine:
 
@@ -105,10 +112,13 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 
 ## Troubleshooting
 
-- **Trackpad not accessible**: Run `sudo udevadm trigger` to apply the udev rule, or add your user to the `input` group: `sudo usermod -a -G input $USER && reboot`
-- **IBus not seeing the engine**: Run `ibus restart` after installation
-- **Engine won't start**: Check `journalctl -f` while switching to the engine for error messages
-- **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device
+- **Trackpad not accessible**: Run `sudo udevadm trigger` to apply the udev rule, or add your user to the `input` group: `sudo usermod -a -G input $USER && reboot`. Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device.
+- **Engine won't start / "Cannot find engine handwrite-chinese"**: Run `ibus restart` after installation, then try `ibus engine handwrite-chinese`. The engine needs IBus to recognize the component XML at `/usr/share/ibus/component/handwrite-chinese.xml`.
+- **onnxruntime errors on startup**: The install script creates a Python venv with onnxruntime at `/usr/local/share/ibus-handwrite-chinese/venv/`. If this step failed, re-run `sudo ./tools/install.sh` or manually create the venv: `sudo python3 -m venv --system-site-packages /usr/local/share/ibus-handwrite-chinese/venv && sudo /usr/local/share/ibus-handwrite-chinese/venv/bin/pip install onnxruntime`.
+- **Ctrl+Space / Switch key not working**: Check that IBus trigger shortcut is configured (`ibus-setup` or `dconf read /desktop/ibus/general/hotkey/trigger`). A stale root-owned `ibus-daemon` can intercept key events — kill it with `sudo pkill -u root ibus-daemon`.
+- **Must click trackpad to draw**: If your trackpad requires a physical click to register touches, the engine now also tracks via `ABS_MT_TRACKING_ID` (finger-on-surface) — try just touching the trackpad lightly. If it still requires clicking, your trackpad firmware may need a higher sensitivity setting.
+- **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device. If the udev rule (`/etc/udev/rules.d/99-trackpad-handwrite.rules`) is present but ACLs aren't applied, reload with: `sudo udevadm control --reload-rules && sudo udevadm trigger`.
+- **IBus indicator not showing in panel**: Run `ibus-daemon --daemonize --replace` to restart IBus. In Cinnamon, the IBus icon appears in the system tray — if missing, toggle the setting: `gsettings set org.freedesktop.ibus.panel show 1` (always-visible language bar).
 
 ## Testing
 
@@ -155,7 +165,7 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 
 ## Known Limitations
 
-- **Real hardware**: Tested on MacBook Pro (bcm5974) — should work on any touchpad with `BTN_TOUCH + ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
+- **Real hardware**: Tested on Acer Aspire AL16-54P (HTIX5288) and MacBook Pro (bcm5974) — should work on any touchpad with `ABS_MT_TRACKING_ID` or `BTN_TOUCH` + `ABS_X`, but Wayland popup positioning and SELinux evdev access are untested on Fedora/Arch.
 - **Recognition accuracy**: Pure PP-OCRv6 ONNX recognition (18710 chars). Validated at 100% top-1 accuracy on 40 real handwriting characters (36 distinct chars, including 7 similar-pair groups: 土/士, 未/末, 日/曰, 人/入, 大/太, 已/己, 上/下). Average confidence: 94.97%.
 - **Single character**: No multi-character composition yet (one character at a time). V2 may add spatial segmentation for sequential input.
 
@@ -190,7 +200,12 @@ The engine uses a PP-OCRv6 ONNX model (MobileNetV3 small, trained on 18,710 Chin
 
 Run the engine in standalone `--test` mode to test recognition without switching IME:
 ```bash
+# From the project directory:
 python3 src/ibus-engine-handwrite-chinese --test
+
+# Or if installed system-wide:
+/usr/local/share/ibus-handwrite-chinese/venv/bin/python3 \
+  /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese --test
 ```
 This opens a GTK floating window where you can draw characters. Recognition results appear in `/tmp/ppocr-recognition.log`.
 
