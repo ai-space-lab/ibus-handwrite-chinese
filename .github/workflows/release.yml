@@ -45,7 +45,7 @@ jobs:
       - name: Verify .deb installs
         run: |
           apt install -y python3-evdev python3-gi python3-gi-cairo \
-            python3-numpy python3-pip ibus wget unzip p7zip-full
+            python3-numpy python3-pip python3-venv ibus wget unzip p7zip-full
           pip3 install onnxruntime --break-system-packages 2>/dev/null || \
             pip3 install onnxruntime
           dpkg -i ibus-handwrite-chinese_*.deb
@@ -172,14 +172,15 @@ jobs:
             debian:*|ubuntu:*)
               apt update
               apt install -y python3-evdev python3-gi python3-gi-cairo \
-                python3-numpy python3-pip ibus xvfb wget unzip p7zip-full
+                python3-numpy python3-pip python3-venv ibus xvfb wget unzip p7zip-full
               pip3 install onnxruntime --break-system-packages 2>/dev/null || \
                 pip3 install onnxruntime
               dpkg -i release-artifacts/deb-package/ibus-handwrite-chinese_*.deb
               apt install -f -y
               ;;
             fedora:*)
-              dnf install -y python3-evdev python3-gobject python3-numpy \
+              dnf install -y --disablerepo=fedora-cisco-openh264 \
+                python3-evdev python3-gobject python3-numpy \
                 python3-pip gtk3 ibus ibus-libs \
                 gobject-introspection xorg-x11-server-Xvfb \
                 wget unzip p7zip
