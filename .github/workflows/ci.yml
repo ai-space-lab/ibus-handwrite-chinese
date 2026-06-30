@@ -138,7 +138,8 @@ jobs:
       - name: Install deps (Fedora)
         if: startsWith(matrix.distro, 'fedora')
         run: |
-          dnf install -y python3-evdev python3-gobject \
+          dnf install -y --disablerepo=fedora-cisco-openh264 \
+            python3-evdev python3-gobject \
             xorg-x11-server-Xvfb wget unzip gtk3 ibus-libs gobject-introspection
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (Arch)
