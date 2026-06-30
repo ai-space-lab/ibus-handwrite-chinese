@@ -906,11 +906,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
         if state & IBus.ModifierType.RELEASE_MASK:
             return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
-        # Ctrl+Space → restore previous engine (IBus trigger shortcut workaround)
-        if (keyval == 32 and (state & IBus.ModifierType.CONTROL_MASK)):
-            self._write_log('do_pke: Ctrl+Space → restore_previous_engine')
-            self.restore_previous_engine()
-            return True
         if keyval in (IBus.KEY_Escape, IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible():
             if keyval == IBus.KEY_Escape:
                 self.win.on_key_esc()
