@@ -47,7 +47,6 @@ echo "Detected: $DISTRO ($DISTRO_FAMILY)"
 echo ""
 
 install_debian() {
-    apt update
     apt install -y python3-evdev wget unzip p7zip-full git
 }
 

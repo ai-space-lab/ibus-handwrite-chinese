@@ -164,6 +164,29 @@ class TrackpadReader:
                         self._mt_slots[self._current_slot] = {'id': event.value, 'x': 0, 'y': 0}
                     else:
                         self._mt_slots[self._current_slot]['id'] = event.value
+                    # New touch detected (finger on surface) — start tracking
+                    # without requiring BTN_TOUCH (some trackpads don't fire
+                    # BTN_TOUCH on light touch, only on physical click)
+                    if event.value >= 0 and self._state == _STATE_IDLE and not self._pending:
+                        self._pending = True
+                        self._grab()
+                    # Finger lifted — end stroke/tap/select
+                    elif event.value < 0 and self._state != _STATE_IDLE:
+                        self._ungrab()
+                        if self._state == _STATE_STROKE:
+                            self._idle(self.callbacks["on_stroke_end"],
+                                       list(self._stroke))
+                        elif self._state == _STATE_TOUCH:
+                            if self._touch_x is not None:
+                                elapsed = time.time() - self._finger_down_t
+                                if elapsed < 0.25:
+                                    x_frac = self._map_x(self._touch_x)
+                                    self._idle(self.callbacks["on_tap"], x_frac)
+                        elif self._state == _STATE_SELECT:
+                            self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
+                        self._state = _STATE_IDLE
+                        self._stroke = []
+                        self._pending = False
                 elif event.code == ecodes.ABS_MT_POSITION_X:
                     if self._current_slot in self._mt_slots:
                         self._mt_slots[self._current_slot]['x'] = event.value
