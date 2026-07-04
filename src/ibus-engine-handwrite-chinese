@@ -53,7 +53,7 @@ if EVDEV_AVAILABLE:
                 d.close()
                 break
     except Exception as e:
-        import traceback
+        print(f"  [engine] Evdev probe failed: {e}", file=sys.stderr)
 
 
 
@@ -409,6 +409,7 @@ class HandwriteWin(Gtk.Window):
 
     def start_trackpad(self):
         if not EVDEV_AVAILABLE:
+            print("  [engine] handwrite_evdev module not available", file=sys.stderr)
             return False
         self._trackpad = handwrite_evdev.TrackpadReader({
             'on_stroke_begin': self.on_trackpad_begin,
@@ -420,7 +421,10 @@ class HandwriteWin(Gtk.Window):
             'on_candidate_highlight': self.on_trackpad_candidate_highlight,
             'on_candidate_select': self.on_trackpad_candidate_select,
         })
-        return self._trackpad.start()
+        ok = self._trackpad.start()
+        if not ok:
+            print("  [engine] Trackpad initialization failed", file=sys.stderr)
+        return ok
 
     def stop_trackpad(self):
         self._cancel_momentum()
@@ -973,7 +977,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.win.show_all()
         self._position_window()
         self.win.present()
-        self.win.start_trackpad()
+        if not self.win.start_trackpad():
+            print("  [engine] ⚠ Trackpad not available. Use mouse or check tools/diagnose_trackpad.sh", file=sys.stderr)
         if self._watch_id is None:
             self._watch_id = GLib.timeout_add(500, self._check_engine)
 
@@ -1132,7 +1137,8 @@ def main():
         engine.win = win
         win.show_all()
         win.present()
-        win.start_trackpad()
+        if not win.start_trackpad():
+            print("  [engine] ⚠ Trackpad not available. Use mouse to draw.", file=sys.stderr)
         Gtk.main()
         return
 
