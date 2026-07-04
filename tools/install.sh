@@ -89,7 +89,11 @@ sudo chmod 644 /usr/local/bin/handwrite_evdev.py
 
 # Create Python venv with onnxruntime (system GTK/evdev/IBus via --system-site-packages)
 VENV_DIR="/usr/local/share/ibus-handwrite-chinese/venv"
-if [ ! -d "$VENV_DIR" ]; then
+if [ ! -f "$VENV_DIR/bin/pip" ]; then
+    # Wipe stale partial directory from a previous failed run
+    if [ -d "$VENV_DIR" ]; then
+        sudo rm -rf "$VENV_DIR"
+    fi
     echo "  Creating Python virtual environment with onnxruntime..."
     sudo python3 -m venv --system-site-packages "$VENV_DIR" || {
         echo "  ⚠ Failed to create venv. Will use system Python directly (may lack onnxruntime)."
