@@ -4,6 +4,7 @@ Reads from any touchpad/trackpad via evdev, provides stroke/tap/swipe events
 to the IBus engine GTK window via GLib idle callbacks.
 """
 
+import os
 import sys
 import evdev
 from evdev import ecodes
@@ -70,6 +71,7 @@ class TrackpadReader:
         self._last_fx = 0.0
         self._saved_stroke = []
         self._saved_t = 0.0
+        self._debug = os.environ.get('IBUS_HANDWRITE_EVDEV_DEBUG') is not None
 
     def _map_x(self, raw):
         return (raw - self._cal_x_min) / self._cal_x_range
@@ -91,28 +93,39 @@ class TrackpadReader:
             return
         try:
             self.device.grab()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  [evdev] grab failed: {e}", file=sys.stderr)
 
     def _ungrab(self):
         if not self.device:
             return
         try:
             self.device.ungrab()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  [evdev] ungrab failed: {e}", file=sys.stderr)
 
     def start(self):
-        devices = [evdev.InputDevice(p) for p in evdev.list_devices()]
+        devices = []
+        try:
+            devices = [evdev.InputDevice(p) for p in evdev.list_devices()]
+        except PermissionError as e:
+            print(f"  [evdev] Permission denied opening device: {e}", file=sys.stderr)
+            print(f"  [evdev] Run: sudo udevadm control --reload-rules && sudo udevadm trigger", file=sys.stderr)
+        except Exception as e:
+            print(f"  [evdev] Error scanning devices: {e}", file=sys.stderr)
         for d in devices:
             caps = d.capabilities(absinfo=False)
-            has_touch = ecodes.BTN_TOUCH in caps.get(ecodes.EV_KEY, [])
+            has_btn_touch = ecodes.BTN_TOUCH in caps.get(ecodes.EV_KEY, [])
+            has_mt_tracking = ecodes.ABS_MT_TRACKING_ID in caps.get(ecodes.EV_ABS, [])
+            has_touch = has_btn_touch or has_mt_tracking
             abs_codes = caps.get(ecodes.EV_ABS, [])
             has_pos = ecodes.ABS_X in abs_codes or ecodes.ABS_MT_POSITION_X in abs_codes
             if has_touch and has_pos:
                 self.device = d
                 break
         if not self.device:
+            print("  [evdev] No suitable trackpad device found.", file=sys.stderr)
+            print("  [evdev] Run 'tools/diagnose_trackpad.sh' for details.", file=sys.stderr)
             return False
 
         abs_codes = self.device.capabilities(absinfo=False).get(ecodes.EV_ABS, [])
@@ -132,6 +145,17 @@ class TrackpadReader:
         self._swipe_threshold = int(self._cal_x_range * 0.08)
         self._uses_mt_pos = ecodes.ABS_X not in abs_codes
 
+        if self._debug:
+            caps = self.device.capabilities(absinfo=False)
+            dbg_btn = ecodes.BTN_TOUCH in caps.get(ecodes.EV_KEY, [])
+            dbg_mt = ecodes.ABS_MT_TRACKING_ID in caps.get(ecodes.EV_ABS, [])
+            dbg_abs = caps.get(ecodes.EV_ABS, [])
+            dbg_x = ecodes.ABS_X in dbg_abs
+            dbg_mx = ecodes.ABS_MT_POSITION_X in dbg_abs
+            print(f"  [evdev] device: {self.device.path} {self.device.name}", file=sys.stderr)
+            print(f"  [evdev]   caps: BTN_TOUCH={dbg_btn} ABS_MT_TRACKING_ID={dbg_mt} ABS_X={dbg_x} ABS_MT_POSITION_X={dbg_mx} _uses_mt_pos={self._uses_mt_pos}", file=sys.stderr)
+            print(f"  [evdev]   cal: x=[{self._cal_x_min},{self._cal_x_max}] y=[{self._cal_y_min},{self._cal_y_max}]", file=sys.stderr)
+
         self.running = True
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
@@ -148,192 +172,227 @@ class TrackpadReader:
             GLib.idle_add(fn, *args)
 
     def _run(self):
-        for event in self.device.read_loop():
-            if not self.running:
-                break
+        try:
+            for event in self.device.read_loop():
+                if not self.running:
+                    break
 
-            if event.type == ecodes.EV_ABS:
-                if event.code == ecodes.ABS_X:
-                    self._x = event.value
-                elif event.code == ecodes.ABS_Y:
-                    self._y = event.value
-                elif event.code == ecodes.ABS_MT_SLOT:
-                    self._current_slot = event.value
-                elif event.code == ecodes.ABS_MT_TRACKING_ID:
-                    if self._current_slot not in self._mt_slots:
-                        self._mt_slots[self._current_slot] = {'id': event.value, 'x': 0, 'y': 0}
-                    else:
-                        self._mt_slots[self._current_slot]['id'] = event.value
-                    # New touch detected (finger on surface) — start tracking
-                    # without requiring BTN_TOUCH (some trackpads don't fire
-                    # BTN_TOUCH on light touch, only on physical click)
-                    if event.value >= 0 and self._state == _STATE_IDLE and not self._pending:
-                        self._pending = True
-                        self._grab()
-                    # Finger lifted — end stroke/tap/select
-                    elif event.value < 0 and self._state != _STATE_IDLE:
-                        self._ungrab()
-                        if self._state == _STATE_STROKE:
-                            self._idle(self.callbacks["on_stroke_end"],
-                                       list(self._stroke))
-                        elif self._state == _STATE_TOUCH:
-                            if self._touch_x is not None:
-                                elapsed = time.time() - self._finger_down_t
-                                if elapsed < 0.25:
-                                    x_frac = self._map_x(self._touch_x)
-                                    self._idle(self.callbacks["on_tap"], x_frac)
-                        elif self._state == _STATE_SELECT:
-                            self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
-                        self._state = _STATE_IDLE
-                        self._stroke = []
-                        self._pending = False
-                elif event.code == ecodes.ABS_MT_POSITION_X:
-                    if self._current_slot in self._mt_slots:
-                        self._mt_slots[self._current_slot]['x'] = event.value
-                elif event.code == ecodes.ABS_MT_POSITION_Y:
-                    if self._current_slot in self._mt_slots:
-                        self._mt_slots[self._current_slot]['y'] = event.value
-
-            elif event.type == ecodes.EV_KEY:
-                if event.code == ecodes.BTN_TOUCH:
-                    if event.value == 1 and self._state == _STATE_IDLE:
-                        self._pending = True
-                        self._grab()
-                    elif event.value == 0:
-                        self._ungrab()
-                        if self._state == _STATE_STROKE:
-                            self._idle(self.callbacks["on_stroke_end"],
-                                       list(self._stroke))
-                        elif self._state == _STATE_TOUCH:
-                            if self._touch_x is not None:
-                                elapsed = time.time() - self._finger_down_t
-                                if elapsed < 0.25:
-                                    x_frac = self._map_x(self._touch_x)
-                                    self._idle(self.callbacks["on_tap"], x_frac)
-                        elif self._state == _STATE_SELECT:
-                            self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
-                        self._state = _STATE_IDLE
-                        self._stroke = []
-                        self._pending = False
-
-            elif event.type == ecodes.EV_SYN and event.code == ecodes.SYN_REPORT:
-                active = self._count_active_slots()
-
-                if active >= 2:
-                    cx = self._avg_x()
-                    if self._state == _STATE_SWIPE:
-                        dt = time.time() - self._last_ts
-                        dx = cx - self._swipe_centroid
-                        self._swipe_velocities.append((dx, dt))
-                        self._swipe_velocities = self._swipe_velocities[-5:]
-                        self._last_ts = time.time()
-                        self._swipe_acc += dx
-                        if abs(self._swipe_acc) > self._swipe_threshold:
-                            total_dx = sum(v[0] for v in self._swipe_velocities)
-                            total_dt = sum(v[1] for v in self._swipe_velocities)
-                            if total_dt > 0:
-                                vel = total_dx / total_dt
-                                normalized = vel / self._cal_x_range
-                                pages = 1 + int(abs(normalized) * VELOCITY_SCALE)
-                            else:
-                                pages = 1
-                            if self._swipe_acc > 0:
-                                self._idle(self.callbacks.get("on_swipe_right", lambda p: None), pages)
-                            else:
-                                self._idle(self.callbacks.get("on_swipe_left", lambda p: None), pages)
-                            self._swipe_acc = 0
-                            self._swipe_velocities = []
-                    else:
-                        self._state = _STATE_SWIPE
-                        self._saved_stroke = list(self._stroke)
-                        self._saved_t = time.time()
-                        self._stroke = []
-                        self._swipe_acc = 0
-                        self._last_ts = time.time()
-                        self._swipe_velocities = []
-                    self._swipe_centroid = cx
-                    self._pending = False
-
-                elif active == 0:
-                    self._ungrab()
-                    if self._state != _STATE_IDLE:
-                        self._state = _STATE_IDLE
-                        self._stroke = []
-                        self._pending = False
-                        self._mt_slots = {}
-
-                elif active == 1:
-                    if self._uses_mt_pos:
-                        rx = ry = 0
-                        for s in self._mt_slots.values():
-                            if s['id'] >= 0:
-                                rx, ry = s['x'], s['y']
-                                break
-                    else:
-                        rx, ry = self._x, self._y
-                    fx = self._map_x(rx)
-                    fy = self._map_y(ry)
-
-                    if self._state == _STATE_SWIPE:
-                        if self._saved_stroke and time.time() - self._saved_t < 5.0:
-                            self._state = _STATE_STROKE
-                            first = self._saved_stroke[0]
-                            self._stroke = list(self._saved_stroke)
-                            self._saved_stroke = []
-                            self._idle(self.callbacks["on_stroke_begin"], first[0], first[1])
-                            for pt in self._stroke[1:]:
-                                self._idle(self.callbacks["on_stroke_point"], pt[0], pt[1])
+                if event.type == ecodes.EV_ABS:
+                    if event.code == ecodes.ABS_X:
+                        self._x = event.value
+                    elif event.code == ecodes.ABS_Y:
+                        self._y = event.value
+                    elif event.code == ecodes.ABS_MT_SLOT:
+                        self._current_slot = event.value
+                        if self._debug:
+                            print(f"  [evdev] ABS_MT_SLOT={event.value}", file=sys.stderr)
+                    elif event.code == ecodes.ABS_MT_TRACKING_ID:
+                        if self._current_slot not in self._mt_slots:
+                            self._mt_slots[self._current_slot] = {'id': event.value, 'x': 0, 'y': 0}
                         else:
+                            self._mt_slots[self._current_slot]['id'] = event.value
+                        # New touch detected (finger on surface) — start tracking
+                        # without requiring BTN_TOUCH (some trackpads don't fire
+                        # BTN_TOUCH on light touch, only on physical click)
+                        if self._debug:
+                            print(f"  [evdev] ABS_MT_TRACKING_ID={event.value} slot={self._current_slot} _pending={self._pending} _state={self._state}", file=sys.stderr)
+                        if event.value >= 0 and self._state == _STATE_IDLE and not self._pending:
+                            self._pending = True
+                            self._grab()
+                            if self._debug:
+                                print(f"  [evdev]   → _pending=True _state={self._state}", file=sys.stderr)
+                        # Finger lifted — end stroke/tap/select
+                        elif event.value < 0 and self._state != _STATE_IDLE:
+                            self._ungrab()
+                            if self._debug:
+                                _action_map = {_STATE_STROKE: "on_stroke_end", _STATE_TOUCH: "on_tap", _STATE_SELECT: "on_candidate_select"}
+                                _action = _action_map.get(self._state, "???")
+                                print(f"  [evdev] finger lift (TRACKING_ID={event.value}) slot={self._current_slot} _state={self._state} → {_action}", file=sys.stderr)
+                            if self._state == _STATE_STROKE:
+                                self._idle(self.callbacks["on_stroke_end"],
+                                           list(self._stroke))
+                            elif self._state == _STATE_TOUCH:
+                                if self._touch_x is not None:
+                                    elapsed = time.time() - self._finger_down_t
+                                    if elapsed < 0.25:
+                                        x_frac = self._map_x(self._touch_x)
+                                        self._idle(self.callbacks["on_tap"], x_frac)
+                            elif self._state == _STATE_SELECT:
+                                self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
+                            self._state = _STATE_IDLE
+                            self._stroke = []
+                            self._pending = False
+                    elif event.code == ecodes.ABS_MT_POSITION_X:
+                        if self._current_slot in self._mt_slots:
+                            self._mt_slots[self._current_slot]['x'] = event.value
+                    elif event.code == ecodes.ABS_MT_POSITION_Y:
+                        if self._current_slot in self._mt_slots:
+                            self._mt_slots[self._current_slot]['y'] = event.value
+
+                elif event.type == ecodes.EV_KEY:
+                    if event.code == ecodes.BTN_TOUCH:
+                        if self._debug:
+                            print(f"  [evdev] BTN_TOUCH={event.value} _pending={self._pending} _state={self._state}", file=sys.stderr)
+                        if event.value == 1 and self._state == _STATE_IDLE:
+                            self._pending = True
+                            self._grab()
+                        elif event.value == 0:
+                            self._ungrab()
+                            if self._debug:
+                                _action_map = {_STATE_STROKE: "on_stroke_end", _STATE_TOUCH: "on_tap", _STATE_SELECT: "on_candidate_select"}
+                                _action = _action_map.get(self._state, "???")
+                                print(f"  [evdev] BTN_TOUCH=0 → lift _state={self._state} → {_action}", file=sys.stderr)
+                            if self._state == _STATE_STROKE:
+                                self._idle(self.callbacks["on_stroke_end"],
+                                           list(self._stroke))
+                            elif self._state == _STATE_TOUCH:
+                                if self._touch_x is not None:
+                                    elapsed = time.time() - self._finger_down_t
+                                    if elapsed < 0.25:
+                                        x_frac = self._map_x(self._touch_x)
+                                        self._idle(self.callbacks["on_tap"], x_frac)
+                            elif self._state == _STATE_SELECT:
+                                self._idle(self.callbacks.get("on_candidate_select", lambda x: None), self._last_fx)
+                            self._state = _STATE_IDLE
+                            self._stroke = []
+                            self._pending = False
+
+                elif event.type == ecodes.EV_SYN and event.code == ecodes.SYN_REPORT:
+                    active = self._count_active_slots()
+                    if self._debug:
+                        print(f"  [evdev] SYN_REPORT active={active} _state={self._state} _pending={self._pending}", file=sys.stderr)
+
+                    if active >= 2:
+                        cx = self._avg_x()
+                        if self._state == _STATE_SWIPE:
+                            dt = time.time() - self._last_ts
+                            dx = cx - self._swipe_centroid
+                            self._swipe_velocities.append((dx, dt))
+                            self._swipe_velocities = self._swipe_velocities[-5:]
+                            self._last_ts = time.time()
+                            self._swipe_acc += dx
+                            if abs(self._swipe_acc) > self._swipe_threshold:
+                                total_dx = sum(v[0] for v in self._swipe_velocities)
+                                total_dt = sum(v[1] for v in self._swipe_velocities)
+                                if total_dt > 0:
+                                    vel = total_dx / total_dt
+                                    normalized = vel / self._cal_x_range
+                                    pages = 1 + int(abs(normalized) * VELOCITY_SCALE)
+                                else:
+                                    pages = 1
+                                if self._swipe_acc > 0:
+                                    self._idle(self.callbacks.get("on_swipe_right", lambda p: None), pages)
+                                else:
+                                    self._idle(self.callbacks.get("on_swipe_left", lambda p: None), pages)
+                                self._swipe_acc = 0
+                                self._swipe_velocities = []
+                        else:
+                            self._state = _STATE_SWIPE
+                            self._saved_stroke = list(self._stroke)
+                            self._saved_t = time.time()
+                            self._stroke = []
+                            self._swipe_acc = 0
+                            self._last_ts = time.time()
+                            self._swipe_velocities = []
+                        self._swipe_centroid = cx
+                        self._pending = False
+
+                    elif active == 0:
+                        self._ungrab()
+                        if self._state != _STATE_IDLE:
                             self._state = _STATE_IDLE
                             self._stroke = []
                             self._pending = False
                             self._mt_slots = {}
-                            self._ungrab()
 
-                    elif self._state == _STATE_IDLE and self._pending:
-                        if fy < self._candidate_zone_frac:
-                            self._state = _STATE_SELECT
-                            self._last_fx = fx
-                            self._pending = False
-                            self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                    elif active == 1:
+                        if self._uses_mt_pos:
+                            rx = ry = 0
+                            for s in self._mt_slots.values():
+                                if s['id'] >= 0:
+                                    rx, ry = s['x'], s['y']
+                                    break
                         else:
-                            self._state = _STATE_TOUCH
-                            self._stroke = []
-                            self._finger_down_t = time.time()
-                            self._touch_x = None
-                            self._touch_y = None
-                            self._pending = False
+                            rx, ry = self._x, self._y
+                        fx = self._map_x(rx)
+                        fy = self._map_y(ry)
+                        if self._debug:
+                            print(f"  [evdev]   pos: rx={rx} ry={ry} fx={fx:.4f} fy={fy:.4f}", file=sys.stderr)
 
-                    elif self._state == _STATE_TOUCH:
-                        if self._touch_x is None:
-                            self._touch_x = self._x
-                            self._touch_y = self._y
-                        else:
-                            dx = abs(self._x - self._touch_x)
-                            dy = abs(self._y - self._touch_y)
-                            if dx > self._move_threshold or dy > self._move_threshold:
+                        if self._state == _STATE_SWIPE:
+                            if self._saved_stroke and time.time() - self._saved_t < 5.0:
                                 self._state = _STATE_STROKE
-                                self._stroke = [(fx, fy)]
-                                self._idle(self.callbacks["on_stroke_begin"], fx, fy)
+                                first = self._saved_stroke[0]
+                                self._stroke = list(self._saved_stroke)
+                                self._saved_stroke = []
+                                if self._debug:
+                                    print(f"  [evdev]   → STATE_STROKE (restored) fx={first[0]:.4f} fy={first[1]:.4f}", file=sys.stderr)
+                                self._idle(self.callbacks["on_stroke_begin"], first[0], first[1])
+                                for pt in self._stroke[1:]:
+                                    self._idle(self.callbacks["on_stroke_point"], pt[0], pt[1])
+                            else:
+                                self._state = _STATE_IDLE
+                                self._stroke = []
+                                self._pending = False
+                                self._mt_slots = {}
+                                self._ungrab()
+                                if self._debug:
+                                    print(f"  [evdev]   → STATE_IDLE (swipe expired)", file=sys.stderr)
 
-                    elif self._state == _STATE_SELECT:
-                        self._last_fx = fx
-                        self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                        elif self._state == _STATE_IDLE and self._pending:
+                            if fy < self._candidate_zone_frac:
+                                self._state = _STATE_SELECT
+                                self._last_fx = fx
+                                self._pending = False
+                                self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                                if self._debug:
+                                    print(f"  [evdev]   → STATE_SELECT fx={fx:.4f} fy={fy:.4f}", file=sys.stderr)
+                            else:
+                                self._state = _STATE_TOUCH
+                                self._stroke = []
+                                self._finger_down_t = time.time()
+                                self._touch_x = None
+                                self._touch_y = None
+                                self._pending = False
+                                if self._debug:
+                                    print(f"  [evdev]   → STATE_TOUCH fx={fx:.4f} fy={fy:.4f}", file=sys.stderr)
+
+                        elif self._state == _STATE_TOUCH:
+                            if self._touch_x is None:
+                                self._touch_x = rx
+                                self._touch_y = ry
+                            else:
+                                dx = abs(rx - self._touch_x)
+                                dy = abs(ry - self._touch_y)
+                                if dx > self._move_threshold or dy > self._move_threshold:
+                                    self._state = _STATE_STROKE
+                                    self._stroke = [(fx, fy)]
+                                    self._idle(self.callbacks["on_stroke_begin"], fx, fy)
+                                    if self._debug:
+                                        print(f"  [evdev]   → STATE_STROKE fx={fx:.4f} fy={fy:.4f}", file=sys.stderr)
+
+                        elif self._state == _STATE_SELECT:
+                            self._last_fx = fx
+                            self._idle(self.callbacks.get("on_candidate_highlight", lambda x: None), fx)
+                            self._pending = False
+
+                        elif self._state == _STATE_STROKE:
+                            if self._stroke:
+                                lx, ly = self._stroke[-1]
+                                if abs(fx - lx) > 0.001 or abs(fy - ly) > 0.001:
+                                    self._stroke.append((fx, fy))
+                                    self._idle(self.callbacks["on_stroke_point"], fx, fy)
+
+                    else:
+                        if self._state != _STATE_IDLE:
+                            self._state = _STATE_IDLE
+                            self._stroke = []
                         self._pending = False
-
-                    elif self._state == _STATE_STROKE:
-                        if self._stroke:
-                            lx, ly = self._stroke[-1]
-                            if abs(fx - lx) > 0.001 or abs(fy - ly) > 0.001:
-                                self._stroke.append((fx, fy))
-                                self._idle(self.callbacks["on_stroke_point"], fx, fy)
-
-                else:
-                    if self._state != _STATE_IDLE:
-                        self._state = _STATE_IDLE
-                        self._stroke = []
-                    self._pending = False
-                    self._mt_slots = {}
+                        self._mt_slots = {}
+        except Exception as e:
+            print(f"  [evdev] Event loop crashed: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
 
 # ── Touchpad capture (for test/capture accuracy) ──
 
@@ -368,7 +427,9 @@ class TouchpadCapture:
         devices = [evdev.InputDevice(p) for p in evdev.list_devices()]
         for d in devices:
             caps = d.capabilities(absinfo=False)
-            has_touch = ecodes.BTN_TOUCH in caps.get(ecodes.EV_KEY, [])
+            has_btn_touch = ecodes.BTN_TOUCH in caps.get(ecodes.EV_KEY, [])
+            has_mt_tracking = ecodes.ABS_MT_TRACKING_ID in caps.get(ecodes.EV_ABS, [])
+            has_touch = has_btn_touch or has_mt_tracking
             abs_codes = caps.get(ecodes.EV_ABS, [])
             has_pos = ecodes.ABS_X in abs_codes or ecodes.ABS_MT_POSITION_X in abs_codes
             if has_touch and has_pos:
