@@ -10,16 +10,21 @@ for arg in "$@"; do
     [ "$arg" = "--no-set-engine" ] && SET_ENGINE=false
 done
 
-# Pre-flight: sudo must be available and accessible
-if ! command -v sudo &>/dev/null; then
-    echo "Error: sudo is required but not installed."
-    echo "Install sudo or run the script as root."
-    exit 1
-fi
-if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
-    echo "Error: You do not have sudo access."
-    echo "Ensure your user has sudo privileges or run as root."
-    exit 1
+# Pre-flight: if running as root, skip sudo check
+if [ "$(id -u)" -eq 0 ]; then
+    : # running as root, no sudo needed
+else
+    # sudo must be available and accessible
+    if ! command -v sudo &>/dev/null; then
+        echo "Error: sudo is required but not installed."
+        echo "Install sudo or run the script as root."
+        exit 1
+    fi
+    if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+        echo "Error: You do not have sudo access."
+        echo "Ensure your user has sudo privileges or run as root."
+        exit 1
+    fi
 fi
 
 REAL_USER="${SUDO_USER:-$USER}"
@@ -158,7 +163,7 @@ sudo mkdir -p /usr/local/share/ibus-handwrite-chinese/icons
 sudo cp icons/handwrite-chinese.svg /usr/local/share/ibus-handwrite-chinese/icons/
 
 echo "【8】 Killing stale root ibus-daemon..."
-if ps aux 2>/dev/null | grep -q 'root.*ibus-daemon'; then
+if pgrep -x ibus-daemon >/dev/null 2>&1 && pgrep -u root ibus-daemon >/dev/null 2>&1; then
     pkill -u root ibus-daemon 2>/dev/null || true
     sleep 1
     echo "  ✓ Stale root ibus-daemon killed"
