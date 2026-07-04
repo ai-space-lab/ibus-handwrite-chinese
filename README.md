@@ -66,7 +66,7 @@ ibus restart
 sudo apt install python3-evdev python3-venv
 git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
-sudo ./tools/install.sh    # add --skip-deps if deps already installed
+./tools/install.sh         # add --skip-deps if deps already installed (sudo used internally)
 ibus restart
 ```
 
@@ -114,7 +114,7 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 
 - **Trackpad not accessible**: Run `sudo udevadm trigger` to apply the udev rule, or add your user to the `input` group: `sudo usermod -a -G input $USER && reboot`. Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device.
 - **Engine won't start / "Cannot find engine handwrite-chinese"**: Run `ibus restart` after installation, then try `ibus engine handwrite-chinese`. The engine needs IBus to recognize the component XML at `/usr/share/ibus/component/handwrite-chinese.xml`.
-- **onnxruntime errors on startup**: The install script creates a Python venv with onnxruntime at `/usr/local/share/ibus-handwrite-chinese/venv/`. If this step failed, re-run `sudo ./tools/install.sh` or manually create the venv: `sudo python3 -m venv --system-site-packages /usr/local/share/ibus-handwrite-chinese/venv && sudo /usr/local/share/ibus-handwrite-chinese/venv/bin/pip install onnxruntime`.
+- **onnxruntime errors on startup**: The install script creates a Python venv with onnxruntime at `/usr/local/share/ibus-handwrite-chinese/venv/`. If this step failed, re-run `./tools/install.sh` or manually create the venv: `sudo python3 -m venv --system-site-packages /usr/local/share/ibus-handwrite-chinese/venv && sudo /usr/local/share/ibus-handwrite-chinese/venv/bin/pip install onnxruntime`.
 - **Ctrl+Space / Switch key not working**: Check that IBus trigger shortcut is configured (`ibus-setup` or `dconf read /desktop/ibus/general/hotkey/trigger`). A stale root-owned `ibus-daemon` can intercept key events — kill it with `sudo pkill -u root ibus-daemon`.
 - **Must click trackpad to draw**: If your trackpad requires a physical click to register touches, the engine now also tracks via `ABS_MT_TRACKING_ID` (finger-on-surface) — try just touching the trackpad lightly. If it still requires clicking, your trackpad firmware may need a higher sensitivity setting.
 - **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device. If the udev rule (`/etc/udev/rules.d/99-trackpad-handwrite.rules`) is present but ACLs aren't applied, reload with: `sudo udevadm control --reload-rules && sudo udevadm trigger`.

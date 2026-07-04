@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+# Pre-flight: sudo must be available and accessible
+if ! command -v sudo &>/dev/null; then
+    echo "Error: sudo is required but not installed."
+    exit 1
+fi
+if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+    echo "Error: You do not have sudo access."
+    exit 1
+fi
+
 echo "=============================================="
 echo "  ibus-handwrite-chinese — v0.1.0 Beta"
 echo "  ⚠️  Not yet widely tested on real hardware."
@@ -8,11 +18,6 @@ echo "  Please report issues at:"
 echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"
 echo "=============================================="
 echo ""
-
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root: sudo ./bootstrap.sh"
-    exit 1
-fi
 
 # --- Distro detection ---
 DISTRO=""
@@ -47,23 +52,23 @@ echo "Detected: $DISTRO ($DISTRO_FAMILY)"
 echo ""
 
 install_debian() {
-    apt update
-    apt install -y python3-evdev wget unzip p7zip-full git python3-venv
+    sudo apt update
+    sudo apt install -y python3-evdev wget unzip p7zip-full git python3-venv
 }
 
 install_fedora() {
-    dnf install -y python3-evdev wget unzip p7zip git
+    sudo dnf install -y python3-evdev wget unzip p7zip git
 }
 
 install_arch() {
-    pacman -S --noconfirm python-evdev wget unzip p7zip
+    sudo pacman -S --noconfirm python-evdev wget unzip p7zip
 }
 
 install_suse() {
-    zypper --no-gpg-checks refresh 2>/dev/null || true
-    zypper install -y python3-evdev wget unzip p7zip || {
+    sudo zypper --no-gpg-checks refresh 2>/dev/null || true
+    sudo zypper install -y python3-evdev wget unzip p7zip || {
         echo "⚠ zypper install failed (transient repo timeout). Retrying with --no-gpg-checks..."
-        zypper --no-gpg-checks install -y python3-evdev wget unzip p7zip || true
+        sudo zypper --no-gpg-checks install -y python3-evdev wget unzip p7zip || true
     }
 }
 
