@@ -1,14 +1,19 @@
 #!/bin/bash
 set -e
 
-# Pre-flight: sudo must be available and accessible
-if ! command -v sudo &>/dev/null; then
-    echo "Error: sudo is required but not installed."
-    exit 1
-fi
-if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
-    echo "Error: You do not have sudo access."
-    exit 1
+# Pre-flight: if running as root, skip sudo check
+if [ "$(id -u)" -eq 0 ]; then
+    : # running as root, no sudo needed
+else
+    # sudo must be available and accessible
+    if ! command -v sudo &>/dev/null; then
+        echo "Error: sudo is required but not installed."
+        exit 1
+    fi
+    if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+        echo "Error: You do not have sudo access."
+        exit 1
+    fi
 fi
 
 echo "=============================================="
