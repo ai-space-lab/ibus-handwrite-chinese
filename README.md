@@ -74,14 +74,14 @@ ibus restart
 - Downloads the PP-OCRv6 ONNX model and character dictionary
 - Creates a Python virtual environment with onnxruntime installed
 - Installs a wrapper script as the engine binary
-
-Then switch the engine:
-
-```bash
-ibus engine handwrite-chinese
-```
+- Restarts IBus and activates Chinese Handwriting as the current IME
 
 Or select **Chinese Handwriting** from your desktop's IBus menu.
+
+To switch back to your previous IME later, use your IBus menu or:
+```bash
+ibus engine <previous-engine>
+```
 
 ## Packages
 
