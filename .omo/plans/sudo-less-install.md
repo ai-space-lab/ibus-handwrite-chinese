@@ -30,11 +30,27 @@ Remove the "you must run this as root" guard from `install.sh`, `restore.sh`, an
 **How**: Delete the root-check block; add `sudo` to `apt-get update` and `apt-get install`; preserve `DEBIAN_FRONTEND=noninteractive` inline
 **Expected result**: Running `./tools/install.sh` as a normal user no longer exits with "Please run as root"
 
+**Pre-flight: Add sudo-availability + sudoer-access check** after `set -e` (line 2) and argument parsing (line 9):
+```bash
+# Pre-flight: sudo must be available and accessible
+if ! command -v sudo &>/dev/null; then
+    echo "Error: sudo is required but not installed."
+    echo "Install sudo or run the script as root."
+    exit 1
+fi
+if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+    echo "Error: You do not have sudo access."
+    echo "Ensure your user has sudo privileges or run as root."
+    exit 1
+fi
+```
+
 **Changes**:
 - Delete lines 11-14 (`[ "$EUID" -ne 0 ]` block)
 - Line 23: `apt-get update` → `sudo apt-get update`
 - Line 24: `DEBIAN_FRONTEND=noninteractive apt-get install` → `sudo DEBIAN_FRONTEND=noninteractive apt-get install`
 - Line 27: update message to say `./tools/install.sh --skip-deps` (without sudo)
+- **Line 151**: Change `echo "To uninstall: sudo /usr/local/share/ibus-handwrite-chinese/restore.sh"` → `echo "To uninstall: /usr/local/share/ibus-handwrite-chinese/restore.sh"` (drop sudo prefix)
 
 **QA**: `shellcheck tools/install.sh` passes. Run `./tools/install.sh --skip-deps --no-restart` — should NOT print "Please run as root".
 
@@ -100,7 +116,19 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 
 **Where**: `tools/restore.sh` lines 4-23
 **Why**: Remove root guard; prefix rm/udevadm with sudo; keep ibus restart as user
-**How**: Delete lines 4-7; add sudo to all rm and udevadm lines
+**How**: Delete lines 4-7; add sudo to all rm and udevadm lines; add sudo pre-flight check
+
+**Pre-flight: Add sudo-availability + sudoer-access check** after `set -e` (line 2):
+```bash
+if ! command -v sudo &>/dev/null; then
+    echo "Error: sudo is required but not installed."
+    exit 1
+fi
+if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+    echo "Error: You do not have sudo access."
+    exit 1
+fi
+```
 
 **Changes**:
 - Delete lines 4-7 (`[ "$EUID" -ne 0 ]` block)
@@ -122,7 +150,19 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 
 **Where**: `bootstrap.sh` lines 12-67
 **Why**: Remove root guard; prefix distro-specific package install commands with sudo
-**How**: Delete the EUID block; add sudo to apt/dnf/pacman/zypper commands
+**How**: Delete the EUID block; add sudo to apt/dnf/pacman/zypper commands; add sudo pre-flight check
+
+**Pre-flight: Add sudo-availability + sudoer-access check** after `set -e` (line 2):
+```bash
+if ! command -v sudo &>/dev/null; then
+    echo "Error: sudo is required but not installed."
+    exit 1
+fi
+if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
+    echo "Error: You do not have sudo access."
+    exit 1
+fi
+```
 
 **Changes**:
 - Delete lines 12-15 (`[ "$EUID" -ne 0 ]` block)
@@ -149,6 +189,7 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 
 **Changes**:
 - Line ~47-50 (Quick Install section): `sudo ./tools/install.sh    # add --skip-deps if deps already installed` → `./tools/install.sh    # add --skip-deps if deps already installed; sudo used internally`
+- Line ~117 (Troubleshooting onnxruntime section): `re-run \`sudo ./tools/install.sh\`` → `re-run \`./tools/install.sh\`` (drop sudo)
 - Keep the `ibus restart` line as-is (it was already user-level)
 
 **Expected result**: README reflects that top-level sudo is no longer needed.
