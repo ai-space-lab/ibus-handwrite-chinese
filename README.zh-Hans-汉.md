@@ -60,7 +60,7 @@ ibus restart
 sudo apt install python3-evdev python3-venv
 git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
 cd ibus-handwrite-chinese
-sudo ./tools/install.sh    # 已安装依赖可加 --skip-deps
+./tools/install.sh    # sudo 在内部自动使用
 ibus restart
 ```
 
