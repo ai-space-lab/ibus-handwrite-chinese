@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 tests/captured_strokes.json
 /models/
+.omo/run-continuation/
