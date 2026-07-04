@@ -27,7 +27,7 @@ else
     fi
 fi
 
-REAL_USER="${SUDO_USER:-$USER}"
+REAL_USER="${SUDO_USER:-${USER:-root}}"
 
 if [ "$SKIP_DEPS" = false ]; then
     if ! command -v apt &>/dev/null; then
