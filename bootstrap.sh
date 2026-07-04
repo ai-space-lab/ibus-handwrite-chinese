@@ -12,7 +12,7 @@ if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
 fi
 
 echo "=============================================="
-echo "  ibus-handwrite-chinese — v0.1.0 Beta"
+echo "  ibus-handwrite-chinese — v0.4.0"
 echo "  ⚠️  Not yet widely tested on real hardware."
 echo "  Please report issues at:"
 echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"
@@ -42,7 +42,7 @@ if [ -z "$DISTRO_FAMILY" ]; then
     echo ""
     echo "Manual install:"
     echo "  1. Install python3-evdev for your distro"
-    echo "  2. Clone repo and run: sudo ./install.sh --skip-deps"
+    echo "  2. Clone repo and run: ./tools/install.sh --skip-deps    # sudo used internally"
     echo "  3. The ONNX recognition model (PP-OCRv6) will be downloaded automatically"
     exit 1
 fi
