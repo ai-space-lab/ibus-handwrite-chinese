@@ -135,7 +135,7 @@ sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chi
 # Symlink handwrite_evdev.py into engine dir (so import handwrite_evdev finds it)
 sudo ln -sf /usr/local/bin/handwrite_evdev.py /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
 
-sudo cp tools/diagnose_trackpad.sh /usr/local/share/ibus-handwrite-chinese/
+sudo cp tools/diagnose_trackpad.sh /usr/local/share/ibus-handwrite-chinese/ 2>/dev/null || true
 sudo chmod 755 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
 
 echo "[3] Registering IBus component..."
