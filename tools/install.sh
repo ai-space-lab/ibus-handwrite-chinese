@@ -10,9 +10,9 @@ for arg in "$@"; do
     [ "$arg" = "--no-set-engine" ] && SET_ENGINE=false
 done
 
-# Pre-flight: if running as root, skip sudo check
+# Pre-flight: sudo wrapper — when running as root (e.g. Docker CI), defined as a no-op
 if [ "$(id -u)" -eq 0 ]; then
-    : # running as root, no sudo needed
+    sudo() { "$@"; }
 else
     # sudo must be available and accessible
     if ! command -v sudo &>/dev/null; then
