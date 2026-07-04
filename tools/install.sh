@@ -1,11 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 SKIP_DEPS=false
 SKIP_RESTART=false
+SET_ENGINE=true
 for arg in "$@"; do
     [ "$arg" = "--skip-deps" ] && SKIP_DEPS=true
     [ "$arg" = "--no-restart" ] && SKIP_RESTART=true
+    [ "$arg" = "--no-set-engine" ] && SET_ENGINE=false
 done
 
 # Pre-flight: sudo must be available and accessible
@@ -20,6 +22,8 @@ if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
     exit 1
 fi
 
+REAL_USER="${SUDO_USER:-$USER}"
+
 if [ "$SKIP_DEPS" = false ]; then
     if ! command -v apt &>/dev/null; then
         echo "This script requires apt (Debian/Ubuntu/Mint)"
@@ -30,8 +34,8 @@ if [ "$SKIP_DEPS" = false ]; then
     sudo apt-get update || echo "  ⚠ apt update failed, attempting install anyway"
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip python3-venv || {
         echo "  ⚠ Failed to install system packages. Install manually:"
-        echo "     sudo apt install python3-evdev wget unzip python3-venv"
-        echo "  Then re-run with: ./tools/install.sh --skip-deps"
+        echo "     apt install python3-evdev wget unzip python3-venv"
+        echo "  Then re-run with: ./tools/install.sh --skip-deps [--no-restart] [--no-set-engine]"
     }
 fi
 echo "[PP-OCR] Downloading PP-OCRv6 recognition model..."
@@ -83,17 +87,13 @@ fi
 echo "=== Installing Chinese Handwriting IBus Engine ==="
 echo ""
 
-echo "[2] Installing engine to /usr/local/bin..."
+echo "[2] Installing engine files..."
 sudo cp src/handwrite_evdev.py /usr/local/bin/
 sudo chmod 644 /usr/local/bin/handwrite_evdev.py
 
 # Create Python venv with onnxruntime (system GTK/evdev/IBus via --system-site-packages)
 VENV_DIR="/usr/local/share/ibus-handwrite-chinese/venv"
-if [ ! -f "$VENV_DIR/bin/pip" ]; then
-    # Wipe stale partial directory from a previous failed run
-    if [ -d "$VENV_DIR" ]; then
-        sudo rm -rf "$VENV_DIR"
-    fi
+if [ ! -d "$VENV_DIR" ]; then
     echo "  Creating Python virtual environment with onnxruntime..."
     sudo python3 -m venv --system-site-packages "$VENV_DIR" || {
         echo "  ⚠ Failed to create venv. Will use system Python directly (may lack onnxruntime)."
@@ -127,6 +127,12 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 sudo cp src/ibus-engine-handwrite-chinese /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 
+# Symlink handwrite_evdev.py into engine dir (so import handwrite_evdev finds it)
+sudo ln -sf /usr/local/bin/handwrite_evdev.py /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
+
+sudo cp tools/diagnose_trackpad.sh /usr/local/share/ibus-handwrite-chinese/
+sudo chmod 755 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
+
 echo "[3] Registering IBus component..."
 sudo mkdir -p /usr/share/ibus/component
 sudo cp xml/handwrite-chinese.xml /usr/share/ibus/component/
@@ -137,26 +143,60 @@ sudo cp tools/99-trackpad-handwrite.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules 2>/dev/null || true
 sudo udevadm trigger 2>/dev/null || true
 
-echo "[5] Installing restore script..."
+echo "[5] Adding user '$REAL_USER' to input group for evdev access..."
+sudo usermod -a -G input "$REAL_USER" || echo "  ⚠ Could not add user to input group"
+echo "  NOTE: You must LOG OUT and BACK IN for group change to take effect."
+echo "  Or run: newgrp input  (applies to current shell only)"
+
+echo "[6] Installing restore script..."
 sudo mkdir -p /usr/local/share/ibus-handwrite-chinese
 sudo cp tools/restore.sh /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 755 /usr/local/share/ibus-handwrite-chinese/restore.sh
 
-echo "【6】 Installing icons..."
+echo "【7】 Installing icons..."
 sudo mkdir -p /usr/local/share/ibus-handwrite-chinese/icons
 sudo cp icons/handwrite-chinese.svg /usr/local/share/ibus-handwrite-chinese/icons/
 
-echo "【7】 Restarting IBus..."
+echo "【8】 Killing stale root ibus-daemon..."
+if ps aux 2>/dev/null | grep -q 'root.*ibus-daemon'; then
+    pkill -u root ibus-daemon 2>/dev/null || true
+    sleep 1
+    echo "  ✓ Stale root ibus-daemon killed"
+else
+    echo "  ✓ No stale root ibus-daemon found"
+fi
+
+echo "【9】 Restarting IBus..."
 if [ "$SKIP_RESTART" = true ]; then
     echo "  Skipping IBus restart"
+    SET_ENGINE=false
 else
-    timeout 5s ibus restart 2>/dev/null || timeout 5s ibus-daemon --replace --daemonize 2>/dev/null || true
+    ibus-daemon --daemonize --replace 2>/dev/null || true
+    # Poll for ibus-daemon readiness before activating engine
+    for _ in 1 2 3 4 5; do
+        timeout 1 ibus engine >/dev/null 2>&1 && break
+        sleep 1
+    done
 fi
 
 echo ""
 echo "=== Install complete ==="
-echo "Switch to the engine:"
-echo "  ibus engine handwrite-chinese"
+
+if [ "$SET_ENGINE" = true ]; then
+    echo "  Activating Chinese Handwriting IME..."
+    if timeout 3s ibus engine handwrite-chinese 2>/dev/null; then
+        echo "  ✓ Chinese Handwriting set as engine (verify in IBus menu)"
+    else
+        echo "  ! Could not switch engine. Try manually:"
+        echo "    ibus engine handwrite-chinese"
+    fi
+else
+    echo "Switch to the engine:"
+    echo "  ibus engine handwrite-chinese"
+fi
 echo "Or select 'Chinese Handwriting' from your IBus menu."
 echo ""
 echo "To uninstall: /usr/local/share/ibus-handwrite-chinese/restore.sh"
+echo ""
+echo "⚠ IMPORTANT: You must LOG OUT and BACK IN for input group access to take effect."
+echo "  Otherwise the engine cannot read the trackpad device."
