@@ -11,6 +11,8 @@ if ! sudo -n true 2>/dev/null && ! sudo -v 2>/dev/null; then
     exit 1
 fi
 
+REAL_USER="${SUDO_USER:-${USER:-root}}"
+
 echo "=== Uninstalling Chinese Handwriting IBus Engine ==="
 echo ""
 
@@ -25,7 +27,10 @@ echo "[2] Reloading udev..."
 sudo udevadm control --reload-rules 2>/dev/null || true
 
 echo "[3] Restarting IBus..."
-ibus restart 2>/dev/null || ibus-daemon --replace --daemonize 2>/dev/null || true
+# Run ibus commands as the original user (not root), so they connect
+# to the user's D-Bus session bus instead of auto-launching a root one.
+sudo -u "$REAL_USER" ibus restart 2>/dev/null || \
+  sudo -u "$REAL_USER" ibus-daemon --replace --daemonize 2>/dev/null || true
 
 echo ""
 echo "=== Uninstall complete ==="

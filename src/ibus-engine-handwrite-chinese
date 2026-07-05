@@ -442,14 +442,6 @@ class HandwriteWin(Gtk.Window):
             self.queue_draw()
             self.show_candidates([])
             self.close_btn.show()
-            # Release keyboard focus so the user can type in the app underneath
-            Gdk.keyboard_ungrab(Gdk.CURRENT_TIME)
-            seat = self.get_display().get_default_seat()
-            if seat:
-                seat.ungrab()
-            self.set_focus(None)
-            self.set_keep_above(False)
-            self.lower()
         else:
             self._do_reset()
             self._do_disable()
@@ -476,13 +468,9 @@ class HandwriteWin(Gtk.Window):
     def on_window_click(self, widget, ev):
         if self._state == 1:
             self._state = 0
-            self.set_keep_above(True)
             self.darea.queue_draw()
             self.start_trackpad()
             self.engine.update_candidates()
-        else:
-            # Allow resuming from non-pause state too
-            self.set_keep_above(True)
         return False
 
     def _set_cursor_hidden(self, hidden):

@@ -1,0 +1,10 @@
+=== bootstrap.sh ibus references ===
+Line 20: echo "  ibus-handwrite-chinese — v0.4.0"                      # Project name in title banner
+Line 23: echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"  # URL in banner
+Line 55: echo "=== ibus-handwrite-chinese — Installing dependencies ==="          # Section header
+Line 96: git clone --depth 1 https://github.com/ai-space-lab/ibus-handwrite-chinese.git "$SRC_DIR"  # Clone URL
+
+=== Analysis ===
+bootstrap.sh references "ibus" only in project name/banner strings and the Git clone URL.
+There is ZERO ibus package installation in any distro function.
+All four references are cosmetic/documentation strings, not functional code.

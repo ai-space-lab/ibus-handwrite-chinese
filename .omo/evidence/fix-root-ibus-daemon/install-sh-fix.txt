@@ -1,0 +1,11 @@
+=== restore.sh verification ===
+bash -n: PASS
+REAL_USER var: PASS
+sudo -u fix: PASS
+
+=== install.sh verification ===
+bash -n: PASS
+sudo pkill: PASS
+conditional root check: PASS
+root path no sudo -u: PASS
+non-root path sudo -u REAL_USER: PASS

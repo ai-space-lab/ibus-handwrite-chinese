@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "active_work_id": "esc-key-reliability-fix",
+  "works": {
+    "esc-key-reliability-fix": {
+      "work_id": "esc-key-reliability-fix",
+      "active_plan": ".omo/plans/11-esc-key-reliability-after-install.md",
+      "plan_name": "11-esc-key-reliability-after-install",
+      "session_ids": ["codex:current"],
+      "status": "active",
+      "worktree_path": null,
+      "branch": "fix-esc-post-install"
+    }
+  }
+}

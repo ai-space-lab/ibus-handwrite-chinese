@@ -1,0 +1,8 @@
+total 13
+drwxr-xr-x 1 root root   40 Jul  5 04:33 .
+drwxr-xr-x 1 root root   80 Jan  8 21:09 ..
+-rwxr-xr-x 1 root root 8301 Nov 20  2025 apt
+-rwxr-xr-x 1 root root  536 Apr 26  2022 gnome-help
+-rwxr-xr-x 1 root root  196 Feb  7  2019 highlight-mint
+-rwxr-xr-x 1 root root 1201 May 31  2023 search
+-rwxr-xr-x 1 root root  553 Apr 26  2022 yelp
