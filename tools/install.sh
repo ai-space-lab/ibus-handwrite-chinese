@@ -210,9 +210,16 @@ echo "【9】 Restarting IBus..."
 DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}"
 export DBUS_SESSION_BUS_ADDRESS
 if [ "$SKIP_RESTART" = true ]; then
-    echo "  Skipping IBus restart"
+    echo "  Skipping IBus restart (--no-restart flag)"
+    SET_ENGINE=false
+elif [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    echo "  No display detected — IBus will be available after next login"
+    SET_ENGINE=false
+elif [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    echo "  No D-Bus session — IBus restart skipped (will be available after next login)"
     SET_ENGINE=false
 else
+    echo "  Restarting IBus daemon..."
     { if [ "$(id -u)" -eq 0 ] && [ "$REAL_USER" != "root" ]; then
         su -c "ibus-daemon --daemonize --replace 2>/dev/null || true" "$REAL_USER"
       else

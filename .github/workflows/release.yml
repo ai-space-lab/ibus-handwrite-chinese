@@ -202,7 +202,7 @@ jobs:
                     sleep 30
                   fi
                 done
-                [ "$refresh_ok" = true ]
+                [ "$refresh_ok" = true ] || echo "WARNING: Tumbleweed repo refresh failed after 3 attempts"
               fi
               zypper --no-refresh install -y python3-evdev python3-gobject python3-numpy \
                 python3-pip ibus \

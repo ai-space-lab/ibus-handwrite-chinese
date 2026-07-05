@@ -144,8 +144,8 @@ jobs:
         if: startsWith(matrix.distro, 'fedora')
         run: |
           dnf install -y --disablerepo=fedora-cisco-openh264 \
-            python3-evdev python3-gobject \
-            xorg-x11-server-Xvfb wget unzip gtk3 ibus-libs gobject-introspection
+            python3-evdev python3-gobject python3-numpy \
+            xorg-x11-server-Xvfb wget unzip gtk3 ibus
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Install deps (Arch)
         if: startsWith(matrix.distro, 'arch')
@@ -155,10 +155,23 @@ jobs:
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
-          zypper --no-gpg-checks refresh 2>/dev/null || true
-          zypper install -y python3-evdev python3-gobject typelib-1_0-Gtk-3_0 \
-            typelib-1_0-IBus-1_0 xvfb-run wget unzip || \
-            echo "WARNING: openSUSE install failed (transient repo timeout)"
+          if [ "${{ matrix.distro }}" = "opensuse/tumbleweed" ]; then
+            zypper --non-interactive removerepo repo-oss || true
+            zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+              https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
+            for attempt in 1 2 3; do
+              if zypper --non-interactive --gpg-auto-import-keys refresh; then
+                break
+              fi
+              [ "$attempt" -lt 3 ] && sleep 30
+            done
+          else
+            zypper --no-gpg-checks refresh 2>/dev/null || true
+          fi
+          zypper --no-refresh install -y python3-evdev python3-gobject \
+            python3-numpy \
+            typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
+            xvfb-run wget unzip
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models
       - name: Ensure pip3 is installed
         run: |
