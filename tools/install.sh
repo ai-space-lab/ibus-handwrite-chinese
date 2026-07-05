@@ -31,17 +31,17 @@ REAL_USER="${SUDO_USER:-${USER:-root}}"
 
 if [ "$SKIP_DEPS" = false ]; then
     if ! command -v apt &>/dev/null; then
-        echo "This script requires apt (Debian/Ubuntu/Mint)"
-        echo "For other distros, use bootstrap.sh (see README)"
-        exit 1
+        echo "  ⚠ Not a Debian-based system — skipping apt dependency install."
+        echo "  Install python3-evdev manually for your distro, then re-run with --skip-deps"
+    else
+        echo "[1] Installing dependencies..."
+        sudo apt-get update || echo "  ⚠ apt update failed, attempting install anyway"
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip python3-venv || {
+            echo "  ⚠ Failed to install system packages. Install manually:"
+            echo "     apt install python3-evdev wget unzip python3-venv"
+            echo "  Then re-run with: ./tools/install.sh --skip-deps [--no-restart] [--no-set-engine]"
+        }
     fi
-    echo "[1] Installing dependencies..."
-    sudo apt-get update || echo "  ⚠ apt update failed, attempting install anyway"
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip python3-venv || {
-        echo "  ⚠ Failed to install system packages. Install manually:"
-        echo "     apt install python3-evdev wget unzip python3-venv"
-        echo "  Then re-run with: ./tools/install.sh --skip-deps [--no-restart] [--no-set-engine]"
-    }
 fi
 echo "[PP-OCR] Downloading PP-OCRv6 recognition model..."
 PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
@@ -150,6 +150,14 @@ sudo udevadm trigger 2>/dev/null || true
 
 echo "[5] Adding user '$REAL_USER' to input group for evdev access..."
 sudo usermod -a -G input "$REAL_USER" || echo "  ⚠ Could not add user to input group"
+# Detect if udev ACL gave immediate access (systemd-logind)
+if command -v getfacl &>/dev/null; then
+    if getfacl /dev/input/event* 2>/dev/null | grep -q "user:$USER"; then
+        echo "  ✓ udev ACL active (immediate trackpad access)"
+    else
+        echo "  ⚠ udev ACL not applied (non-systemd?). sg fallback in wrapper script."
+    fi
+fi
 echo "  NOTE: You must LOG OUT and BACK IN for group change to take effect."
 echo "  Or run: newgrp input  (applies to current shell only)"
 
@@ -162,26 +170,57 @@ echo "【7】 Installing icons..."
 sudo mkdir -p /usr/local/share/ibus-handwrite-chinese/icons
 sudo cp icons/handwrite-chinese.svg /usr/local/share/ibus-handwrite-chinese/icons/
 
+echo "【7.5】 Ensuring IBus is installed..."
+if ! command -v ibus &>/dev/null; then
+    echo "  Installing IBus..."
+    if command -v apt &>/dev/null; then
+        sudo apt-get install -y ibus ibus-gtk3 || echo "  ⚠ Failed to install ibus via apt"
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y ibus || echo "  ⚠ Failed to install ibus via dnf"
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -S --noconfirm ibus || echo "  ⚠ Failed to install ibus via pacman"
+    elif command -v zypper &>/dev/null; then
+        sudo zypper install -y ibus || echo "  ⚠ Failed to install ibus via zypper"
+    fi
+else
+    echo "  ✓ IBus already installed"
+fi
+
 echo "【8】 Killing stale root ibus-daemon..."
 if pgrep -x ibus-daemon >/dev/null 2>&1 && pgrep -u root ibus-daemon >/dev/null 2>&1; then
-    pkill -u root ibus-daemon 2>/dev/null || true
+    sudo pkill -u root ibus-daemon 2>/dev/null || true
     sleep 1
     echo "  ✓ Stale root ibus-daemon killed"
 else
     echo "  ✓ No stale root ibus-daemon found"
 fi
+# Post-kill: warn if root daemon survived
+if pgrep -u root ibus-daemon > /dev/null 2>&1; then
+    echo "  ⚠ WARNING: Could not kill root ibus-daemon. ESC may not work."
+    echo "    Manual: sudo pkill -9 -u root ibus-daemon"
+fi
 
 echo "【9】 Restarting IBus..."
+DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}"
+export DBUS_SESSION_BUS_ADDRESS
 if [ "$SKIP_RESTART" = true ]; then
     echo "  Skipping IBus restart"
     SET_ENGINE=false
 else
-    ibus-daemon --daemonize --replace 2>/dev/null || true
+    { if [ "$(id -u)" -eq 0 ] && [ "$REAL_USER" != "root" ]; then
+        su -c "ibus-daemon --daemonize --replace 2>/dev/null || true" "$REAL_USER"
+      else
+        ibus-daemon --daemonize --replace 2>/dev/null || true
+      fi; } || true
     # Poll for ibus-daemon readiness before activating engine
     for _ in 1 2 3 4 5; do
         timeout 1 ibus engine >/dev/null 2>&1 && break
         sleep 1
     done
+    sleep 1
+    pgrep -u "$REAL_USER" ibus-daemon >/dev/null 2>&1 \
+        && echo "  ✓ User ibus-daemon confirmed running" \
+        || echo "  ⚠ User ibus-daemon not confirmed — run: ibus-daemon --daemonize --replace"
 fi
 
 echo ""
