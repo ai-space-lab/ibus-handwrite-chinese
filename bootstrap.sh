@@ -63,22 +63,22 @@ install_debian() {
         sudo sed -i '/^deb cdrom:/s/^/#/' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
     fi
     sudo apt update || { echo "  ⚠ apt update failed (non-fatal), continuing..."; }
-    sudo apt install -y ibus python3-evdev wget unzip p7zip-full git python3-venv
+    sudo apt install -y ibus python3-evdev wget unzip p7zip-full git python3-venv python3-gi-cairo
 }
 
 install_fedora() {
-    sudo dnf install -y ibus python3-evdev wget unzip p7zip git
+    sudo dnf install -y ibus python3-evdev wget unzip p7zip git python3-cairo
 }
 
 install_arch() {
-    sudo pacman -S --noconfirm ibus python-evdev wget unzip p7zip
+    sudo pacman -S --noconfirm ibus python-evdev wget unzip p7zip python-cairo
 }
 
 install_suse() {
     sudo zypper --no-gpg-checks refresh 2>/dev/null || true
-    sudo zypper install -y ibus python3-evdev wget unzip p7zip || {
+    sudo zypper install -y ibus python3-evdev wget unzip p7zip python3-cairo || {
         echo "⚠ zypper install failed (transient repo timeout). Retrying with --no-gpg-checks..."
-        sudo zypper --no-gpg-checks install -y ibus python3-evdev wget unzip p7zip || true
+        sudo zypper --no-gpg-checks install -y ibus python3-evdev wget unzip p7zip python3-cairo || true
     }
 }
 
