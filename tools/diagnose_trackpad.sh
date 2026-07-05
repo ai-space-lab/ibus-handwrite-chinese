@@ -110,4 +110,60 @@ echo "     → Run: sudo udevadm control --reload-rules && sudo udevadm trigger"
 echo "     → Or add user to 'input' group: sudo usermod -a -G input $USER && reboot"
 echo "  3. If BTN_TOUCH=True but no strokes in --test mode:"
 echo "     → May be a grab/state-machine issue. Run with IBUS_HANDWRITE_EVDEV_DEBUG=1"
+
+# Check input group
+echo ""
+echo "=== Input Group ==="
+if groups "$USER" 2>/dev/null | grep -q '\binput\b'; then
+    echo "  ✅ User is in input group"
+    if cat /proc/$$/status 2>/dev/null | grep -q "Groups:.*995"; then
+        echo "  ✅ Input group active in this session"
+    else
+        echo "  ⚠ Input group NOT active in this session (need logout/login)"
+    fi
+else
+    echo "  ❌ User is NOT in input group"
+    echo "  Run: sudo usermod -a -G input $USER && reboot"
+fi
+
+# Check no stale root ibus-daemon
+echo ""
+echo "=== IBus Daemon ==="
+if pgrep -u root ibus-daemon > /dev/null 2>&1; then
+    echo "  ❌ ROOT ibus-daemon running (ESC may not work)"
+    echo "  Kill with: sudo pkill -u root ibus-daemon"
+else
+    echo "  ✅ No root ibus-daemon"
+fi
+
+CURRENT_USER="${SUDO_USER:-$USER}"
+if pgrep -u "$CURRENT_USER" ibus-daemon > /dev/null 2>&1; then
+    echo "  ✅ User ibus-daemon running"
+else
+    echo "  ⚠ ibus-daemon not running for user $CURRENT_USER"
+    echo "  Start with: ibus-daemon --daemonize --replace"
+fi
+
+echo ""
+echo "=== ESC Key State Machine (do_process_key_event) ==="
+if [ -f /tmp/hw.log ]; then
+    echo "  Engine log entries:"
+    cat /tmp/hw.log 2>/dev/null | while read line; do
+        echo "    $line"
+    done
+    LAST_MODIFIED=$(stat -c '%Y' /tmp/hw.log 2>/dev/null)
+    NOW=$(date +%s)
+    if [ -n "$LAST_MODIFIED" ]; then
+        AGE=$((NOW - LAST_MODIFIED))
+        echo "  Log last modified: ${AGE}s ago"
+        if grep -q "do_pke" /tmp/hw.log 2>/dev/null; then
+            echo "  ✅ do_process_key_event has been called (ESC path active)"
+        else
+            echo "  ❌ do_process_key_event NEVER called (ESC path blocked)"
+        fi
+    fi
+else
+    echo "  No engine log found at /tmp/hw.log"
+fi
+
 echo ""
