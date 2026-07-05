@@ -120,6 +120,12 @@ sudo tee /usr/local/bin/ibus-engine-handwrite-chinese > /dev/null << 'WRAPPER'
 set -eu
 VENV="/usr/local/share/ibus-handwrite-chinese/venv"
 ENGINE_DIR="/usr/local/share/ibus-handwrite-chinese"
+
+# If the 'input' group is not active in this session, re-exec under 'sg input'
+if ! groups | grep -q '\binput\b'; then
+    exec sg input -c "exec $0 $*" 2>/dev/null || true
+fi
+
 if [ -x "$VENV/bin/python3" ]; then
     exec "$VENV/bin/python3" "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
 else
