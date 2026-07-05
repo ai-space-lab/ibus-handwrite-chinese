@@ -228,7 +228,16 @@ jobs:
       - name: Restart IBus
         run: |
           if command -v ibus >/dev/null 2>&1; then
-            ibus restart 2>/dev/null || true
+            if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+              if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+                timeout 5 ibus restart 2>/dev/null || \
+                  echo "  ibus restart failed (will take effect on next login)"
+              else
+                echo "  No D-Bus session — restart skipped"
+              fi
+            else
+              echo "  No display detected — restart skipped"
+            fi
           fi
       - name: Download PP-OCRv6 ONNX model
         run: |
