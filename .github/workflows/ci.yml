@@ -94,7 +94,12 @@ jobs:
       - name: Verify engine Python syntax
         run: python3 -c "compile(open('/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
       - name: Test recognition with synthetic strokes
-        run: python3 tests/test_recognition.py
+        run: |
+          if [ -x /usr/local/share/ibus-handwrite-chinese/venv/bin/python3 ]; then
+            /usr/local/share/ibus-handwrite-chinese/venv/bin/python3 tests/test_recognition.py
+          else
+            python3 tests/test_recognition.py
+          fi
 
   test-gtk-write:
     name: "GTK write — ${{ matrix.distro }}"

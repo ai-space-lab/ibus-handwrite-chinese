@@ -13,10 +13,16 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'src'))
 sys.path.insert(0, SRC_DIR)
 
-import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('Gdk', '3.0')
-from gi.repository import GLib, Gtk, Gdk
+try:
+    import gi
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('Gdk', '3.0')
+    from gi.repository import GLib, Gtk, Gdk
+    HAS_GI = True
+except ImportError:
+    HAS_GI = False
+    print("SKIP: gi (PyGObject) not available — install python3-gobject")
+    sys.exit(0)
 
 engine_path = os.environ.get(
     'IBUS_HANDWRITE_ENGINE',
