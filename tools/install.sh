@@ -234,7 +234,13 @@ echo "=== Install complete ==="
 
 if [ "$SET_ENGINE" = true ]; then
     echo "  Activating Chinese Handwriting IME..."
-    if timeout 3s ibus engine handwrite-chinese 2>/dev/null; then
+    # Run as the real user so ibus connects to the user's D-Bus session
+    if [ "$(id -u)" -eq 0 ] && [ "$REAL_USER" != "root" ]; then
+        SWITCH_CMD="su -c 'ibus engine handwrite-chinese' \"$REAL_USER\""
+    else
+        SWITCH_CMD="ibus engine handwrite-chinese"
+    fi
+    if timeout 3s bash -c "$SWITCH_CMD" 2>/dev/null; then
         echo "  ✓ Chinese Handwriting set as engine (verify in IBus menu)"
     else
         echo "  ! Could not switch engine. Try manually:"
