@@ -157,6 +157,20 @@ The recognition smoke test (`tests/test_recognition.py`) creates synthetic strok
 
 CI tests GTK under Xvfb, but not live IBus, evdev, or real trackpad hardware in containers.
 
+### Manual Test Environment
+
+The recent ESC/Enter fixes were validated on this environment:
+
+| Component | Detail |
+|-----------|--------|
+| OS | Linux Mint 22.3 (Zena) XFCE |
+| Kernel | 6.14.0-37-generic (x86_64) |
+| Desktop | XFCE on X11 |
+| IBus | 1.5.29-rc2 |
+| Python | 3.12.3 |
+| Trackpad | bcm5974 (MacBook Pro, USB) |
+| Install method | `sudo ./tools/install.sh` |
+
 ### PP-OCRv6 Accuracy Validation
 
 Analysis scripts for validating PP-OCRv6 recognition accuracy:

@@ -132,6 +132,20 @@ ibus engine handwrite-chinese
 
 CI 會在 Xvfb 下測試 GTK，但不會在容器中測試真實 IBus、evdev 或觸控板硬體。
 
+### 手動測試環境
+
+最近的 ESC/Enter 修復在此環境下驗證通過：
+
+| 元件 | 詳情 |
+|------|------|
+| 作業系統 | Linux Mint 22.3 (Zena) XFCE |
+| 核心 | 6.14.0-37-generic (x86_64) |
+| 桌面環境 | XFCE on X11 |
+| IBus | 1.5.29-rc2 |
+| Python | 3.12.3 |
+| 觸控板 | bcm5974（MacBook Pro，USB） |
+| 安裝方式 | `sudo ./tools/install.sh` |
+
 ### PP-OCRv6 精度驗證
 
 用於驗證 PP-OCRv6 辨識精度的分析指令碼：
