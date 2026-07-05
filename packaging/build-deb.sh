@@ -40,6 +40,8 @@ cp "$ROOTDIR/xml/handwrite-chinese.xml" "$BUILDDIR/usr/share/ibus/component/"
 cp "$ROOTDIR/icons/handwrite-chinese.svg" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/icons/"
 cp "$ROOTDIR/tools/restore.sh" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
 chmod 755 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/restore.sh"
+cp "$ROOTDIR/tools/diagnose_trackpad.sh" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
+chmod 755 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh"
 cp "$ROOTDIR/tools/99-trackpad-handwrite.rules" "$BUILDDIR/etc/udev/rules.d/"
 
 # Check for required Python modules
