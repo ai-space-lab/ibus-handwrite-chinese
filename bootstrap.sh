@@ -57,23 +57,28 @@ echo "Detected: $DISTRO ($DISTRO_FAMILY)"
 echo ""
 
 install_debian() {
-    sudo apt update
-    sudo apt install -y python3-evdev wget unzip p7zip-full git python3-venv
+    # Remove stale CD-ROM apt source lines (common on Mint/Ubuntu desktop installs)
+    if grep -qs '^deb cdrom:' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null; then
+        echo "  → Removing stale CD-ROM apt source line..."
+        sudo sed -i '/^deb cdrom:/s/^/#/' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+    fi
+    sudo apt update || { echo "  ⚠ apt update failed (non-fatal), continuing..."; }
+    sudo apt install -y ibus python3-evdev wget unzip p7zip-full git python3-venv
 }
 
 install_fedora() {
-    sudo dnf install -y python3-evdev wget unzip p7zip git
+    sudo dnf install -y ibus python3-evdev wget unzip p7zip git
 }
 
 install_arch() {
-    sudo pacman -S --noconfirm python-evdev wget unzip p7zip
+    sudo pacman -S --noconfirm ibus python-evdev wget unzip p7zip
 }
 
 install_suse() {
     sudo zypper --no-gpg-checks refresh 2>/dev/null || true
-    sudo zypper install -y python3-evdev wget unzip p7zip || {
+    sudo zypper install -y ibus python3-evdev wget unzip p7zip || {
         echo "⚠ zypper install failed (transient repo timeout). Retrying with --no-gpg-checks..."
-        sudo zypper --no-gpg-checks install -y python3-evdev wget unzip p7zip || true
+        sudo zypper --no-gpg-checks install -y ibus python3-evdev wget unzip p7zip || true
     }
 }
 

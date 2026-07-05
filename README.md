@@ -20,7 +20,7 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Non-destructive multitouch**: accidental second finger during a stroke won't destroy the partial stroke — the engine saves and restores stroke state
 - **Delete stroke**: ⌫ button to undo the last stroke
 - **Close button**: × button always visible at top-left, closes and restores previous input method
-- **ESC state machine**: one ESC pauses (ungrab trackpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume
+- **ESC state machine**: one ESC pauses (ungrab trackpad, show "Paused" overlay), another ESC closes and restores the previous input method; click the window to resume. **Enter with candidates** commits the first candidate; **Enter with no candidates** passes through to the underlying application.
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle in the top bar to reposition the window
 - **Mouse fallback**: if no evdev trackpad is available, draw with the mouse
@@ -105,10 +105,16 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 6. Use two-finger swipe left/right to page through candidates — swipe faster to advance more pages with momentum
 7. Drag one finger near the top edge of the trackpad to highlight candidates by position; lift to select
 8. Press **⌫** to undo the last stroke
-9. Click **×** at top-left to close and restore previous input method, or press **ESC** once to pause
+9. Press **ESC** once to pause (window shows "Paused" overlay)
 10. **ESC** again closes and restores previous input method
 11. Click the window to resume after pausing
-12. For testing without IME switching, run `python3 src/ibus-engine-handwrite-chinese --test` in a terminal — a standalone GTK window appears and recognition results are logged to `/tmp/ppocr-recognition.log`
+12. When no candidates are displayed (no strokes drawn), **Enter** passes through to the app — type normally in your terminal
+13. For testing without IME switching, use the venv Python:
+    ```bash
+    /usr/local/share/ibus-handwrite-chinese/venv/bin/python3 \
+      /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese --test
+    ```
+    Recognition results logged to `/tmp/ppocr-recognition.log`.
 
 ## Troubleshooting
 
@@ -119,6 +125,7 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 - **Must click trackpad to draw**: If your trackpad requires a physical click to register touches, the engine now also tracks via `ABS_MT_TRACKING_ID` (finger-on-surface) — try just touching the trackpad lightly. If it still requires clicking, your trackpad firmware may need a higher sensitivity setting.
 - **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device. If the udev rule (`/etc/udev/rules.d/99-trackpad-handwrite.rules`) is present but ACLs aren't applied, reload with: `sudo udevadm control --reload-rules && sudo udevadm trigger`.
 - **IBus indicator not showing in panel**: Run `ibus-daemon --daemonize --replace` to restart IBus. In Cinnamon, the IBus icon appears in the system tray — if missing, toggle the setting: `gsettings set org.freedesktop.ibus.panel show 1` (always-visible language bar).
+- **ESC not working / Enter consumed by engine**: If Enter doesn't reach the terminal after pressing ESC to pause, re-install with the latest `install.sh`. The fix ensures that (1) Enter passes through when no candidates are present, and (2) pressing ESC in paused state closes and restores the previous IME.
 
 ## Testing
 
@@ -217,6 +224,24 @@ Three bugs were identified and fixed in the PP-OCRv6 pipeline during validation:
 2. **Confidence pooling** (line 405): `np.mean(probs, axis=0)` averaged across all CTC time steps including blank frames, diluting true confidence by ~10×. Fixed with `np.max(probs, axis=0)` (MAX pooling) which matches CTC argmax behavior for single-character recognition.
 3. **Stroke line width** (line 364): `cr.set_line_width(6)` rendered strokes thinner than the training data distribution. Increased to `set_line_width(8)`.
 
+### 4. ESC key reliability & Enter pass-through (PR #1)
+The ESC state machine was refined to handle the Enter key correctly in all states:
+
+| Key | Active (state 0) | Paused (state 1) |
+|---|---|---|
+| ESC | Pause panel, show overlay | Close + restore previous IME |
+| Enter + candidates | Commit first candidate | ✅ Pass through to app |
+| Enter + no candidates | ✅ Pass through to app | ✅ Pass through to app |
+| Backspace | Clear strokes (passes through) | ✅ Pass through to app |
+
+**Root cause**: `do_process_key_event` intercepted Enter/Backspace/ESC whenever the window was visible, regardless of the paused state or whether candidates existed. Fixed by:
+- Separating ESC (always handled) from Enter/Backspace (only intercepted in active state 0)
+- Adding `self.last_results` guard: Enter only consumed when candidates exist
+- Applying the same guards to the GTK `on_key` handler used by `--test` mode
+
+### 5. `--test` mode keyboard focus fix
+The standalone `--test` mode window could not receive GTK keyboard events because `set_accept_focus(False)` was set in `__init__`. Fixed by calling `win.set_accept_focus(True)` before `win.present()` in `main()`.
+
 ### Validation Results
 
 40 real handwriting characters collected via `--test` mode and trackpad input:
@@ -254,9 +279,11 @@ Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.tx
 ├── tools/
 │   ├── install.sh                       Install script (Debian-native, accepts `--skip-deps`)
 │   ├── restore.sh                       Rollback/restore script
-│   └── 99-trackpad-handwrite.rules      Udev rule for trackpad access
+│   ├── 99-trackpad-handwrite.rules      Udev rule for trackpad access
+│   └── diagnose_trackpad.sh            ESC + input group + IBus diagnostics
 ├── tests/
 │   ├── test_recognition.py             Synthetic stroke recognition smoke test
+│   ├── test_esc_key_routing.py         ESC key routing automated test
 │   └── test_data/                      Test stroke data
 ├── docs/
 │   └── screenshot.png                  App screenshot

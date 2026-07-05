@@ -18,7 +18,7 @@
 - **非破壞性多點觸控**：書寫時意外觸碰到第二根手指不會破壞當前筆畫 —— 引擎會自動儲存和恢復筆畫狀態
 - **刪除筆畫**：⌫ 按鈕可撤銷上一筆畫
 - **關閉按鈕**：左上角始終顯示 × 按鈕，點擊關閉並恢復上一輸入法
-- **ESC 狀態機**：按一次 ESC 暫停（釋放觸控板，顯示「已暫停」遮罩），再按一次 ESC 關閉並恢復上一輸入法；點擊視窗恢復
+- **ESC 狀態機**：按一次 ESC 暫停（釋放觸控板，顯示「已暫停」遮罩），再按一次 ESC 關閉並恢復上一輸入法；點擊視窗恢復。**Enter 有候選字時**提交首個候選字；**Enter 無候選字時**傳遞到下層應用程式。
 - **智慧視窗定位**：彈出面板自動出現在文字游標附近，不遮擋應用程式畫面
 - **拖曳手柄**：頂部欄自訂拖曳手柄可隨意移動視窗位置
 - **滑鼠備用**：如無 evdev 觸控板，可使用滑鼠繪圖
@@ -83,10 +83,16 @@ ibus engine handwrite-chinese
 5. 輕觸觸控板選擇候選詞（空間映射）
 6. 雙指左右滑動翻頁
 7. 按 **⌫** 撤銷上一筆畫
-8. 點擊面板左上角 **×** 關閉並恢復上一輸入法，或按 **ESC** 暫停（釋放觸控板）
+8. 按 **ESC** 暫停（視窗顯示「已暫停」遮罩）
 9. 再按 **ESC** 關閉並恢復上一輸入法
-10. 點擊面板恢復（暫停狀態下）
-11. 如需不切換 IME 進行測試，在終端執行 `python3 src/ibus-engine-handwrite-chinese --test` — 獨立 GTK 視窗將出現，辨識結果記錄到 `/tmp/ppocr-recognition.log`
+10. 點擊視窗恢復（暫停狀態下）
+11. 當無候選字時（未繪製筆畫），**Enter** 鍵傳遞到應用程式 — 可在終端正常打字
+12. 如需不切換 IME 進行測試，使用 venv Python：
+    ```bash
+    /usr/local/share/ibus-handwrite-chinese/venv/bin/python3 \
+      /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese --test
+    ```
+    辨識結果記錄到 `/tmp/ppocr-recognition.log`。
 
 ## 疑難排解
 
@@ -94,6 +100,7 @@ ibus engine handwrite-chinese
 - **IBus 未辨識輸入法**：安裝後執行 `ibus restart`
 - **輸入法無法啟動**：切換到輸入法時查看 `journalctl -f` 取得錯誤訊息
 - **權限被拒絕**：用 `getfacl /dev/input/event*` 驗證 —— 您的使用者應對觸控板裝置有 `rw` 權限
+- **ESC 不工作 / Enter 被引擎攔截**：如果按 ESC 暫停後 Enter 無法傳遞到終端，請用最新版 `install.sh` 重新安裝。修復確保：(1) 無候選字時 Enter 可通過，(2) 暫停狀態下按 ESC 關閉並恢復上一輸入法。
 
 ## 測試
 
@@ -204,6 +211,24 @@ python3 src/ibus-engine-handwrite-chinese --test
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 對所有 CTC 時間步（包括空白幀）取平均，使真實置信度稀釋約 10 倍。修復為 `np.max(probs, axis=0)`（MAX 池化），符合單字元辨識的 CTC argmax 行為。
 3. **筆畫線寬**（第 364 行）：`cr.set_line_width(6)` 渲染的筆畫比訓練資料分佈更細。增加到 `set_line_width(8)`。
 
+### 4. ESC 鍵可靠性 & Enter 傳遞（PR #1）
+改進了 ESC 狀態機，使其在所有狀態下正確處理 Enter 鍵：
+
+| 按鍵 | 活躍（狀態 0） | 暫停（狀態 1） |
+|---|---|---|
+| ESC | 暫停面板，顯示遮罩 | 關閉 + 恢復上一 IME |
+| Enter + 有候選字 | 提交首個候選字 | ✅ 傳遞到應用程式 |
+| Enter + 無候選字 | ✅ 傳遞到應用程式 | ✅ 傳遞到應用程式 |
+| Backspace | 清除筆畫（傳遞通過） | ✅ 傳遞到應用程式 |
+
+**根本原因**：`do_process_key_event` 在視窗可見時攔截 Enter/Backspace/ESC，無論暫停狀態或是否存在候選字。修復方法：
+- 將 ESC（始終處理）與 Enter/Backspace（僅在活躍狀態 0 攔截）分離
+- 添加 `self.last_results` 保護：僅在有候選字時消費 Enter
+- 對 `--test` 模式使用的 GTK `on_key` 處理程序應用相同保護
+
+### 5. `--test` 模式鍵盤焦點修復
+獨立 `--test` 模式視窗無法接收 GTK 鍵盤事件，因為 `__init__` 中設定了 `set_accept_focus(False)`。透過在 `main()` 中的 `win.present()` 前呼叫 `win.set_accept_focus(True)` 修復。
+
 ### 驗證結果
 
 透過 `--test` 模式和觸控板收集的 40 個真實手寫字元：
@@ -241,9 +266,11 @@ python3 src/ibus-engine-handwrite-chinese --test
 ├── tools/
 │   ├── install.sh                       安裝指令碼（Debian 原生，支援 `--skip-deps`）
 │   ├── restore.sh                       回滾/恢復指令碼
-│   └── 99-trackpad-handwrite.rules      觸控板存取的 udev 規則
+│   ├── 99-trackpad-handwrite.rules      觸控板存取的 udev 規則
+│   └── diagnose_trackpad.sh            ESC + input 組 + IBus 診斷
 ├── tests/
 │   ├── test_recognition.py             合成筆畫辨識冒煙測試
+│   ├── test_esc_key_routing.py         ESC 按鍵路由自動化測試
 │   └── test_data/                      測試筆畫資料
 ├── docs/
 │   └── screenshot.png                   應用截圖

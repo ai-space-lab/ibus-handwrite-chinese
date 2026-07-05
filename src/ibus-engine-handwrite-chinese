@@ -457,7 +457,7 @@ class HandwriteWin(Gtk.Window):
         if name == "Escape":
             self.on_key_esc()
             return True
-        if name == "Return":
+        if name == "Return" and self.engine.last_results:
             self.engine.commit_first()
             return True
         if name == "BackSpace":
@@ -910,15 +910,18 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
         if state & IBus.ModifierType.RELEASE_MASK:
             return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
-        if keyval in (IBus.KEY_Escape, IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible():
-            if keyval == IBus.KEY_Escape:
-                self.win.on_key_esc()
-            elif keyval == IBus.KEY_BackSpace:
+        # Always handle ESC regardless of state (pause on 0→1, close on 1→exit)
+        if keyval in (IBus.KEY_Escape,) and self.win and self.win.get_visible():
+            self.win.on_key_esc()
+            return True
+        # Only intercept Backspace/Enter when actively writing (state 0)
+        if keyval in (IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible() and self.win._state == 0:
+            if keyval == IBus.KEY_BackSpace:
                 self.win._do_clear_strokes()
                 return False
-            elif keyval == IBus.KEY_Return:
+            elif keyval == IBus.KEY_Return and self.last_results:
                 self.commit_first()
-            return True
+                return True
         return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
 
     def do_set_cursor_location(self, x, y, w, h):
@@ -1136,6 +1139,7 @@ def main():
         win = HandwriteWin(engine)
         engine.win = win
         win.show_all()
+        win.set_accept_focus(True)
         win.present()
         if not win.start_trackpad():
             print("  [engine] ⚠ Trackpad not available. Use mouse to draw.", file=sys.stderr)
