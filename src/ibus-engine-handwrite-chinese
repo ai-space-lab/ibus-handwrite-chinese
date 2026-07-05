@@ -457,7 +457,7 @@ class HandwriteWin(Gtk.Window):
         if name == "Escape":
             self.on_key_esc()
             return True
-        if name == "Return":
+        if name == "Return" and self.engine.last_results:
             self.engine.commit_first()
             return True
         if name == "BackSpace":
@@ -1139,6 +1139,7 @@ def main():
         win = HandwriteWin(engine)
         engine.win = win
         win.show_all()
+        win.set_accept_focus(True)
         win.present()
         if not win.start_trackpad():
             print("  [engine] ⚠ Trackpad not available. Use mouse to draw.", file=sys.stderr)
