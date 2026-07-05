@@ -124,7 +124,7 @@ ENGINE_DIR="/usr/local/share/ibus-handwrite-chinese"
 
 # If the 'input' group is not active in this session, re-exec under 'sg input'
 if ! groups | grep -q '\binput\b'; then
-    exec sg input -c "exec $0 $*" 2>/dev/null || true
+    sg input -c "exec $0 $*" 2>/dev/null || true
 fi
 
 if [ -x "$VENV/bin/python3" ]; then
