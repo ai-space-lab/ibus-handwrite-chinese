@@ -52,6 +52,7 @@ install -m 644 src/handwrite_evdev.py %{buildroot}/usr/local/share/ibus-handwrit
 install -m 644 xml/handwrite-chinese.xml %{buildroot}/usr/share/ibus/component/
 install -m 644 icons/handwrite-chinese.svg %{buildroot}/usr/local/share/ibus-handwrite-chinese/icons/
 install -m 755 tools/restore.sh %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 755 tools/diagnose_trackpad.sh %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 tools/99-trackpad-handwrite.rules %{buildroot}/etc/udev/rules.d/
 
 %post
@@ -120,6 +121,12 @@ cat > "$WRAPPER" << 'WRAPPER_EOF'
 set -eu
 VENV="/usr/local/share/ibus-handwrite-chinese/venv"
 ENGINE_DIR="/usr/local/share/ibus-handwrite-chinese"
+
+# If the 'input' group is not active in this session, re-exec under 'sg input'
+if ! groups | grep -q '\binput\b'; then
+    exec sg input -c "exec $0 $*" 2>/dev/null || true
+fi
+
 if [ -x "$VENV/bin/python3" ]; then
     exec "$VENV/bin/python3" "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"
 else
@@ -135,22 +142,13 @@ if command -v udevadm >/dev/null 2>&1; then
     udevadm trigger 2>/dev/null || true
 fi
 
-# --- Restart IBus ---
-echo "Restarting IBus..."
-if command -v ibus >/dev/null 2>&1; then
-    if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
-        if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
-            ibus restart 2>/dev/null || \
-                echo "  ibus restart failed (will take effect on next login)"
-        else
-            echo "  No D-Bus session — IBus will be available after next login"
-        fi
-    else
-        echo "  No display detected — IBus will be available after login"
-    fi
-else
-    echo "  ibus command not found"
-fi
+# --- Post-install message ---
+echo ""
+echo "  ────────────────────────────────────────────"
+echo "  Chinese Handwriting installed!"
+echo "  To activate:  ibus restart"
+echo "  Then select Chinese Handwriting from your IBus menu."
+echo "  ────────────────────────────────────────────"
 
 %preun
 rm -f /etc/udev/rules.d/99-trackpad-handwrite.rules
@@ -164,6 +162,7 @@ fi
 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
 /usr/local/share/ibus-handwrite-chinese/restore.sh
+/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
 /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg
 /usr/share/ibus/component/handwrite-chinese.xml
 /etc/udev/rules.d/99-trackpad-handwrite.rules
