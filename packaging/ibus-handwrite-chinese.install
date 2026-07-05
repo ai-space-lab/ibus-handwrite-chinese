@@ -20,8 +20,24 @@ post_install() {
     fi
 
     echo ""
-    echo "Installation complete. Restart IBus: ibus restart"
-    echo "Then select Chinese Handwriting from your IBus menu."
+    echo "Restarting IBus..."
+    if command -v ibus >/dev/null 2>&1; then
+        if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+            if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+                ibus restart 2>/dev/null || \
+                    echo "  ibus restart failed (will take effect on next login)"
+            else
+                echo "  No D-Bus session — IBus will be available after next login"
+            fi
+        else
+            echo "  No display detected — IBus will be available after login"
+        fi
+        echo "Then select Chinese Handwriting from your IBus menu."
+    else
+        echo "  ibus command not found"
+        echo "Installation complete. Restart IBus: ibus restart"
+        echo "Then select Chinese Handwriting from your IBus menu."
+    fi
 }
 
 post_upgrade() {

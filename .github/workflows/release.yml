@@ -220,11 +220,16 @@ jobs:
                 pip install onnxruntime
               tmpdir="$(mktemp -d)"
               tar -xzf release-artifacts/source-tarball/ibus-handwrite-chinese-*.tar.gz -C "$tmpdir"
-              (cd "$tmpdir" && ./tools/install.sh --skip-deps --no-restart)
+              (cd "$tmpdir" && ./tools/install.sh --skip-deps)
               ;;
           esac
           echo "available=true" >> "$GITHUB_OUTPUT"
         id: install
+      - name: Restart IBus
+        run: |
+          if command -v ibus >/dev/null 2>&1; then
+            ibus restart 2>/dev/null || true
+          fi
       - name: Download PP-OCRv6 ONNX model
         run: |
           mkdir -p /usr/local/share/ibus-handwrite-chinese/models

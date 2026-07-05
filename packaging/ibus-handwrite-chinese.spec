@@ -135,6 +135,23 @@ if command -v udevadm >/dev/null 2>&1; then
     udevadm trigger 2>/dev/null || true
 fi
 
+# --- Restart IBus ---
+echo "Restarting IBus..."
+if command -v ibus >/dev/null 2>&1; then
+    if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+        if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+            ibus restart 2>/dev/null || \
+                echo "  ibus restart failed (will take effect on next login)"
+        else
+            echo "  No D-Bus session — IBus will be available after next login"
+        fi
+    else
+        echo "  No display detected — IBus will be available after login"
+    fi
+else
+    echo "  ibus command not found"
+fi
+
 %preun
 rm -f /etc/udev/rules.d/99-trackpad-handwrite.rules
 if command -v udevadm >/dev/null 2>&1; then
