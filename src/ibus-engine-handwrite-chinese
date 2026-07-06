@@ -1025,7 +1025,20 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             _f.write(str(os.getpid()) + ' ' + msg + '\n')
 
     def do_focus_out(self):
-        pass
+        """Auto-pause when IBus input context loses focus (e.g., clicking Firefox title bar)."""
+        if self.win and self.win.get_visible() and self.win._state == 0:
+            self._write_log('do_focus_out: window visible, state=0 -> auto-pause')
+            self.win.on_key_esc()
+
+    def do_focus_in(self):
+        """Auto-resume when IBus input context regains focus (e.g., clicking back into input field)."""
+        if self.win and self.win.get_visible() and self.win._state == 1:
+            self._write_log('do_focus_in: window visible, state=1 -> auto-resume')
+            self.win._state = 0
+            self.win.darea.queue_draw()
+            if not self.win.start_trackpad():
+                print("  [engine] ⚠ Trackpad re-grab failed after focus-in. Mouse fallback active.", file=sys.stderr)
+            self.update_candidates()
 
     def _check_engine(self):
         if self._bus and self.win:
