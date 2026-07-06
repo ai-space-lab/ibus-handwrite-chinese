@@ -79,6 +79,9 @@ WRAPPER
     chmod 755 "$WRAPPER"
     echo "Engine wrapper installed"
 
+    # --- handwrite_evdev.py symlink (for Python import) ---
+    ln -sf /usr/local/bin/handwrite_evdev.py /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
+
     # --- diagnose_trackpad.sh ---
     chmod 755 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh 2>/dev/null || true
 

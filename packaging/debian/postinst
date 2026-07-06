@@ -83,6 +83,9 @@ WRAPPER
 chmod 755 "$WRAPPER"
 echo "Engine wrapper installed"
 
+# --- handwrite_evdev.py symlink (for Python import) ---
+ln -sf /usr/local/bin/handwrite_evdev.py /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
+
 # --- Reload udev rules ---
 if command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules 2>/dev/null || true
