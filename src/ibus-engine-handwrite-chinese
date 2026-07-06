@@ -388,6 +388,7 @@ class HandwriteWin(Gtk.Window):
         self._drag_y = 0
         self.candidate_buttons = []
         self._last_redraw = 0.0
+        self._last_esc_time = 0.0
         self._min_redraw_ms = 16
         self._state = 0
         self._blank_cursor = Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR)
@@ -433,6 +434,10 @@ class HandwriteWin(Gtk.Window):
             self._trackpad = None
 
     def on_key_esc(self):
+        now = time.time()
+        if now - self._last_esc_time < 0.15:
+            return
+        self._last_esc_time = now
         self._write_log('on_key_esc: _state=%d' % self._state)
         if self._state == 0:
             self._state = 1
@@ -908,12 +913,12 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
-        if state & IBus.ModifierType.RELEASE_MASK:
-            return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
-        # Always handle ESC regardless of state (pause on 0→1, close on 1→exit)
+        # Always handle ESC regardless of RELEASE_MASK (Firefox sends ESC with release mask)
         if keyval in (IBus.KEY_Escape,) and self.win and self.win.get_visible():
             self.win.on_key_esc()
             return True
+        if state & IBus.ModifierType.RELEASE_MASK:
+            return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
         # Only intercept Backspace/Enter when actively writing (state 0)
         if keyval in (IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible() and self.win._state == 0:
             if keyval == IBus.KEY_BackSpace:
