@@ -602,6 +602,7 @@ class HandwriteWin(Gtk.Window):
         self.drawing = False
         self.strokes.append(pixel_pts)
         self.engine.recognizer.add_stroke(pixel_pts)
+        self.engine._has_drawn = True
         self.cur_stroke = []
         self.pix = None
         self.queue_draw()
@@ -752,6 +753,7 @@ class HandwriteWin(Gtk.Window):
             self.cur_stroke.append((ev.x, ev.y))
             self.strokes.append(self.cur_stroke)
             self.engine.recognizer.add_stroke(self.cur_stroke)
+            self.engine._has_drawn = True
             self.cur_stroke = []
             self.pix = None
         self.queue_draw()
@@ -873,6 +875,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._engine_name = None
         self._last_focus_out_time = 0.0
         self._last_enable_time = 0.0
+        self._has_drawn = False
 
     @property
     def recognizer(self):
@@ -972,8 +975,9 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 return
 
     def do_enable(self):
-        self._write_log('do_enable')
         self._last_enable_time = time.time()
+        self._has_drawn = False
+        self._write_log('do_enable: t=%.3f' % self._last_enable_time)
         if self.win is None:
             self.win = HandwriteWin(self)
         if self._bus is None:
@@ -1029,7 +1033,13 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def do_focus_out(self):
         """Auto-pause when IBus input context loses focus (e.g., clicking Firefox title bar)."""
-        if time.time() - self._last_enable_time < 1.0:
+        elapsed = time.time() - self._last_enable_time
+        self._write_log('do_focus_out: elapsed=%.3f last_enable_time=%.3f' % (elapsed, self._last_enable_time))
+        if elapsed < 1.0:
+            self._write_log('do_focus_out: startup guard caught it, returning')
+            return
+        if not self._has_drawn:
+            self._write_log('do_focus_out: no strokes drawn yet, skipping auto-pause')
             return
         if self.win and self.win.get_visible() and self.win._state == 0:
             self._last_focus_out_time = time.time()
