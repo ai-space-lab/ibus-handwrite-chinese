@@ -872,6 +872,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._ch = 0
         self._engine_name = None
         self._last_focus_out_time = 0.0
+        self._last_enable_time = 0.0
 
     @property
     def recognizer(self):
@@ -972,6 +973,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def do_enable(self):
         self._write_log('do_enable')
+        self._last_enable_time = time.time()
         if self.win is None:
             self.win = HandwriteWin(self)
         if self._bus is None:
@@ -1027,6 +1029,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def do_focus_out(self):
         """Auto-pause when IBus input context loses focus (e.g., clicking Firefox title bar)."""
+        if time.time() - self._last_enable_time < 1.0:
+            return
         if self.win and self.win.get_visible() and self.win._state == 0:
             self._last_focus_out_time = time.time()
             self._write_log('do_focus_out: window visible, state=0 -> auto-pause')
