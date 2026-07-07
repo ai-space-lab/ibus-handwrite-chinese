@@ -876,6 +876,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._last_focus_out_time = 0.0
         self._last_enable_time = 0.0
         self._has_drawn = False
+        self._focused_since_enable = False
 
     @property
     def recognizer(self):
@@ -992,10 +993,28 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.win.show_all()
         self._position_window()
         self.win.present()
+        GLib.timeout_add(50, self._grab_focus_if_needed)
         if not self.win.start_trackpad():
             print("  [engine] ⚠ Trackpad not available. Use mouse or check tools/diagnose_trackpad.sh", file=sys.stderr)
         if self._watch_id is None:
             self._watch_id = GLib.timeout_add(500, self._check_engine)
+
+    def _grab_focus_if_needed(self):
+        """One-shot: grab keyboard focus if no text field has focus (do_focus_in not fired).
+
+        Called 50ms after do_enable. At that point do_focus_in has either fired
+        (text field has focus) or not (no text field). If no text field, give the
+        panel keyboard focus so GTK on_key catches ESC for manual pause.
+        Revert set_accept_focus immediately to prevent future focus stealing.
+        """
+        if self._focused_since_enable:
+            return False  # text field has focus, don't steal
+        if not self.win or not self.win.get_visible():
+            return False  # do_disable was called before we ran
+        self.win.set_accept_focus(True)
+        self.win.present()
+        self.win.set_accept_focus(False)  # prevent future focus stealing
+        return False  # one-shot
 
     def do_disable(self):
         if self._watch_id:
@@ -1032,6 +1051,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             _f.write(str(os.getpid()) + ' ' + msg + '\n')
 
     def do_focus_out(self):
+        self._focused_since_enable = False
         """Auto-pause when IBus input context loses focus (e.g., clicking Firefox title bar)."""
         elapsed = time.time() - self._last_enable_time
         self._write_log('do_focus_out: elapsed=%.3f last_enable_time=%.3f' % (elapsed, self._last_enable_time))
@@ -1047,6 +1067,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             self.win.on_key_esc()
 
     def do_focus_in(self):
+        self._focused_since_enable = True
         """Auto-resume when IBus input context regains focus (e.g., clicking back into input field)."""
         if self.win and self.win.get_visible() and self.win._state == 1 and (time.time() - self._last_focus_out_time) >= 0.3:
             self._write_log('do_focus_in: window visible, state=1 -> auto-resume (debounce gate passed)')
