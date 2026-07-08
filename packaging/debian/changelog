@@ -1,3 +1,26 @@
+ibus-handwrite-chinese (0.5.0-1) unstable; urgency=medium
+
+  * Migrate from static 幽兰百合/tegaki models to PP-OCRv6 ONNX model
+    (18710 chars) with full CI validation and 100% top-1 accuracy.
+  * Unicode OCR pipeline: self-contained ONNX Runtime engine replaces
+    external tegaki, no more dictionary dependencies.
+  * Evdev trackpad: support ABS_MT_TRACKING_ID in addition to BTN_TOUCH,
+    expands compatibility to modern trackpads.
+  * ESC reliability: ESC now pauses/closes in all states; Enter and
+    Backspace only intercepted when actively writing (state 0).
+  * Firefox compatible: ESC now works in Firefox and any app that sends
+    IBUS_RELEASE_MASK key events.
+  --test mode: window receives keyboard focus (set_accept_focus).
+  * Cross-distro bootstrap.sh with auto-detection, udev rule for
+    trackpad access, sg input fallback in wrapper script.
+  * Debian packaging: deb, RPM, Arch PKGBUILD with postinst hook
+    for model download, venv creation, and wrapper installation.
+  * Architecture: arm64 support for Debian/Ubuntu packages.
+  * CI: multi-distro CI with 5 containers; Release workflow builds
+    .deb, .rpm, and source tarball for GitHub Releases.
+
+ -- ibus-handwrite-chinese developers <dev@ibus-handwrite-chinese.example.com>  Mon, 06 Jul 2026 00:00:00 +0000
+
 ibus-handwrite-chinese (0.1.0-1) unstable; urgency=medium
 
   * Initial Beta release.
