@@ -100,7 +100,7 @@ ibus engine handwrite-chinese
 - **IBus 未辨識輸入法**：安裝後執行 `ibus restart`
 - **輸入法無法啟動**：切換到輸入法時查看 `journalctl -f` 取得錯誤訊息
 - **權限被拒絕**：用 `getfacl /dev/input/event*` 驗證 —— 您的使用者應對觸控板裝置有 `rw` 權限
-- **ESC 不工作 / Enter 被引擎攔截**：如果按 ESC 暫停後 Enter 無法傳遞到終端，請用最新版 `install.sh` 重新安裝。修復確保：(1) 無候選字時 Enter 可通過，(2) 暫停狀態下按 ESC 關閉並恢復上一輸入法。
+- **ESC 不工作 / Enter 被引擎攔截**：如果按 ESC 暫停後 Enter 無法傳遞到終端，請用最新版 `install.sh` 重新安裝。修復確保：(1) 無候選字時 Enter 可通過，(2) 暫停狀態下按 ESC 關閉並恢復上一輸入法，(3) ESC 現在可在 Firefox 和其他設定 IBUS_RELEASE_MASK 的應用程式中正常運作。
 
 ## 測試
 
@@ -219,7 +219,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 已修復的 Bug
 
-驗證過程中發現並修復了 PP-OCRv6 管線的三個 Bug：
+共發現並修復了七個 Bug，涵蓋 PP-OCRv6 管線、ESC 狀態機和 Firefox 相容性：
 
 1. **字典索引損壞**（第 290 行）：`line.strip()` 從字典條目中剝離了 U+3000（表意空格），導致後續所有字元索引偏移 1。修復為 `line.rstrip('\n')`。
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 對所有 CTC 時間步（包括空白幀）取平均，使真實置信度稀釋約 10 倍。修復為 `np.max(probs, axis=0)`（MAX 池化），符合單字元辨識的 CTC argmax 行為。
@@ -242,6 +242,19 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 5. `--test` 模式鍵盤焦點修復
 獨立 `--test` 模式視窗無法接收 GTK 鍵盤事件，因為 `__init__` 中設定了 `set_accept_focus(False)`。透過在 `main()` 中的 `win.present()` 前呼叫 `win.set_accept_focus(True)` 修復。
+
+### 6. Firefox ESC 相容性修復
+Firefox 透過 IBus 發送 ESC 按鍵事件時會設定 `IBUS_RELEASE_MASK`（1 << 30），導致原始 ESC 處理程序在檢查 `RELEASE_MASK` 時被繞過。修復方法：
+- 將 ESC 檢查移到 `do_process_key_event` 中的 `RELEASE_MASK` 過濾之前 —— 無論按下/釋放狀態，ESC 都能被處理
+- 在 `on_key_esc()` 中添加 150ms 去抖，防止按下+釋放事件對的雙重觸發
+- 透過 `/tmp/hw.log` 日誌分析驗證，ESC → 暫停 → 關閉狀態轉換在 Firefox 中正常運作
+
+### 7. 無文字焦點時 ESC 暫停修復
+當無文字欄位獲得焦點時（例如 Firefox 標題列、桌面），按下 ESC 暫停面板無效。存在兩種按鍵事件路徑：IBus 路徑（`do_process_key_event`）需要活躍的 IBus 輸入上下文（僅由文字輸入控制項建立），GTK 路徑（`on_key` 處理程序）需要面板擁有鍵盤焦點 —— 被 `set_accept_focus(False)` 阻止。
+
+**根本原因**：之前的修復嘗試了 50ms 延遲焦點獲取（`_grab_focus_if_needed`），但在視窗管理器處理焦點授予前立即還原了 `set_accept_focus(False)`。日誌顯示獲取運行了但 ESC 從未到達。
+
+**修復方法**：完全移除定時器。在 `do_enable()` 中，在 `present()` 前呼叫 `set_accept_focus(True)` 並在會話期間保持 True —— 與 `--test` 模式的做法一致。在 `do_disable()` 中重設為 `False`。透過 xdotool 驗證：當桌面聚焦時按下 ESC，記錄到 `on_key_esc: _state=0`。
 
 ### 驗證結果
 

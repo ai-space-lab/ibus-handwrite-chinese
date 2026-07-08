@@ -112,7 +112,7 @@ ibus engine handwrite-chinese
 - **IBus 未识别输入法**：安装后运行 `ibus restart`
 - **输入法无法启动**：切换到输入法时查看 `journalctl -f` 获取错误信息
 - **权限被拒绝**：用 `getfacl /dev/input/event*` 验证 —— 您的用户应对触控板设备有 `rw` 权限
-- **ESC 不工作 / Enter 被引擎拦截**：如果按 ESC 暂停后 Enter 无法传递到终端，请用最新版 `install.sh` 重新安装。修复确保：(1) 无候选字时 Enter 可通过，(2) 暂停状态下按 ESC 关闭并恢复上一输入法。
+- **ESC 不工作 / Enter 被引擎拦截**：如果按 ESC 暂停后 Enter 无法传递到终端，请用最新版 `install.sh` 重新安装。修复确保：(1) 无候选字时 Enter 可通过，(2) 暂停状态下按 ESC 关闭并恢复上一输入法，(3) ESC 现在可在 Firefox 和其他设置 IBUS_RELEASE_MASK 的应用程序中正常工作。
 
 ## 测试
 
@@ -219,7 +219,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 已修复的 Bug
 
-验证过程中发现并修复了 PP-OCRv6 管线的三个 Bug：
+共发现并修复了七个 Bug，涵盖 PP-OCRv6 管线、ESC 状态机和 Firefox 兼容性：
 
 1. **字典索引损坏**（第 290 行）：`line.strip()` 从字典条目中剥离了 U+3000（表意空格），导致后续所有字符索引偏移 1。修复为 `line.rstrip('\n')`。
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 对所有 CTC 时间步（包括空白帧）取平均，使真实置信度稀释约 10 倍。修复为 `np.max(probs, axis=0)`（MAX 池化），符合单字符识别的 CTC argmax 行为。
@@ -242,6 +242,19 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 5. `--test` 模式键盘焦点修复
 独立 `--test` 模式窗口无法接收 GTK 键盘事件，因为 `__init__` 中设置了 `set_accept_focus(False)`。通过在 `main()` 中的 `win.present()` 前调用 `win.set_accept_focus(True)` 修复。
+
+### 6. Firefox ESC 兼容性修复
+Firefox 通过 IBus 发送 ESC 按键事件时会设置 `IBUS_RELEASE_MASK`（1 << 30），导致原始 ESC 处理程序在检查 `RELEASE_MASK` 时被绕过。修复方法：
+- 将 ESC 检查移到 `do_process_key_event` 中的 `RELEASE_MASK` 过滤之前 —— 无论按下/释放状态，ESC 都能被处理
+- 在 `on_key_esc()` 中添加 150ms 去抖，防止按下+释放事件对的双重触发
+- 通过 `/tmp/hw.log` 日志分析验证，ESC → 暂停 → 关闭状态转换在 Firefox 中正常工作
+
+### 7. 无文本焦点时 ESC 暂停修复
+当无文本字段获得焦点时（例如 Firefox 标题栏、桌面），按下 ESC 暂停面板无效。存在两种按键事件路径：IBus 路径（`do_process_key_event`）需要活跃的 IBus 输入上下文（仅由文本输入控件创建），GTK 路径（`on_key` 处理程序）需要面板拥有键盘焦点 —— 被 `set_accept_focus(False)` 阻止。
+
+**根本原因**：之前的修复尝试了 50ms 延迟焦点获取（`_grab_focus_if_needed`），但在窗口管理器处理焦点授予前立即还原了 `set_accept_focus(False)`。日志显示获取运行了但 ESC 从未到达。
+
+**修复方法**：完全移除定时器。在 `do_enable()` 中，在 `present()` 前调用 `set_accept_focus(True)` 并在会话期间保持 True —— 与 `--test` 模式的做法一致。在 `do_disable()` 中重置为 `False`。通过 xdotool 验证：当桌面聚焦时按下 ESC，记录到 `on_key_esc: _state=0`。
 
 ### 验证结果
 

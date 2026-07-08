@@ -125,7 +125,7 @@ Packages are built automatically by CI on tag push. Post-install downloads the P
 - **Must click trackpad to draw**: If your trackpad requires a physical click to register touches, the engine now also tracks via `ABS_MT_TRACKING_ID` (finger-on-surface) — try just touching the trackpad lightly. If it still requires clicking, your trackpad firmware may need a higher sensitivity setting.
 - **Permission denied**: Verify with `getfacl /dev/input/event*` — your user should have `rw` access on the trackpad device. If the udev rule (`/etc/udev/rules.d/99-trackpad-handwrite.rules`) is present but ACLs aren't applied, reload with: `sudo udevadm control --reload-rules && sudo udevadm trigger`.
 - **IBus indicator not showing in panel**: Run `ibus-daemon --daemonize --replace` to restart IBus. In Cinnamon, the IBus icon appears in the system tray — if missing, toggle the setting: `gsettings set org.freedesktop.ibus.panel show 1` (always-visible language bar).
-- **ESC not working / Enter consumed by engine**: If Enter doesn't reach the terminal after pressing ESC to pause, re-install with the latest `install.sh`. The fix ensures that (1) Enter passes through when no candidates are present, and (2) pressing ESC in paused state closes and restores the previous IME.
+- **ESC not working / Enter consumed by engine**: If Enter doesn't reach the terminal after pressing ESC to pause, re-install with the latest `install.sh`. The fix ensures that (1) Enter passes through when no candidates are present, (2) pressing ESC in paused state closes and restores the previous IME, and (3) ESC now works in Firefox and other applications that send key events with IBUS_RELEASE_MASK set.
 
 ## Testing
 
@@ -232,7 +232,7 @@ This opens a GTK floating window where you can draw characters. Recognition resu
 
 ### Bug Fixes Applied
 
-Three bugs were identified and fixed in the PP-OCRv6 pipeline during validation:
+Seven bugs were identified and fixed across the PP-OCRv6 pipeline, ESC state machine, and Firefox compatibility:
 
 1. **Dict index corruption** (line 290): `line.strip()` stripped U+3000 (ideographic space) from a dict entry, shifting all subsequent character indices by 1. Fixed with `line.rstrip('\n')`.
 2. **Confidence pooling** (line 405): `np.mean(probs, axis=0)` averaged across all CTC time steps including blank frames, diluting true confidence by ~10×. Fixed with `np.max(probs, axis=0)` (MAX pooling) which matches CTC argmax behavior for single-character recognition.
@@ -255,6 +255,19 @@ The ESC state machine was refined to handle the Enter key correctly in all state
 
 ### 5. `--test` mode keyboard focus fix
 The standalone `--test` mode window could not receive GTK keyboard events because `set_accept_focus(False)` was set in `__init__`. Fixed by calling `win.set_accept_focus(True)` before `win.present()` in `main()`.
+
+### 6. Firefox ESC compatibility
+Firefox sends ESC key events through IBus with `IBUS_RELEASE_MASK` (1 << 30) set, which bypassed the original ESC handler that checked for `RELEASE_MASK` before handling ESC. Fixed by:
+- Moving the ESC check before the `RELEASE_MASK` filter in `do_process_key_event` — ESC is now handled regardless of press/release state
+- Adding a 150ms debounce in `on_key_esc()` to prevent double-fire from press-plus-release event pairs
+- Verified working via `/tmp/hw.log` log analysis showing correct ESC → pause → close state transitions in Firefox
+
+### 7. ESC pause when no text field has focus
+Pressing ESC to pause the panel did not work when no text field was focused (e.g., Firefox title bar, desktop). Two key event paths exist: the IBus path (`do_process_key_event`) requires an active IBus input context (only created by text-entry widgets), and the GTK path (`on_key` handler) requires the panel to have keyboard focus — which was blocked by `set_accept_focus(False)`.
+
+**Root cause**: A previous fix attempted a 50ms delayed focus grab (`_grab_focus_if_needed`) but immediately reverted `set_accept_focus(False)` before the window manager processed the focus grant. Logs showed the grab ran but ESC never arrived.
+
+**Fix**: Removed the timer entirely. In `do_enable()`, call `set_accept_focus(True)` before `present()` and leave it True for the session — matching what `--test` mode already does. In `do_disable()`, reset to `False`. Verified via xdotool: `on_key_esc: _state=0` logged when pressing ESC with desktop focused.
 
 ### Validation Results
 
