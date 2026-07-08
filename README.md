@@ -169,7 +169,7 @@ The recent ESC/Enter fixes were validated on this environment:
 | IBus | 1.5.29-rc2 |
 | Python | 3.12.3 |
 | Trackpad | bcm5974 (MacBook Pro, USB) |
-| Install method | `sudo ./tools/install.sh` |
+| Install method | `sudo ./tools/install.sh` or `.deb` package |
 
 ### PP-OCRv6 Accuracy Validation
 

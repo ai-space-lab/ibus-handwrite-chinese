@@ -144,7 +144,7 @@ CI 會在 Xvfb 下測試 GTK，但不會在容器中測試真實 IBus、evdev �
 | IBus | 1.5.29-rc2 |
 | Python | 3.12.3 |
 | 觸控板 | bcm5974（MacBook Pro，USB） |
-| 安裝方式 | `sudo ./tools/install.sh` |
+| 安裝方式 | `sudo ./tools/install.sh` 或 `.deb` 套件 |
 
 ### PP-OCRv6 精度驗證
 
