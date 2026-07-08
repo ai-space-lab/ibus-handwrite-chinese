@@ -940,7 +940,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._cy = y
         self._cw = w
         self._ch = h
-        if self.win and self.win.get_visible():
+        if self.win and self.win.get_visible() and (x > 0 or y > 0):
             self._position_window()
 
     def _position_window(self):
@@ -952,12 +952,26 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         win_h = self.win.get_allocated_height() or 370
         our_gdk_win = self.win.get_window()
         active = screen.get_active_window()
-        if active is None or active == our_gdk_win:
+        if active is None:
+            # No active window (desktop focused). Position near cursor if available.
+            if self._cx > 0 or self._cy > 0:
+                mon = display.get_primary_monitor()
+                wa = mon.get_workarea()
+                wx = min(self._cx, wa.x + wa.width - win_w - 12)
+                wy = min(self._cy + 30, wa.y + wa.height - win_h - 12)
+                wx = max(wx, wa.x)
+                wy = max(wy, wa.y)
+                self.win.move(int(wx), int(wy))
+                return
+            # First-show fallback: bottom-right of primary monitor
             mon = display.get_primary_monitor()
             wa = mon.get_workarea()
             wx = wa.x + wa.width - win_w - 12
             wy = wa.y + wa.height - win_h - 12
             self.win.move(int(wx), int(wy))
+            return
+        if active == our_gdk_win:
+            # User clicked on our window — keep current position
             return
         rect = active.get_frame_extents()
         mon = display.get_monitor_at_window(active)
