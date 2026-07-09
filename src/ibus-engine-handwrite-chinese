@@ -836,6 +836,7 @@ class HandwriteWin(Gtk.Window):
     def on_drag_begin(self, widget, ev):
         self._drag_x = ev.x_root
         self._drag_y = ev.y_root
+        return True
 
     def on_drag_end(self, widget, ev):
         pass
