@@ -476,6 +476,7 @@ class HandwriteWin(Gtk.Window):
             self.darea.queue_draw()
             self.start_trackpad()
             self.engine.update_candidates()
+            self.present()
         return False
 
     def _set_cursor_hidden(self, hidden):
