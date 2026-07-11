@@ -7,6 +7,8 @@ import os
 import threading
 import json
 import uuid
+import logging
+from logging.handlers import RotatingFileHandler
 
 try:
     import numpy as np
@@ -65,6 +67,22 @@ if EVDEV_AVAILABLE:
         print(f"  [engine] Evdev probe failed: {e}", file=sys.stderr)
 
 
+class JsonFormatter(logging.Formatter):
+    """Custom JSON formatter that outputs one JSON object per line.
+
+    Produces: {"time": "ISO-8601", "level": "LEVEL", "msg": "..."}
+    Compatible with existing parsers that do json.loads() per line.
+    """
+    def format(self, record):
+        log_entry = {
+            "time": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(record.created)),
+            "level": record.levelname,
+            "msg": record.getMessage(),
+        }
+        return json.dumps(log_entry, ensure_ascii=False)
+
+logger = logging.getLogger('handwrite')
+
 
 class OnnxHandle:
     """PP-OCRv6 ONNX-based handwriting recognition backend."""
@@ -90,17 +108,20 @@ class OnnxHandle:
         self.all_points = []
         self._last_results = []
         self._infer_lock = threading.Lock()
-        self._log_session_id = str(uuid.uuid4())[:8]
+        # Set up RotatingFileHandler logging if not already configured
+        if not logger.hasHandlers():
+            log_path = CONFIG["general"].get("log_path", "/tmp/ppocr-recognition.log")
+            log_max_mb = CONFIG["general"].get("log_max_mb", 5)
+            log_level_name = CONFIG["general"].get("log_level", "INFO").upper()
+            log_level = getattr(logging, log_level_name, logging.INFO)
+            if log_max_mb == 0:
+                handler = logging.FileHandler(log_path)
+            else:
+                handler = RotatingFileHandler(log_path, maxBytes=log_max_mb * 1024 * 1024, backupCount=3)
+            handler.setFormatter(JsonFormatter())
+            logger.addHandler(handler)
+            logger.setLevel(log_level)
         self.scale = 1  # HiDPI scale factor, set by HandwriteWin on activation
-
-    def _log(self, data):
-        try:
-            entry = {"session_id": self._log_session_id, "t": time.time(), **data}
-            with open(CONFIG["general"]["log_path"], "a") as f:
-                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-                f.flush()
-        except Exception:  # Intentionally silent — logging must never crash the caller; recursive logging is impossible here
-            pass
 
     def clear(self):
         self.all_points = []
@@ -180,16 +201,12 @@ class OnnxHandle:
         normalized = normalized[np.newaxis, np.newaxis, :, :]  # [1, 1, 48, W]
         normalized = np.repeat(normalized, 3, axis=1)  # [1, 3, 48, W]
         try:
-            self._log({
-                "event": "preprocess",
-                "num_strokes": len(self.all_points),
-                "num_points": sum(len(s) for s in self.all_points),
-                "canvas_size": [width, height],
-                "resized_width": resized.shape[1],
-                "img_min": round(float(normalized.min()), 4),
-                "img_max": round(float(normalized.max()), 4),
-                "img_mean": round(float(normalized.mean()), 4),
-            })
+            logger.info("preprocess: num_strokes=%d num_points=%d canvas_size=[%d,%d] resized_width=%d img_min=%.4f img_max=%.4f img_mean=%.4f",
+                len(self.all_points), sum(len(s) for s in self.all_points), width, height,
+                resized.shape[1],
+                round(float(normalized.min()), 4),
+                round(float(normalized.max()), 4),
+                round(float(normalized.mean()), 4))
         except Exception:  # Intentionally silent — best-effort logging for preprocess metrics
             pass
         return np.ascontiguousarray(normalized, dtype=np.float32)
@@ -205,12 +222,7 @@ class OnnxHandle:
         top_indices = top_indices[np.argsort(char_probs[top_indices])[::-1]]
         try:
             top5 = [(self.dict[idx], round(float(char_probs[idx]), 4)) for idx in top_indices[:5]]
-            self._log({
-                "event": "decode",
-                "top5": top5,
-                "num_classes": self.num_classes,
-                "time_steps": int(output.shape[1]),
-            })
+            logger.info("decode: top5=%s num_classes=%d time_steps=%d", top5, self.num_classes, int(output.shape[1]))
         except Exception:  # Intentionally silent — best-effort logging for decode metrics
             pass
         return [(self.dict[idx], float(char_probs[idx])) for idx in top_indices]
@@ -222,12 +234,12 @@ class OnnxHandle:
         t0 = time.time()
         input_tensor = self._preprocess()
         if input_tensor is None:
-            self._log({"event": "classify", "latency_ms": 0, "input_shape": None})
+            logger.info("classify: latency_ms=0 input_shape=None")
             return []
         input_shape = list(input_tensor.shape)
         output = self.session.run(None, {"x": input_tensor})[0]
         result = self._decode(output)
-        self._log({"event": "classify", "latency_ms": round((time.time() - t0) * 1000, 2), "input_shape": input_shape})
+        logger.info("classify: latency_ms=%.2f input_shape=%s", round((time.time() - t0) * 1000, 2), input_shape)
         return result
 
     def get_results(self):
