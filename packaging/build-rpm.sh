@@ -4,7 +4,7 @@ set -e
 # Build an RPM package for ibus-handwrite-chinese
 # Usage: ./packaging/build-rpm.sh [version] [dist]
 
-VERSION="${1:-0.1.0}"
+VERSION="${1:-0.7.0}"
 DIST="${2:-%{nil}}"
 PACKAGE="ibus-handwrite-chinese"
 ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,7 +29,7 @@ mkdir -p "/tmp/${TARDIR}"
 cp -r "$ROOTDIR/src" "$ROOTDIR/xml" "$ROOTDIR/icons" "$ROOTDIR/tools" \
       "$ROOTDIR/packaging" "$ROOTDIR/models" \
       "$ROOTDIR/README.md" "$ROOTDIR/README.zh-Hans-汉.md" "$ROOTDIR/README.zh-Hant-漢.md" \
-      "$ROOTDIR/LICENSE" "$ROOTDIR/bootstrap.sh" "/tmp/${TARDIR}/"
+      "$ROOTDIR/LICENSE" "$ROOTDIR/VERSION" "$ROOTDIR/bootstrap.sh" "/tmp/${TARDIR}/"
 tar -czf "$RPMBUILDDIR/SOURCES/$TARBALL" -C /tmp "$TARDIR"
 rm -rf "/tmp/${TARDIR}"
 

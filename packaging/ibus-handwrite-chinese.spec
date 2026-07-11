@@ -1,5 +1,5 @@
 %global srcname ibus-handwrite-chinese
-%global srcver 0.1.0
+%global srcver 0.7.0
 
 Name:           ibus-handwrite-chinese
 Version:        %{srcver}
@@ -49,6 +49,8 @@ mkdir -p %{buildroot}/etc/udev/rules.d
 
 install -m 755 src/ibus-engine-handwrite-chinese %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 src/handwrite_evdev.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 src/handwrite_config.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 VERSION %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 xml/handwrite-chinese.xml %{buildroot}/usr/share/ibus/component/
 install -m 644 icons/handwrite-chinese.svg %{buildroot}/usr/local/share/ibus-handwrite-chinese/icons/
 install -m 755 tools/restore.sh %{buildroot}/usr/local/share/ibus-handwrite-chinese/
@@ -226,6 +228,8 @@ fi
 %doc README.md README.zh-Hans-汉.md README.zh-Hant-漢.md
 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
+/usr/local/share/ibus-handwrite-chinese/handwrite_config.py
+/usr/local/share/ibus-handwrite-chinese/VERSION
 /usr/local/share/ibus-handwrite-chinese/restore.sh
 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
 /usr/local/share/ibus-handwrite-chinese/models/checksums.sha256

@@ -2,7 +2,7 @@
 # Contributor: Your Name <your@email.com>
 
 pkgname=ibus-handwrite-chinese
-pkgver=0.1.0
+pkgver=0.7.0
 pkgrel=1
 pkgdesc="Chinese handwriting input method with PP-OCRv6 ONNX-based recognition"
 arch=('any')
@@ -41,6 +41,8 @@ package() {
 
     # Install engine script to ENGINE_DIR (run via wrapper, not directly)
     install -Dm644 src/ibus-engine-handwrite-chinese "${pkgdir}/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese"
+    install -Dm644 src/handwrite_config.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_config.py"
+    install -Dm644 VERSION "${pkgdir}/usr/local/share/ibus-handwrite-chinese/VERSION"
 
     # Install diagnose_trackpad.sh
     install -Dm755 tools/diagnose_trackpad.sh "${pkgdir}/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh"
