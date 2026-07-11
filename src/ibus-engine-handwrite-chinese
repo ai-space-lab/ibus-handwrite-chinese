@@ -1051,8 +1051,12 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.recognizer.clear()
         self.last_results = []
         self._focused_since_enable = False
+        self.win.set_accept_focus(True)
         self.win.show_all()
         self._position_window()
+        # Use idle_add so the X11 property changes from show_all() and
+        # set_accept_focus(True) are flushed to the X server before
+        # present() asks the window manager for keyboard focus.
         GLib.idle_add(self._grab_focus_if_needed, priority=GLib.PRIORITY_LOW)
         if not self.win.start_trackpad():
             print("  [engine] ⚠ Trackpad not available. Use mouse or check tools/diagnose_trackpad.sh", file=sys.stderr)
