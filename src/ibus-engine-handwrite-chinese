@@ -27,12 +27,20 @@ except ValueError:
     IBus = None
     HAS_IBUS = False
 
-MAX_CANDIDATES = 24
-_PPOCR_TIER = os.environ.get('IBUS_HANDWRITE_PPOCR_MODEL', 'small')
-
+# Load configuration
 _handwrite_dir = os.path.dirname(os.path.abspath(__file__))
 if _handwrite_dir not in sys.path:
     sys.path.insert(0, _handwrite_dir)
+
+import handwrite_config
+CONFIG = handwrite_config.load_config()
+
+# Version: read from VERSION file in same directory as this script
+_version_path = os.path.join(_handwrite_dir, 'VERSION')
+if os.path.isfile(_version_path):
+    _ENGINE_VERSION = open(_version_path).read().strip()
+else:
+    _ENGINE_VERSION = "unknown"
 
 EVDEV_AVAILABLE = False
 try:
@@ -57,15 +65,14 @@ if EVDEV_AVAILABLE:
 
 
 
-
-
-
 class OnnxHandle:
     """PP-OCRv6 ONNX-based handwriting recognition backend."""
 
-    def __init__(self, model_path, dict_path, max_candidates=MAX_CANDIDATES):
+    def __init__(self, model_path, dict_path, max_candidates=None):
         if not HAS_NUMPY:
             raise RuntimeError("numpy is required for ONNX recognition")
+        if max_candidates is None:
+            max_candidates = CONFIG["engine"]["max_candidates"]
         import onnxruntime
         self.session = onnxruntime.InferenceSession(
             model_path, providers=["CPUExecutionProvider"]
@@ -83,11 +90,12 @@ class OnnxHandle:
         self._last_results = []
         self._infer_lock = threading.Lock()
         self._log_session_id = str(uuid.uuid4())[:8]
+        self.scale = 1  # HiDPI scale factor, set by HandwriteWin on activation
 
     def _log(self, data):
         try:
             entry = {"session_id": self._log_session_id, "t": time.time(), **data}
-            with open("/tmp/ppocr-recognition.log", "a") as f:
+            with open(CONFIG["general"]["log_path"], "a") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
                 f.flush()
         except Exception:  # Intentionally silent — logging must never crash the caller; recursive logging is impossible here
@@ -147,7 +155,7 @@ class OnnxHandle:
         cr.paint()
         # Draw black strokes
         cr.set_source_rgb(0, 0, 0)
-        cr.set_line_width(8)
+        cr.set_line_width(CONFIG["engine"]["stroke_width"] * self.scale)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         cr.set_line_join(cairo.LINE_JOIN_ROUND)
         for stroke in self.all_points:
@@ -258,9 +266,33 @@ class HandwriteWin(Gtk.Window):
     def __init__(self, engine):
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         self.engine = engine
+
+        # Detect HiDPI scale factor from GDK_SCALE env var or GTK monitor
+        self._scale = 1
+        gdk_scale = os.environ.get('GDK_SCALE')
+        if gdk_scale is not None:
+            try:
+                parsed = int(gdk_scale)
+                if 1 <= parsed <= 4:
+                    self._scale = parsed
+            except (ValueError, TypeError):
+                pass
+        screen = Gdk.Screen.get_default()
+        if screen:
+            display = screen.get_display()
+            if display:
+                primary = display.get_primary_monitor()
+                if primary:
+                    self._scale = max(self._scale, max(1, min(primary.get_scale_factor(), 4)))
+        # Propagate scale to ONNX preprocessor (for stroke line width)
+        if hasattr(self.engine.recognizer, 'scale'):
+            self.engine.recognizer.scale = self._scale
+
+        win_w = CONFIG["window"]["width"] * self._scale
+        win_h = CONFIG["window"]["height"] * self._scale
         self.set_title("Chinese Handwriting")
-        self.set_default_size(400, 360)
-        self.set_size_request(400, 360)
+        self.set_default_size(win_w, win_h)
+        self.set_size_request(win_w, win_h)
         self.set_resizable(False)
         self.set_keep_above(True)
         self.set_skip_taskbar_hint(True)
@@ -269,60 +301,13 @@ class HandwriteWin(Gtk.Window):
         self.set_decorated(False)
         self.set_border_width(0)
 
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(b"""
-            window {
-                background-color: rgba(40, 40, 45, 0.92);
-                border-radius: 8px;
-            }
-            .candidate-btn {
-                background: transparent;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                border: none;
-                padding: 4px 6px;
-                min-width: 32px;
-                min-height: 28px;
-            }
-            .candidate-btn:hover {
-                background: rgba(255, 255, 255, 0.12);
-                border-radius: 4px;
-            }
-            .delete-btn {
-                background: transparent;
-                color: #999;
-                font-size: 16px;
-                border: none;
-                padding: 2px 12px;
-                min-height: 28px;
-            }
-            .delete-btn:hover {
-                color: white;
-            }
-            .close-btn {
-                background: transparent;
-                color: #999;
-                font-size: 18px;
-                font-weight: bold;
-                border: none;
-                padding: 2px 8px;
-                min-width: 28px;
-                min-height: 28px;
-            }
-            .close-btn:hover {
-                color: white;
-            }
-            .candidate-btn-highlighted {
-                background: #4a90d9;
-                color: white;
-                border-radius: 3px;
-            }
-        """)
+        self._theme = CONFIG["general"]["theme"]
+        self._css_provider = Gtk.CssProvider()
         screen = Gdk.Screen.get_default()
         Gtk.StyleContext.add_provider_for_screen(
-            screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            screen, self._css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
+        self._apply_theme(self._theme)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(vbox)
@@ -332,7 +317,7 @@ class HandwriteWin(Gtk.Window):
         self.close_btn.set_can_focus(False)
         self.close_btn.connect("clicked", self.on_close_click)
         self.drag_handle = Gtk.EventBox()
-        self.drag_handle.set_size_request(-1, 24)
+        self.drag_handle.set_size_request(-1, CONFIG["window"]["drag_handle_height"] * self._scale)
         self.drag_handle.set_app_paintable(True)
         self.drag_handle.connect("draw", self.on_draw_handle)
         self.drag_handle.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
@@ -370,7 +355,10 @@ class HandwriteWin(Gtk.Window):
         vbox.pack_start(self.cand_bar, False, False, 0)
 
         self.darea = Gtk.DrawingArea()
-        self.darea.set_size_request(400, 300)
+        self.darea.set_size_request(
+            CONFIG["window"]["width"] * self._scale,
+            CONFIG["window"]["drawing_height"] * self._scale,
+        )
         self.darea.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
                               Gdk.EventMask.BUTTON_RELEASE_MASK |
                               Gdk.EventMask.POINTER_MOTION_MASK)
@@ -389,13 +377,13 @@ class HandwriteWin(Gtk.Window):
         self.candidate_buttons = []
         self._last_redraw = 0.0
         self._last_esc_time = 0.0
-        self._min_redraw_ms = 16
+        self._min_redraw_ms = CONFIG["engine"]["min_redraw_ms"]
         self._state = 0
         self._blank_cursor = Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR)
         self._cursor_hidden = False
         self._trackpad = None
         self._cand_page = 0
-        self._page_size = 8
+        self._page_size = CONFIG["engine"]["page_size"]
         self._delete_timer = None
         self._delete_held = False
         self._drag_hovered = False
@@ -410,6 +398,41 @@ class HandwriteWin(Gtk.Window):
         self.connect("button-press-event", self.on_window_click)
         self.connect("focus-out-event", self.on_focus_out_event)
         self.connect("focus-in-event", self.on_focus_in_event)
+
+    def _apply_theme(self, theme_name):
+        """Apply (or switch) theme CSS and update Cairo drawing colors."""
+        css_data = handwrite_config.get_theme_css(theme_name, scale=self._scale)
+        self._css_provider.load_from_data(css_data)
+        self._theme = theme_name
+        self._theme_colors = self._compute_theme_colors(theme_name)
+
+    @staticmethod
+    def _compute_theme_colors(theme):
+        """Return a dict of Cairo color tuples for the given theme name."""
+        if theme == "light":
+            return {
+                "drawing_bg": (0.96, 0.96, 0.96),
+                "stroke": (0.05, 0.05, 0.05),
+                "pause_overlay": (1, 1, 1, 0.5),
+                "pause_box": (0.85, 0.85, 0.85, 0.6),
+                "pause_text": (0.1, 0.1, 0.1),
+                "pause_shadow": (1, 1, 1),
+                "handle_bg": (0.85, 0.85, 0.85),
+                "handle_dots": (0.4, 0.4, 0.4),
+                "handle_dots_hover": (0.2, 0.2, 0.2),
+            }
+        # Dark theme (default)
+        return {
+            "drawing_bg": (0.15, 0.15, 0.17),
+            "stroke": (1, 1, 1),
+            "pause_overlay": (0, 0, 0, 0.5),
+            "pause_box": (0, 0, 0, 0.6),
+            "pause_text": (1, 1, 1),
+            "pause_shadow": (0, 0, 0),
+            "handle_bg": (0.2, 0.2, 0.2),
+            "handle_dots": (0.5, 0.5, 0.5),
+            "handle_dots_hover": (0.8, 0.8, 0.8),
+        }
 
     def start_trackpad(self):
         if not EVDEV_AVAILABLE:
@@ -492,8 +515,9 @@ class HandwriteWin(Gtk.Window):
         # Cancel any pending auto-pause (prevent timer stacking)
         if self._pending_pause_timeout:
             GLib.source_remove(self._pending_pause_timeout)
-        # Schedule auto-pause with 50ms debounce
-        self._pending_pause_timeout = GLib.timeout_add(50, self._handle_focus_lost)
+        # Schedule auto-pause with configurable debounce
+        self._pending_pause_timeout = GLib.timeout_add(
+            CONFIG["engine"]["auto_pause_debounce_ms"], self._handle_focus_lost)
         return False
 
     def on_focus_in_event(self, widget, event):
@@ -573,7 +597,7 @@ class HandwriteWin(Gtk.Window):
         self._delete_held = False
         if self._delete_timer:
             GLib.source_remove(self._delete_timer)
-        self._delete_timer = GLib.timeout_add(500, self._on_delete_hold_timeout)
+        self._delete_timer = GLib.timeout_add(CONFIG["engine"]["delete_hold_ms"], self._on_delete_hold_timeout)
         return False
 
     def _on_delete_hold_timeout(self):
@@ -606,7 +630,7 @@ class HandwriteWin(Gtk.Window):
             btn = Gtk.Button(label=val)
             btn.get_style_context().add_class("candidate-btn")
             btn.set_can_focus(False)
-            btn.set_size_request(36, -1)
+            btn.set_size_request(CONFIG["window"]["candidate_button_width"] * self._scale, -1)
             btn.connect("clicked", lambda b, idx=actual_idx: self.engine.pick_candidate(idx))
             self.cand_inner.pack_start(btn, False, False, 0)
             self.candidate_buttons.append(btn)
@@ -685,8 +709,8 @@ class HandwriteWin(Gtk.Window):
                 self._cand_page = max(self._cand_page - 1, 0)
             self.show_candidates(self.engine.last_results)
         self._momentum_pages -= 1
-        self._momentum_velocity *= 0.65
-        if self._momentum_velocity < 0.3:
+        self._momentum_velocity *= CONFIG["engine"]["momentum_decay"]
+        if self._momentum_velocity < CONFIG["engine"]["momentum_threshold"]:
             self._momentum_source = None
             return False
         self._momentum_pages = max(1, int(self._momentum_velocity))
@@ -701,9 +725,10 @@ class HandwriteWin(Gtk.Window):
             if pages > 1:
                 self._momentum_dir = 1
                 self._momentum_pages = pages - 1
-                self._momentum_velocity = float(pages) * 0.65
+                self._momentum_velocity = float(pages) * CONFIG["engine"]["momentum_decay"]
                 self._cancel_momentum()
-                self._momentum_source = GLib.timeout_add(50, self._momentum_tick)
+                self._momentum_source = GLib.timeout_add(
+                    CONFIG["engine"]["momentum_tick_ms"], self._momentum_tick)
 
     def on_trackpad_swipe_right(self, pages=1):
         total = len(self.engine.last_results)
@@ -713,9 +738,10 @@ class HandwriteWin(Gtk.Window):
             if pages > 1:
                 self._momentum_dir = -1
                 self._momentum_pages = pages - 1
-                self._momentum_velocity = float(pages) * 0.65
+                self._momentum_velocity = float(pages) * CONFIG["engine"]["momentum_decay"]
                 self._cancel_momentum()
-                self._momentum_source = GLib.timeout_add(50, self._momentum_tick)
+                self._momentum_source = GLib.timeout_add(
+                    CONFIG["engine"]["momentum_tick_ms"], self._momentum_tick)
 
     def on_trackpad_candidate_highlight(self, x_frac):
         delete_at = 0.82
@@ -765,10 +791,12 @@ class HandwriteWin(Gtk.Window):
         import cairo
         self.pix = cairo.ImageSurface(cairo.FORMAT_ARGB32, ww, hh)
         cr = cairo.Context(self.pix)
-        cr.set_source_rgb(0.15, 0.15, 0.17)
+        bg = self._theme_colors["drawing_bg"]
+        cr.set_source_rgb(*bg)
         cr.paint()
-        cr.set_source_rgb(1, 1, 1)
-        cr.set_line_width(3)
+        stroke = self._theme_colors["stroke"]
+        cr.set_source_rgb(*stroke)
+        cr.set_line_width(3 * self._scale)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         cr.set_line_join(cairo.LINE_JOIN_ROUND)
         cr.set_antialias(cairo.ANTIALIAS_BEST)
@@ -808,23 +836,27 @@ class HandwriteWin(Gtk.Window):
         alloc = self.darea.get_allocation()
         ww, hh = alloc.width, alloc.height
         if self._state == 1:
-            cr.set_source_rgba(0, 0, 0, 0.5)
+            overlay = self._theme_colors["pause_overlay"]
+            cr.set_source_rgba(*overlay)
             cr.rectangle(0, 0, ww, hh)
             cr.fill()
-            cr.set_source_rgb(1, 1, 1)
+            text_color = self._theme_colors["pause_text"]
+            cr.set_source_rgb(*text_color)
             cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-            cr.set_font_size(30)
+            cr.set_font_size(30 * self._scale)
             text = "click to resume"
             xb = cr.text_extents(text)
             box_w, box_h = xb.width + 40, xb.height + 30
             cr.rectangle((ww - box_w) / 2, (hh - box_h) / 2, box_w, box_h)
-            cr.set_source_rgba(0, 0, 0, 0.6)
+            box = self._theme_colors["pause_box"]
+            cr.set_source_rgba(*box)
             cr.fill()
             # Shadow for visibility
-            cr.set_source_rgb(0, 0, 0)
+            shadow = self._theme_colors["pause_shadow"]
+            cr.set_source_rgb(*shadow)
             cr.move_to((ww - xb.width) / 2 + 2, (hh - xb.height) / 2 + 22)
             cr.show_text(text)
-            cr.set_source_rgb(1, 1, 1)
+            cr.set_source_rgb(*text_color)
             cr.move_to((ww - xb.width) / 2, (hh - xb.height) / 2 + 20)
             cr.show_text(text)
             return
@@ -833,8 +865,9 @@ class HandwriteWin(Gtk.Window):
         cr.set_source_surface(self.pix, 0, 0)
         cr.paint()
         if self.cur_stroke and len(self.cur_stroke) > 1:
-            cr.set_source_rgb(1, 1, 1)
-            cr.set_line_width(3)
+            stroke_color = self._theme_colors["stroke"]
+            cr.set_source_rgb(*stroke_color)
+            cr.set_line_width(3 * self._scale)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
             cr.set_line_join(cairo.LINE_JOIN_ROUND)
             cr.set_antialias(cairo.ANTIALIAS_BEST)
@@ -845,7 +878,8 @@ class HandwriteWin(Gtk.Window):
 
     def on_draw_handle(self, widget, cr):
         alloc = widget.get_allocation()
-        cr.set_source_rgb(0.2, 0.2, 0.2)
+        handle_bg = self._theme_colors["handle_bg"]
+        cr.set_source_rgb(*handle_bg)
         cr.rectangle(0, 0, alloc.width, alloc.height)
         cr.fill()
         toplevel = widget.get_toplevel()
@@ -859,9 +893,11 @@ class HandwriteWin(Gtk.Window):
         else:
             cx = alloc.width / 2
         if self._drag_hovered:
-            cr.set_source_rgb(0.8, 0.8, 0.8)
+            dots_color = self._theme_colors["handle_dots_hover"]
+            cr.set_source_rgb(*dots_color)
         else:
-            cr.set_source_rgb(0.5, 0.5, 0.5)
+            dots_color = self._theme_colors["handle_dots"]
+            cr.set_source_rgb(*dots_color)
         for i in range(5):
             x = cx + (i - 2) * 10
             cr.arc(x, alloc.height / 2, 2, 0, 6.2832)
@@ -936,9 +972,27 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     @staticmethod
     def _create_onnx_handle():
-        """Resolve PP-OCR model paths and create OnnxHandle."""
-        tier = _PPOCR_TIER
+        """Resolve PP-OCR model paths and create OnnxHandle.
+
+        Priority:
+          1. Config model.path / dict.path (from IBUS_HANDWRITE_PPOCR_MODEL_PATH / DICT_PATH env vars)
+          2. Default candidate paths (data/ dir, system install dir, /tmp/)
+        """
+        cfg_model = CONFIG["model"]
+        tier = cfg_model["tier"]
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # Check explicit paths from config/env first
+        model_override = cfg_model["path"]
+        dict_override = cfg_model["dict_path"]
+        if model_override and dict_override:
+            if os.path.exists(model_override) and os.path.exists(dict_override):
+                return OnnxHandle(model_override, dict_override, CONFIG["engine"]["max_candidates"])
+            print(f"  [engine] Warning: IBUS_HANDWRITE_PPOCR_MODEL_PATH={model_override} or "
+                  f"IBUS_HANDWRITE_PPOCR_DICT_PATH={dict_override} not found, falling back to defaults",
+                  file=sys.stderr)
+
+        # Default candidate-based resolution
         candidates = [
             os.path.join(base, 'data', 'models', f'ppocrv6_{tier}_rec.onnx'),
             f'/usr/local/share/ibus-handwrite-chinese/models/ppocrv6_{tier}_rec.onnx',
@@ -966,7 +1020,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 f"PP-OCR dict not found for tier '{tier}'. "
                 f"Tried: {dict_candidates}"
             )
-        return OnnxHandle(model_path, dict_path)
+        return OnnxHandle(model_path, dict_path, CONFIG["engine"]["max_candidates"])
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
@@ -999,8 +1053,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             return
         screen = Gdk.Screen.get_default()
         display = screen.get_display()
-        win_w = 400
-        win_h = self.win.get_allocated_height() or 370
+        win_w = CONFIG["window"]["width"] * self.win._scale
+        win_h = self.win.get_allocated_height() or (CONFIG["window"]["height"] * self.win._scale)
         our_gdk_win = self.win.get_window()
         active = screen.get_active_window()
         if active is None:
@@ -1312,7 +1366,7 @@ def main():
     component = IBus.Component.new(
         component_name,
         "Chinese Handwriting Input Method",
-        "0.1.0",
+        _ENGINE_VERSION,
         "GPLv3",
         "ai-space-lab",
         "",

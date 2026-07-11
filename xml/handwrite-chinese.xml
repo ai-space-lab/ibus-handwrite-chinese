@@ -3,7 +3,7 @@
   <name>com.github.ai-space-lab.ibus-handwrite-chinese</name>
   <description>Chinese Handwriting Input Method</description>
   <exec>/usr/local/bin/ibus-engine-handwrite-chinese --ibus</exec>
-  <version>0.1.0</version>
+  <version>0.7.0</version>
   <author>ai-space-lab</author>
   <license>GPLv3</license>
   <homepage></homepage>
