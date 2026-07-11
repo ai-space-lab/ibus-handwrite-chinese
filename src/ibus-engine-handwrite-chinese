@@ -52,7 +52,7 @@ if EVDEV_AVAILABLE:
                 d.ungrab()
                 d.close()
                 break
-    except Exception as e:
+    except Exception as e:  # Broad catch — probe may fail for many reasons (permission, device missing, I/O error)
         print(f"  [engine] Evdev probe failed: {e}", file=sys.stderr)
 
 
@@ -90,7 +90,7 @@ class OnnxHandle:
             with open("/tmp/ppocr-recognition.log", "a") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
                 f.flush()
-        except Exception:
+        except Exception:  # Intentionally silent — logging must never crash the caller; recursive logging is impossible here
             pass
 
     def clear(self):
@@ -181,7 +181,7 @@ class OnnxHandle:
                 "img_max": round(float(normalized.max()), 4),
                 "img_mean": round(float(normalized.mean()), 4),
             })
-        except Exception:
+        except Exception:  # Intentionally silent — best-effort logging for preprocess metrics
             pass
         return np.ascontiguousarray(normalized, dtype=np.float32)
 
@@ -202,7 +202,7 @@ class OnnxHandle:
                 "num_classes": self.num_classes,
                 "time_steps": int(output.shape[1]),
             })
-        except Exception:
+        except Exception:  # Intentionally silent — best-effort logging for decode metrics
             pass
         return [(self.dict[idx], float(char_probs[idx])) for idx in top_indices]
 
@@ -555,7 +555,10 @@ class HandwriteWin(Gtk.Window):
         self.engine.update_candidates()
 
     def _do_forward_backspace(self):
-        GLib.spawn_command_line_async("/usr/bin/xdotool key --delay 0 BackSpace") 
+        try:
+            self.engine.delete_surrounding_text(-1, 1)
+        except Exception as e:  # Broad catch — IBus delete_surrounding_text may fail (no active context, bus error)
+            self._write_log(f"ERROR: delete_surrounding_text failed: {e}")
 
     def on_delete_tap(self, btn=None):
         if self._delete_held:
@@ -923,6 +926,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._has_drawn = False
         self._focused_since_enable = False
         self._disabling = False
+        session_type = os.environ.get("XDG_SESSION_TYPE", "unknown")
+        self._write_log(f"Session type: {session_type}")
 
     @property
     def recognizer(self):
@@ -999,7 +1004,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         our_gdk_win = self.win.get_window()
         active = screen.get_active_window()
         if active is None:
-            # No active window (desktop focused). Position near cursor if available.
+            # No active window (Wayland or desktop focused). Position near cursor if available.
             if self._cx > 0 or self._cy > 0:
                 mon = display.get_primary_monitor()
                 wa = mon.get_workarea()
@@ -1009,11 +1014,11 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 wy = max(wy, wa.y)
                 self.win.move(int(wx), int(wy))
                 return
-            # First-show fallback: bottom-right of primary monitor
+            # First-show fallback: center of primary monitor (no cursor event yet)
             mon = display.get_primary_monitor()
             wa = mon.get_workarea()
-            wx = wa.x + wa.width - win_w - 12
-            wy = wa.y + wa.height - win_h - 12
+            wx = wa.x + (wa.width - win_w) // 2
+            wy = wa.y + (wa.height - win_h) // 2
             self.win.move(int(wx), int(wy))
             return
         if active == our_gdk_win:
@@ -1112,12 +1117,12 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 if name and name != self._engine_name:
                     self._bus.set_global_engine(name)
                     return
-        except Exception:
-            pass
+        except Exception as e:  # Broad catch — Gio.Settings or IBus may fail (schema unavailable, bus disconnected)
+            self._write_log(f"ERROR: restore_engine (Gio.Settings) failed: {e}")
         try:
             self._bus.set_global_engine('xkb:us::eng')
-        except Exception:
-            pass
+        except Exception as e:  # Broad catch — ibus set_global_engine fallback may fail (bus disconnected)
+            self._write_log(f"ERROR: restore_engine (fallback xkb:us::eng) failed: {e}")
 
     def _write_log(self, msg):
         import os
@@ -1229,6 +1234,10 @@ class TestCommitEngine:
     def commit_text(self, text):
         self.committed.append(text)
         print(f"COMMIT:{text}", flush=True)
+
+    def delete_surrounding_text(self, offset, n_chars):
+        # No-op in --test mode (no IBus context to forward BackSpace to)
+        pass
 
     def do_reset(self):
         if self.win:

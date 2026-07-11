@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
+MODEL_DIR="$SHARE_DIR/models"
+
+case "$1" in
+    remove)
+        # Remove symlink created by postinst (the target /usr/local/bin/handwrite_evdev.py
+        # is a packaged file and will be removed by dpkg)
+        rm -f "$SHARE_DIR/handwrite_evdev.py"
+
+        # Best-effort: restore previous IBus engine if handwrite-chinese was active.
+        # This runs after dpkg removes packaged files, but ibus-daemon handles engine
+        # switching independently of the engine binary's presence.
+        if command -v ibus >/dev/null 2>&1; then
+            CURRENT=$(ibus engine 2>/dev/null || echo "")
+            if [ "$CURRENT" = "handwrite-chinese" ]; then
+                ibus engine xkb:us::eng 2>/dev/null || true
+            fi
+        fi
+
+        if [ -d "$MODEL_DIR" ]; then
+            echo "Model data preserved at $MODEL_DIR."
+            echo "Run 'sudo apt purge ibus-handwrite-chinese' to also remove model data."
+        fi
+        ;;
+
+    purge)
+        # Remove postinst-created symlink
+        rm -f "$SHARE_DIR/handwrite_evdev.py"
+
+        # Remove model data (downloaded by postinst) and venv (created by postinst)
+        if [ -d "$MODEL_DIR" ] || [ -d "$SHARE_DIR/venv" ]; then
+            echo "Purging model data and virtual environment..."
+            rm -rf "$MODEL_DIR"
+            rm -rf "$SHARE_DIR/venv"
+            echo "Model data removed."
+        fi
+        ;;
+
+    upgrade|disappear)
+        # On upgrade: do nothing, preserve model data for the new version
+        ;;
+
+    *)
+        exit 0
+        ;;
+esac
+
+exit 0

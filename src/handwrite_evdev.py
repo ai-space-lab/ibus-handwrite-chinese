@@ -93,7 +93,7 @@ class TrackpadReader:
             return
         try:
             self.device.grab()
-        except Exception as e:
+        except OSError as e:  # grab() raises OSError on permission denied or device error
             print(f"  [evdev] grab failed: {e}", file=sys.stderr)
 
     def _ungrab(self):
@@ -101,7 +101,7 @@ class TrackpadReader:
             return
         try:
             self.device.ungrab()
-        except Exception as e:
+        except OSError as e:  # ungrab() raises OSError on permission denied or device error
             print(f"  [evdev] ungrab failed: {e}", file=sys.stderr)
 
     def start(self):
@@ -111,7 +111,7 @@ class TrackpadReader:
         except PermissionError as e:
             print(f"  [evdev] Permission denied opening device: {e}", file=sys.stderr)
             print(f"  [evdev] Run: sudo udevadm control --reload-rules && sudo udevadm trigger", file=sys.stderr)
-        except Exception as e:
+        except Exception as e:  # Broad catch — device enumeration may fail for various reasons (I/O error, device disappearing)
             print(f"  [evdev] Error scanning devices: {e}", file=sys.stderr)
         for d in devices:
             caps = d.capabilities(absinfo=False)
@@ -389,7 +389,7 @@ class TrackpadReader:
                             self._stroke = []
                         self._pending = False
                         self._mt_slots = {}
-        except Exception as e:
+        except Exception as e:  # Broad catch — event loop reads from a live device; any crash must be logged without killing the process
             print(f"  [evdev] Event loop crashed: {e}", file=sys.stderr)
             import traceback
             traceback.print_exc(file=sys.stderr)
@@ -439,7 +439,8 @@ class TouchpadCapture:
             return False
         try:
             self.device.grab()
-        except Exception:
+        except OSError as e:  # grab() raises OSError on permission denied or device error
+            print(f"  [capture] grab failed: {e}", file=sys.stderr)
             self.device.close()
             self.device = None
             return False
@@ -464,8 +465,8 @@ class TouchpadCapture:
         if self.device:
             try:
                 self.device.ungrab()
-            except Exception:
-                pass
+            except OSError as e:  # ungrab() may fail if device already released
+                print(f"  [capture] ungrab failed: {e}", file=sys.stderr)
             self.device.close()
             self.device = None
 

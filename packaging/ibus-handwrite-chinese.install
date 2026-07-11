@@ -111,3 +111,21 @@ pre_remove() {
     fi
     rm -rf /usr/local/share/ibus-handwrite-chinese/venv
 }
+
+post_remove() {
+    SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
+    MODEL_DIR="$SHARE_DIR/models"
+
+    # Best-effort: restore previous IBus engine if handwrite-chinese was active
+    if command -v ibus >/dev/null 2>&1; then
+        CURRENT=$(ibus engine 2>/dev/null || echo "")
+        if [ "$CURRENT" = "handwrite-chinese" ]; then
+            ibus engine xkb:us::eng 2>/dev/null || true
+        fi
+    fi
+
+    if [ -d "$MODEL_DIR" ]; then
+        echo "Model data preserved at $MODEL_DIR."
+        echo "To remove: sudo rm -rf $SHARE_DIR"
+    fi
+}
