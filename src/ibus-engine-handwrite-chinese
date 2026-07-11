@@ -1060,16 +1060,22 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             self._watch_id = GLib.timeout_add(500, self._check_engine)
 
     def _grab_focus_if_needed(self):
-        """One-shot: grab keyboard focus if no text field has focus."""
+        """One-shot: always grab keyboard focus so ESC and auto-pause work.
+
+        Without present(), the window never has keyboard focus and GTK
+        on_focus_out_event never fires — breaking auto-pause on Firefox
+        and desktop clicks. present() is safe because the user is in
+        handwriting mode and interacts via trackpad/mouse, not keyboard.
+        """
         if not self.win or not self.win.get_visible():
             self._write_log('_grab_focus_if_needed: window not visible, skipping')
             return False
-        if self._focused_since_enable:
-            self._write_log('_grab_focus_if_needed: text field has focus (flag), skipping grab')
-            return False
-        self._write_log('_grab_focus_if_needed: grabbing keyboard focus')
         self.win.set_accept_focus(True)
         self.win.present()
+        if self._focused_since_enable:
+            self._write_log('_grab_focus_if_needed: text field was focused, focus grabbed for window')
+        else:
+            self._write_log('_grab_focus_if_needed: grabbing keyboard focus')
         self._write_log('_grab_focus_if_needed: done')
         return False
 
