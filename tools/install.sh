@@ -177,6 +177,11 @@ if [ -n "$VENV_DIR" ]; then
         VENV_DIR=""
     }
 fi
+# tomli: TOML config file support (stdlib in Python 3.11+, backport for older)
+if [ -n "$VENV_DIR" ]; then
+    sudo "$VENV_DIR/bin/pip" install tomli 2>&1 | tail -3 || true
+fi
+
 
 # Install wrapper script as the engine binary
 # (points to venv Python if available, else directly runs the source)
@@ -202,6 +207,12 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 # Install main engine script (not executable directly, but run via wrapper)
 sudo cp src/ibus-engine-handwrite-chinese /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
+
+# Install handwrite config and VERSION file
+sudo cp src/handwrite_config.py /usr/local/share/ibus-handwrite-chinese/
+sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/handwrite_config.py
+sudo cp VERSION /usr/local/share/ibus-handwrite-chinese/
+sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/VERSION
 
 # Symlink handwrite_evdev.py into engine dir (so import handwrite_evdev finds it)
 sudo ln -sf /usr/local/bin/handwrite_evdev.py /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py

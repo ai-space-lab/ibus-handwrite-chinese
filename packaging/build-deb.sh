@@ -4,7 +4,7 @@ set -e
 # Build a binary .deb package for ibus-handwrite-chinese
 # Usage: ./packaging/build-deb.sh [version]
 
-VERSION="${1:-0.1.0}"
+VERSION="${1:-0.7.0}"
 PACKAGE="ibus-handwrite-chinese"
 ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILDDIR="/tmp/${PACKAGE}-deb-build"
@@ -35,6 +35,10 @@ mkdir -p "$BUILDDIR/etc/udev/rules.d"
 mkdir -p "$BUILDDIR/usr/local/share/ibus-handwrite-chinese"
 cp "$ROOTDIR/src/ibus-engine-handwrite-chinese" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
 chmod 644 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese"
+cp "$ROOTDIR/src/handwrite_config.py" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
+chmod 644 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/handwrite_config.py"
+cp "$ROOTDIR/VERSION" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
+chmod 644 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/VERSION"
 # Wrapper at /usr/local/bin/ibus-engine-handwrite-chinese is created by postinst
 cp "$ROOTDIR/src/handwrite_evdev.py" "$BUILDDIR/usr/local/bin/"
 chmod 644 "$BUILDDIR/usr/local/bin/handwrite_evdev.py"

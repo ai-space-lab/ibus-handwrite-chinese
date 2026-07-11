@@ -7,7 +7,7 @@
 #   sudo bash tools/build-test-usb-iso.sh /path/to/linuxmint.iso  # use local ISO
 #
 # Output:
-#   ./ibus-handwrite-chinese-test-v0.4.0.iso
+#   ./ibus-handwrite-chinese-test-v0.7.0.iso
 #
 # Requirements:
 #   - root (for chroot, mounting)
@@ -15,7 +15,7 @@
 #   - internet connection (first run: downloads Mint ISO + engine + model)
 #
 # Flash to USB:
-#   sudo dd if=ibus-handwrite-chinese-test-v0.4.0.iso of=/dev/sdX bs=4M status=progress conv=fsync
+#   sudo dd if=ibus-handwrite-chinese-test-v0.7.0.iso of=/dev/sdX bs=4M status=progress conv=fsync
 # ============================================================================
 set -euo pipefail
 
@@ -27,9 +27,9 @@ EXTRACT_CD="$WORK_DIR/extract-cd"      # extracted ISO contents
 EDIT_DIR="$WORK_DIR/edit"              # unsquashed root filesystem
 ISO_MOUNT="$WORK_DIR/iso_mount"        # where we mount the original ISO
 
-OUTPUT_ISO="$(pwd)/ibus-handwrite-chinese-test-v0.4.0.iso"
-ENGINE_VERSION="v0.4.0"
-ENGINE_TARBALL="https://github.com/ai-space-lab/ibus-handwrite-chinese/archive/refs/tags/v0.4.0.tar.gz"
+OUTPUT_ISO="$(pwd)/ibus-handwrite-chinese-test-v0.7.0.iso"
+ENGINE_VERSION="v0.7.0"
+ENGINE_TARBALL="https://github.com/ai-space-lab/ibus-handwrite-chinese/archive/refs/tags/v0.7.0.tar.gz"
 PPOCR_MODEL_URL="https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx"
 PPOCR_DICT_URL="https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"
 
@@ -234,10 +234,10 @@ apt-get install -y -qq \
 echo "  [chroot] Installing ONNX Runtime..."
 pip3 install onnxruntime --break-system-packages
 
-echo "  [chroot] Downloading handwriting engine v0.4.0..."
+echo "  [chroot] Downloading handwriting engine v0.7.0..."
 cd /tmp
-wget -q https://github.com/ai-space-lab/ibus-handwrite-chinese/archive/refs/tags/v0.4.0.tar.gz
-tar -xzf v0.4.0.tar.gz
+wget -q https://github.com/ai-space-lab/ibus-handwrite-chinese/archive/refs/tags/v0.7.0.tar.gz
+tar -xzf v0.7.0.tar.gz
 cd ibus-handwrite-chinese-0.3.0
 
 echo "  [chroot] Installing handwriting engine..."
@@ -418,7 +418,7 @@ verify_iso() {
     echo "    sudo dd if=$OUTPUT_ISO of=/dev/sdX bs=4M status=progress conv=fsync"
     echo ""
     echo "  Features pre-installed:"
-    echo "    - ibus-handwrite-chinese engine (v0.4.0)"
+    echo "    - ibus-handwrite-chinese engine (v0.7.0)"
     echo "    - PP-OCRv6 ONNX recognition model (small)"
     echo "    - python3-evdev, GTK3, IBus, ONNX Runtime"
     echo ""
