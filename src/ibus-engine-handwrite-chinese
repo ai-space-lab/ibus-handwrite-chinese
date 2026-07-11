@@ -498,19 +498,17 @@ class HandwriteWin(Gtk.Window):
 
     def on_focus_in_event(self, widget, event):
         """Cancel pending auto-pause when window regains keyboard focus."""
+        self._write_log('on_focus_in_event: focus regained')
         if self._pending_pause_timeout:
+            self._write_log('on_focus_in_event: cancelling pending pause timer')
             GLib.source_remove(self._pending_pause_timeout)
             self._pending_pause_timeout = None
         return False
 
     def _handle_focus_lost(self):
-        """Actual auto-pause after debounce, or cancel if text field got focus."""
+        """Actual auto-pause after debounce."""
         self._pending_pause_timeout = None
         if self._state != 0 or not self.get_visible():
-            return False
-        if getattr(self.engine, '_focused_since_enable', False):
-            # IBus do_focus_in fired — user clicked a text field, cancel
-            self.engine._write_log('_handle_focus_lost: cancelled (text field got focus)')
             return False
         if getattr(self.engine, '_disabling', False):
             return False
@@ -1135,6 +1133,20 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def do_focus_in(self):
         """Auto-resume when IBus input context regains focus (e.g., clicking back into input field)."""
         self._focused_since_enable = True
+        self._last_focus_in_time = time.time()
+        self._write_log('do_focus_in: text field got focus (_state=%s _has_drawn=%s)' % (
+            str(self.win._state) if self.win else 'None',
+            str(self._has_drawn)
+        ))
+        # Cancel pending auto-pause timer if user was actively drawing
+        # (real text field switch, not spurious desktop click).
+        # The _has_drawn guard distinguishes: with strokes drawn the user is
+        # switching between typing sessions; without strokes it's likely a
+        # spurious focus-in from XFCE desktop click.
+        if self._has_drawn and self.win and self.win._pending_pause_timeout:
+            GLib.source_remove(self.win._pending_pause_timeout)
+            self.win._pending_pause_timeout = None
+            self._write_log('do_focus_in: cancelled auto-pause timer (strokes drawn, real focus)')
         if self.win and self.win.get_visible() and self.win._state == 1 and (time.time() - self._last_focus_out_time) >= 0.3:
             self._write_log('do_focus_in: window visible, state=1 -> auto-resume (debounce gate passed)')
             self.win._state = 0
