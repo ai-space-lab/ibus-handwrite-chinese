@@ -33,6 +33,7 @@ if _handwrite_dir not in sys.path:
     sys.path.insert(0, _handwrite_dir)
 
 import handwrite_config
+import handwrite_userdict
 CONFIG = handwrite_config.load_config()
 
 # Version: read from VERSION file in same directory as this script
@@ -948,6 +949,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def __init__(self):
         super().__init__()
         self.onnx = self._create_onnx_handle()
+        self.userdict = self._create_userdict()
         self.win = None
         self.last_results = []
         self._bus = None
@@ -1021,6 +1023,25 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 f"Tried: {dict_candidates}"
             )
         return OnnxHandle(model_path, dict_path, CONFIG["engine"]["max_candidates"])
+
+    @staticmethod
+    def _create_userdict():
+        """Initialize UserDict from config. Returns None if disabled or on error."""
+        ud_config = CONFIG.get("user_dict", {})
+        if not ud_config.get("enabled", True):
+            return None
+        try:
+            ud = handwrite_userdict.UserDict()
+            ud.configure(
+                enabled=ud_config.get("enabled", True),
+                boost_strength=ud_config.get("boost_strength", 1.5),
+                max_entries=ud_config.get("max_entries", 10000),
+            )
+            return ud
+        except Exception as exc:
+            print(f"  [engine] Warning: failed to initialize user dictionary: {exc}",
+                  file=sys.stderr)
+            return None
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
@@ -1241,6 +1262,8 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.last_results = []
 
     def _on_results(self, results):
+        if results and self.userdict:
+            results = self.userdict.boost(results)
         self.last_results = results
         if self.win:
             self.win.show_candidates(results)
@@ -1250,15 +1273,24 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def commit_first(self):
         if self.last_results:
-            self.commit_text(IBus.Text.new_from_string(self.last_results[0][0]))
+            char = self.last_results[0][0]
+            if self.userdict:
+                self.userdict.learn(char)
+            self.commit_text(IBus.Text.new_from_string(char))
             self.do_reset()
 
     def pick_candidate(self, idx):
         if idx < len(self.last_results):
-            self.commit_text(IBus.Text.new_from_string(self.last_results[idx][0]))
+            char = self.last_results[idx][0]
+            if self.userdict:
+                self.userdict.learn(char)
+            self.commit_text(IBus.Text.new_from_string(char))
             self.do_reset()
 
     def destroy(self):
+        if self.userdict:
+            self.userdict.close()
+            self.userdict = None
         if self.win:
             self.win.destroy()
             self.win = None
@@ -1276,6 +1308,7 @@ class TestCommitEngine:
     """Minimal engine for --test mode: no IBus dependency."""
     def __init__(self):
         self.onnx = HandwriteEngine._create_onnx_handle()
+        self.userdict = HandwriteEngine._create_userdict()
         self.last_results = []
         self.committed = []
         self.win = None
@@ -1306,16 +1339,24 @@ class TestCommitEngine:
 
     def commit_first(self):
         if self.last_results:
-            self.commit_text(self.last_results[0][0])
+            char = self.last_results[0][0]
+            if self.userdict:
+                self.userdict.learn(char)
+            self.commit_text(char)
             self.do_reset()
 
     def pick_candidate(self, idx):
         if idx < len(self.last_results):
-            self.commit_text(self.last_results[idx][0])
+            char = self.last_results[idx][0]
+            if self.userdict:
+                self.userdict.learn(char)
+            self.commit_text(char)
             self.do_reset()
 
     def update_candidates(self):
         results = self.onnx.classify()
+        if results and self.userdict:
+            results = self.userdict.boost(results)
         self.last_results = results
         if self.win:
             self.win.show_candidates(results)
@@ -1326,6 +1367,9 @@ class TestCommitEngine:
             self.win._do_disable()
 
     def destroy(self):
+        if self.userdict:
+            self.userdict.close()
+            self.userdict = None
         if self.onnx:
             self.onnx.destroy()
             self.onnx = None

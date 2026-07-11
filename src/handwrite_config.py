@@ -50,6 +50,11 @@ DEFAULT_CONFIG = {
         "drag_handle_height": 24,
         "candidate_button_width": 36,
     },
+    "user_dict": {
+        "enabled": True,
+        "boost_strength": 1.5,
+        "max_entries": 10000,
+    },
 }
 
 # Env var → config path mapping
@@ -69,11 +74,12 @@ _INT_KEYS = frozenset({
     "min_redraw_ms", "momentum_tick_ms", "auto_pause_debounce_ms",
     "delete_hold_ms", "width", "height", "drawing_height",
     "drag_handle_height", "candidate_button_width", "log_max_mb",
+    "max_entries",
 })
 
 # Config keys that expect float values
 _FLOAT_KEYS = frozenset({
-    "momentum_decay", "momentum_threshold",
+    "momentum_decay", "momentum_threshold", "boost_strength",
 })
 
 
