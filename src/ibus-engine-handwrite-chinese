@@ -1239,6 +1239,11 @@ class TestCommitEngine:
         # No-op in --test mode (no IBus context to forward BackSpace to)
         pass
 
+    def _write_log(self, msg):
+        # Delegate to HandwriteWin's static _write_log so _handle_focus_lost
+        # (called via self.engine._write_log) doesn't crash in --test mode.
+        HandwriteWin._write_log(msg)
+
     def do_reset(self):
         if self.win:
             self.win._do_reset()

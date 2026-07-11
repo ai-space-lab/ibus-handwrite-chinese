@@ -75,7 +75,7 @@ verify_sha256() {
         echo "    Expected: $_expected_hash" >&2
         echo "    Actual:   $_actual_hash" >&2
         echo "    The downloaded file is corrupted or has been tampered with." >&2
-        exit 1
+        return 1
     fi
     echo "  SHA256 OK: $_expected_name"
     return 0
@@ -223,7 +223,7 @@ fi
 
 %files
 %license LICENSE
-%doc README.md README.zh-Hans-汉.md README.zh-Hant-汉.md
+%doc README.md README.zh-Hans-汉.md README.zh-Hant-漢.md
 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
 /usr/local/share/ibus-handwrite-chinese/restore.sh

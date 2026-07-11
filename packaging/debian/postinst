@@ -8,7 +8,7 @@ WRAPPER="/usr/local/bin/ibus-engine-handwrite-chinese"
 CHECKSUMS_FILE="$MODEL_DIR/checksums.sha256"
 
 # --- Helper: verify SHA256 ---
-# Return 0 on match or if checksums file missing; exit 1 on mismatch.
+# Return 0 on match or if checksums file missing; return 1 on mismatch.
 verify_sha256() {
     _file="$1"
     _expected_name="$2"
@@ -21,7 +21,7 @@ verify_sha256() {
         echo "    Expected: $_expected_hash" >&2
         echo "    Actual:   $_actual_hash" >&2
         echo "    The downloaded file is corrupted or has been tampered with." >&2
-        exit 1
+return 1
     fi
     echo "  SHA256 OK: $_expected_name"
     return 0
