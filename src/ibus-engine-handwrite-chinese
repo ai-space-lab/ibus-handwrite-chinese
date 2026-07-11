@@ -404,9 +404,12 @@ class HandwriteWin(Gtk.Window):
         self._momentum_source = None
         self._momentum_dir = 1
         self._highlighted_idx = -1
+        self._pending_pause_timeout = None
 
         self.connect("key-press-event", self.on_key)
         self.connect("button-press-event", self.on_window_click)
+        self.connect("focus-out-event", self.on_focus_out_event)
+        self.connect("focus-in-event", self.on_focus_in_event)
 
     def start_trackpad(self):
         if not EVDEV_AVAILABLE:
@@ -479,6 +482,42 @@ class HandwriteWin(Gtk.Window):
             self.present()
         return False
 
+    def on_focus_out_event(self, widget, event):
+        """Auto-pause with debounce when window loses keyboard focus."""
+        self._write_log('on_focus_out_event: focus lost, scheduling auto-pause timer')
+        if self._state != 0 or not self.get_visible():
+            return False
+        if getattr(self.engine, '_disabling', False):
+            return False
+        # Cancel any pending auto-pause (prevent timer stacking)
+        if self._pending_pause_timeout:
+            GLib.source_remove(self._pending_pause_timeout)
+        # Schedule auto-pause with 50ms debounce
+        self._pending_pause_timeout = GLib.timeout_add(50, self._handle_focus_lost)
+        return False
+
+    def on_focus_in_event(self, widget, event):
+        """Cancel pending auto-pause when window regains keyboard focus."""
+        if self._pending_pause_timeout:
+            GLib.source_remove(self._pending_pause_timeout)
+            self._pending_pause_timeout = None
+        return False
+
+    def _handle_focus_lost(self):
+        """Actual auto-pause after debounce, or cancel if text field got focus."""
+        self._pending_pause_timeout = None
+        if self._state != 0 or not self.get_visible():
+            return False
+        if getattr(self.engine, '_focused_since_enable', False):
+            # IBus do_focus_in fired — user clicked a text field, cancel
+            self.engine._write_log('_handle_focus_lost: cancelled (text field got focus)')
+            return False
+        if getattr(self.engine, '_disabling', False):
+            return False
+        self.engine._write_log('_handle_focus_lost: auto-pausing after focus loss')
+        self.on_key_esc()
+        return False
+
     def _set_cursor_hidden(self, hidden):
         gw = self.get_window()
         if not gw or self._cursor_hidden == hidden:
@@ -502,6 +541,9 @@ class HandwriteWin(Gtk.Window):
         self.engine.last_results = []
 
     def _do_disable(self):
+        if self._pending_pause_timeout:
+            GLib.source_remove(self._pending_pause_timeout)
+            self._pending_pause_timeout = None
         self.stop_trackpad()
         self._restore_cursor()
         self.hide()
@@ -853,6 +895,9 @@ class HandwriteWin(Gtk.Window):
                 self._drag_y = ev.y_root
 
     def destroy(self):
+        if self._pending_pause_timeout:
+            GLib.source_remove(self._pending_pause_timeout)
+            self._pending_pause_timeout = None
         self.stop_trackpad()
         self._restore_cursor()
         if self._delete_timer:
@@ -879,6 +924,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._last_enable_time = 0.0
         self._has_drawn = False
         self._focused_since_enable = False
+        self._disabling = False
 
     @property
     def recognizer(self):
@@ -1030,6 +1076,11 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         return False
 
     def do_disable(self):
+        self._disabling = True
+        # Clean up pending auto-pause timer on the window
+        if self.win and self.win._pending_pause_timeout:
+            GLib.source_remove(self.win._pending_pause_timeout)
+            self.win._pending_pause_timeout = None
         if self._watch_id:
             GLib.source_remove(self._watch_id)
             self._watch_id = None
@@ -1039,6 +1090,7 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if self.win:
             self.win.set_accept_focus(False)
             self.win.hide()
+        self._disabling = False
         self.recognizer.clear()
         self.last_results = []
 
