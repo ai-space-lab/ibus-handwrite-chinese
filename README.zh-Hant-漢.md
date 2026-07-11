@@ -219,7 +219,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 已修復的 Bug
 
-共發現並修復了七個 Bug，涵蓋 PP-OCRv6 管線、ESC 狀態機和 Firefox 相容性：
+共發現並修復了十個 Bug，涵蓋 PP-OCRv6 管線、ESC 狀態機、Firefox 相容性以及桌面/非文字區域自動暫停：
 
 1. **字典索引損壞**（第 290 行）：`line.strip()` 從字典條目中剝離了 U+3000（表意空格），導致後續所有字元索引偏移 1。修復為 `line.rstrip('\n')`。
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 對所有 CTC 時間步（包括空白幀）取平均，使真實置信度稀釋約 10 倍。修復為 `np.max(probs, axis=0)`（MAX 池化），符合單字元辨識的 CTC argmax 行為。
@@ -255,6 +255,27 @@ Firefox 透過 IBus 發送 ESC 按鍵事件時會設定 `IBUS_RELEASE_MASK`（1 
 **根本原因**：之前的修復嘗試了 50ms 延遲焦點獲取（`_grab_focus_if_needed`），但在視窗管理器處理焦點授予前立即還原了 `set_accept_focus(False)`。日誌顯示獲取運行了但 ESC 從未到達。
 
 **修復方法**：完全移除定時器。在 `do_enable()` 中，在 `present()` 前呼叫 `set_accept_focus(True)` 並在會話期間保持 True —— 與 `--test` 模式的做法一致。在 `do_disable()` 中重設為 `False`。透過 xdotool 驗證：當桌面聚焦時按下 ESC，記錄到 `on_key_esc: _state=0`。
+
+### 8. 非文字區域焦點丟失時自動暫停（Firefox 標題列、桌面背景）
+當使用者點擊 Firefox 標題列或桌面背景時，手寫視窗仍處於開啟狀態，但沒有任何 ESC 或鍵盤事件能到達視窗 —— IBus 上下文已不活躍（無文字欄位），視窗也沒有鍵盤焦點。
+
+**根本原因**：存在兩條事件路徑 —— IBus 的 `do_process_key_event`（需要活躍的 IBus 輸入上下文，僅由文字輸入控制項建立）和 GTK 的 `on_key` 處理程序（需要視窗擁有鍵盤焦點）。點擊非文字區域後，兩條路徑均不可用。
+
+**修復方法**：新增了 GTK `focus-out-event` 處理程序（`on_focus_out_event`），安排 50ms 去抖定時器。到期時，`_handle_focus_lost` 呼叫 `on_key_esc()` 自動暫停視窗。50ms 去抖可吸收 XFCE 在桌面點擊後約 20ms 觸發的虛假 `do_focus_in` 訊號。自動暫停受 `_has_drawn` 保護 —— 如果使用者尚未繪製任何筆畫，則不會自動暫停（避免啟動時的混淆行為）。
+
+### 9. 由於 `_focused_since_enable` 競態，第二次啟動時 `present()` 被跳過
+在關閉手寫視窗（透過雙擊 ESC 或切換 IME）並第二次重新啟動後，ESC 和自動暫停無聲地停止運作。視窗出現了但沒有鍵盤焦點。
+
+**根本原因**：`_grab_focus_if_needed` 在 `do_enable()` 期間透過 `GLib.idle_add` 排程。在第二次啟動時，一個虛假的 XFCE `do_focus_in` 訊號在閒置處理程序執行前觸發，將 `_focused_since_enable` 設為 True。舊程式碼隨後完全跳過了 `self.win.present()` —— 視窗可見但沒有鍵盤焦點，因此 GTK `focus-out-event` 永遠不會觸發，ESC 鍵事件也永遠不會到達。
+
+**修復方法**：在 `_grab_focus_if_needed` 中始終呼叫 `self.win.present()`，無論 `_focused_since_enable` 如何。這是安全的，因為在手寫模式下使用者透過觸控板/滑鼠互動，而非鍵盤 —— 視窗只需要焦點來路由 ESC 和 GTK 焦點事件。
+
+### 10. X11 屬性刷新時序阻止 `present()` 授予焦點
+即使在修復 #9 之後，某些第二次啟動嘗試仍然無法獲得鍵盤焦點。調查顯示 `on_focus_in_event` 在啟動序列中缺失，儘管呼叫了 `present()`。
+
+**根本原因**：`set_accept_focus(True)` 和 `present()` 都在 `_grab_focus_if_needed`（GLib 閒置處理程序）內部呼叫。GTK 批次處理 X11 `WM_HINTS` 屬性變更 —— 當閒置處理程序執行時，`accept_focus=True` 尚未刷新到 X 伺服器。視窗管理器仍然看到 `accept_focus(False)`（仍然來自之前的 `do_disable()`）並拒絕了焦點請求。
+
+**修復方法**：在 `do_enable()` 中的 `show_all()` 和 `GLib.idle_add` 之前呼叫 `self.win.set_accept_focus(True)`。當閒置處理程序觸發並呼叫 `present()` 時，X11 屬性變更已刷新到伺服器。視窗管理器看到 `accept_focus(True)` 並授予焦點，從而在每個啟動週期產生 `on_focus_in_event`，並使 ESC 和 `on_focus_out_event` 正常運作。
 
 ### 驗證結果
 

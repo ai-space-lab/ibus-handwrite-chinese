@@ -232,7 +232,7 @@ This opens a GTK floating window where you can draw characters. Recognition resu
 
 ### Bug Fixes Applied
 
-Seven bugs were identified and fixed across the PP-OCRv6 pipeline, ESC state machine, and Firefox compatibility:
+Ten bugs were identified and fixed across the PP-OCRv6 pipeline, ESC state machine, Firefox compatibility, and desktop/Firefox non-text area auto-pause:
 
 1. **Dict index corruption** (line 290): `line.strip()` stripped U+3000 (ideographic space) from a dict entry, shifting all subsequent character indices by 1. Fixed with `line.rstrip('\n')`.
 2. **Confidence pooling** (line 405): `np.mean(probs, axis=0)` averaged across all CTC time steps including blank frames, diluting true confidence by ~10×. Fixed with `np.max(probs, axis=0)` (MAX pooling) which matches CTC argmax behavior for single-character recognition.
@@ -268,6 +268,27 @@ Pressing ESC to pause the panel did not work when no text field was focused (e.g
 **Root cause**: A previous fix attempted a 50ms delayed focus grab (`_grab_focus_if_needed`) but immediately reverted `set_accept_focus(False)` before the window manager processed the focus grant. Logs showed the grab ran but ESC never arrived.
 
 **Fix**: Removed the timer entirely. In `do_enable()`, call `set_accept_focus(True)` before `present()` and leave it True for the session — matching what `--test` mode already does. In `do_disable()`, reset to `False`. Verified via xdotool: `on_key_esc: _state=0` logged when pressing ESC with desktop focused.
+
+### 8. Auto-pause on non-text area focus loss (Firefox title bar, desktop background)
+When the user clicked Firefox's title bar or the desktop background while the handwriting window was open, no ESC or keyboard event could reach the window — the IBus context was inactive (no text field) and the window had no keyboard focus. Pressing ESC did nothing.
+
+**Root cause**: Two event paths exist — IBus's `do_process_key_event` (requires an active IBus input context, only created by text-entry widgets) and GTK's `on_key` handler (requires the window to have keyboard focus). After clicking a non-text area, neither path was available.
+
+**Fix**: Added GTK `focus-out-event` handler (`on_focus_out_event`) that schedules a 50ms debounce timer. On expiry, `_handle_focus_lost` calls `on_key_esc()` to auto-pause the window. The 50ms debounce absorbs spurious XFCE `do_focus_in` signals that fire ~20ms after desktop clicks. The auto-pause is gated by `_has_drawn` — no auto-pause if the user hasn't drawn any strokes (avoids confusing startup behavior).
+
+### 9. `present()` skipped on second activation due to `_focused_since_enable` race
+After closing the handwriting window (via double-ESC or switching IME) and reactivating it a second time, ESC and auto-pause silently stopped working. The window appeared but had no keyboard focus.
+
+**Root cause**: `_grab_focus_if_needed` is scheduled via `GLib.idle_add` during `do_enable()`. On the second activation, a spurious XFCE `do_focus_in` signal fired before the idle handler ran, setting `_focused_since_enable=True`. The old code then skipped `self.win.present()` entirely — the window was visible but had no keyboard focus, so GTK `focus-out-event` never fired and ESC key events never arrived.
+
+**Fix**: Always call `self.win.present()` in `_grab_focus_if_needed`, regardless of `_focused_since_enable`. This is safe because in handwriting mode the user interacts via trackpad/mouse, not keyboard — the window needs focus only for ESC routing and GTK focus events.
+
+### 10. X11 property flush timing prevents `present()` from granting focus
+Even after fix #9, some second-activation attempts still failed to get keyboard focus. Investigation revealed `on_focus_in_event` was missing from the activation sequence, even though `present()` was called.
+
+**Root cause**: `set_accept_focus(True)` and `present()` were both called inside `_grab_focus_if_needed` (the GLib idle handler). GTK batches X11 `WM_HINTS` property changes — when the idle handler ran, `accept_focus=True` had not been flushed to the X server yet. The window manager still saw `accept_focus(False)` (still in effect from the preceding `do_disable()`) and denied the focus request.
+
+**Fix**: Call `self.win.set_accept_focus(True)` in `do_enable()` before `show_all()` and `GLib.idle_add`. By the time the idle handler fires and calls `present()`, the X11 property change is already flushed to the server. The WM sees `accept_focus(True)` and grants focus, producing `on_focus_in_event` and enabling ESC and `on_focus_out_event` on every activation cycle.
 
 ### Validation Results
 

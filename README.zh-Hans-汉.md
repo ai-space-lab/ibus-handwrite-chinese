@@ -219,7 +219,7 @@ python3 src/ibus-engine-handwrite-chinese --test
 
 ### 已修复的 Bug
 
-共发现并修复了七个 Bug，涵盖 PP-OCRv6 管线、ESC 状态机和 Firefox 兼容性：
+共发现并修复了十个 Bug，涵盖 PP-OCRv6 管线、ESC 状态机、Firefox 兼容性以及桌面/非文本区域自动暂停：
 
 1. **字典索引损坏**（第 290 行）：`line.strip()` 从字典条目中剥离了 U+3000（表意空格），导致后续所有字符索引偏移 1。修复为 `line.rstrip('\n')`。
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 对所有 CTC 时间步（包括空白帧）取平均，使真实置信度稀释约 10 倍。修复为 `np.max(probs, axis=0)`（MAX 池化），符合单字符识别的 CTC argmax 行为。
@@ -255,6 +255,27 @@ Firefox 通过 IBus 发送 ESC 按键事件时会设置 `IBUS_RELEASE_MASK`（1 
 **根本原因**：之前的修复尝试了 50ms 延迟焦点获取（`_grab_focus_if_needed`），但在窗口管理器处理焦点授予前立即还原了 `set_accept_focus(False)`。日志显示获取运行了但 ESC 从未到达。
 
 **修复方法**：完全移除定时器。在 `do_enable()` 中，在 `present()` 前调用 `set_accept_focus(True)` 并在会话期间保持 True —— 与 `--test` 模式的做法一致。在 `do_disable()` 中重置为 `False`。通过 xdotool 验证：当桌面聚焦时按下 ESC，记录到 `on_key_esc: _state=0`。
+
+### 8. 非文本区域焦点丢失时自动暂停（Firefox 标题栏、桌面背景）
+当用户单击 Firefox 标题栏或桌面背景时，手写窗口仍处于打开状态，但没有任何 ESC 或键盘事件能到达窗口 —— IBus 上下文已不活跃（无文本字段），窗口也没有键盘焦点。
+
+**根本原因**：存在两条事件路径 —— IBus 的 `do_process_key_event`（需要活跃的 IBus 输入上下文，仅由文本输入控件创建）和 GTK 的 `on_key` 处理程序（需要窗口拥有键盘焦点）。单击非文本区域后，两条路径均不可用。
+
+**修复方法**：添加了 GTK `focus-out-event` 处理程序（`on_focus_out_event`），安排 50ms 去抖定时器。到期时，`_handle_focus_lost` 调用 `on_key_esc()` 自动暂停窗口。50ms 去抖可吸收 XFCE 在桌面点击后约 20ms 触发的虚假 `do_focus_in` 信号。自动暂停受 `_has_drawn` 保护 —— 如果用户尚未绘制任何笔画，则不会自动暂停（避免启动时的混淆行为）。
+
+### 9. 由于 `_focused_since_enable` 竞态，第二次激活时 `present()` 被跳过
+在关闭手写窗口（通过双击 ESC 或切换 IME）并第二次重新激活后，ESC 和自动暂停无声地停止工作。窗口出现了但没有键盘焦点。
+
+**根本原因**：`_grab_focus_if_needed` 在 `do_enable()` 期间通过 `GLib.idle_add` 调度。在第二次激活时，一个虚假的 XFCE `do_focus_in` 信号在空闲处理程序运行前触发，将 `_focused_since_enable` 设置为 True。旧代码随后完全跳过了 `self.win.present()` —— 窗口可见但没有键盘焦点，因此 GTK `focus-out-event` 永远不会触发，ESC 键事件也永远不会到达。
+
+**修复方法**：在 `_grab_focus_if_needed` 中始终调用 `self.win.present()`，无论 `_focused_since_enable` 如何。这是安全的，因为在手写模式下用户通过触控板/鼠标交互，而非键盘 —— 窗口只需要焦点来路由 ESC 和 GTK 焦点事件。
+
+### 10. X11 属性刷新时序阻止 `present()` 授予焦点
+即使在修复 #9 之后，某些第二次激活尝试仍然无法获得键盘焦点。调查显示 `on_focus_in_event` 在激活序列中缺失，尽管调用了 `present()`。
+
+**根本原因**：`set_accept_focus(True)` 和 `present()` 都在 `_grab_focus_if_needed`（GLib 空闲处理程序）内部调用。GTK 批量处理 X11 `WM_HINTS` 属性更改 —— 当空闲处理程序运行时，`accept_focus=True` 尚未刷新到 X 服务器。窗口管理器仍然看到 `accept_focus(False)`（仍然来自之前的 `do_disable()`）并拒绝了焦点请求。
+
+**修复方法**：在 `do_enable()` 中的 `show_all()` 和 `GLib.idle_add` 之前调用 `self.win.set_accept_focus(True)`。当空闲处理程序触发并调用 `present()` 时，X11 属性更改已刷新到服务器。窗口管理器看到 `accept_focus(True)` 并授予焦点，从而在每个激活周期产生 `on_focus_in_event`，并使 ESC 和 `on_focus_out_event` 正常工作。
 
 ### 验证结果
 
