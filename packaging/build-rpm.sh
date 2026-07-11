@@ -27,8 +27,8 @@ TARBALL="${PACKAGE}-${VERSION}.tar.gz"
 rm -rf "/tmp/${TARDIR}"
 mkdir -p "/tmp/${TARDIR}"
 cp -r "$ROOTDIR/src" "$ROOTDIR/xml" "$ROOTDIR/icons" "$ROOTDIR/tools" \
-      "$ROOTDIR/packaging" \
-      "$ROOTDIR/README.md" "$ROOTDIR/README.zh-Hans-汉.md" "$ROOTDIR/README.zh-Hant-漢.md" \
+      "$ROOTDIR/packaging" "$ROOTDIR/models" \
+      "$ROOTDIR/README.md" "$ROOTDIR/README.zh-Hans-汉.md" "$ROOTDIR/README.zh-Hant-汉.md" \
       "$ROOTDIR/LICENSE" "$ROOTDIR/bootstrap.sh" "/tmp/${TARDIR}/"
 tar -czf "$RPMBUILDDIR/SOURCES/$TARBALL" -C /tmp "$TARDIR"
 rm -rf "/tmp/${TARDIR}"

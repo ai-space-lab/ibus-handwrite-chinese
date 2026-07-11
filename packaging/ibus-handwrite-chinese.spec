@@ -60,6 +60,42 @@ SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
 MODEL_DIR="$SHARE_DIR/models"
 VENV_DIR="$SHARE_DIR/venv"
 WRAPPER="/usr/local/bin/ibus-engine-handwrite-chinese"
+CHECKSUMS_FILE="$MODEL_DIR/checksums.sha256"
+
+# --- Helper: verify SHA256 ---
+verify_sha256() {
+    _file="$1"
+    _expected_name="$2"
+    [ -f "$CHECKSUMS_FILE" ] || return 0
+    _expected_hash=$(awk -v name="$_expected_name" '$2 == name {print $1}' "$CHECKSUMS_FILE" 2>/dev/null)
+    [ -n "$_expected_hash" ] || return 0
+    _actual_hash=$(sha256sum "$_file" | awk '{print $1}')
+    if [ "$_actual_hash" != "$_expected_hash" ]; then
+        echo "  ERROR: SHA256 mismatch for $_expected_name" >&2
+        echo "    Expected: $_expected_hash" >&2
+        echo "    Actual:   $_actual_hash" >&2
+        echo "    The downloaded file is corrupted or has been tampered with." >&2
+        exit 1
+    fi
+    echo "  SHA256 OK: $_expected_name"
+    return 0
+}
+
+# --- Helper: download with fallback ---
+download_with_fallback() {
+    _url1="$1"
+    _url2="$2"
+    _output="$3"
+    _desc="$4"
+    if wget -q --timeout=30 -O "$_output" "$_url1"; then
+        return 0
+    fi
+    echo "  Warning: Primary download failed for $_desc, trying fallback..."
+    if wget -q --timeout=60 -O "$_output" "$_url2"; then
+        return 0
+    fi
+    return 1
+}
 
 # --- Model download ---
 mkdir -p "$MODEL_DIR"
@@ -80,16 +116,25 @@ if [ ! -f "$MODEL_FILE" ] || [ ! -f "$DICT_FILE" ]; then
     echo "Downloading PP-OCRv6 ($PPOCR_TIER) recognition model..."
     if command -v wget >/dev/null 2>&1; then
         if [ ! -f "$MODEL_FILE" ]; then
-            wget -q --timeout=60 -O "$MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx" \
-                "https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx" \
-                && echo "PP-OCRv6 model downloaded" \
-                || echo "Warning: PP-OCRv6 model download failed"
+            MODEL_URL1="https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
+            MODEL_URL2="https://hf-mirror.com/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
+            if download_with_fallback "$MODEL_URL1" "$MODEL_URL2" \
+                "$MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx" "PP-OCRv6 model"; then
+                verify_sha256 "$MODEL_DIR/ppocrv6_${PPOCR_TIER}_rec.onnx" \
+                    "ppocrv6_${PPOCR_TIER}_rec.onnx" || :
+            else
+                echo "Warning: Failed to download PP-OCRv6 model (primary and fallback)"
+            fi
         fi
         if [ ! -f "$DICT_FILE" ]; then
-            wget -q --timeout=60 -O "$MODEL_DIR/dict_v6.txt" \
-                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt" \
-                && echo "PP-OCRv6 dictionary downloaded" \
-                || echo "Warning: PP-OCRv6 dictionary download failed"
+            DICT_URL1="https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"
+            DICT_URL2="https://cdn.jsdelivr.net/gh/PaddlePaddle/PaddleOCR@main/ppocr/utils/dict/ppocrv6_dict.txt"
+            if download_with_fallback "$DICT_URL1" "$DICT_URL2" \
+                "$MODEL_DIR/dict_v6.txt" "PP-OCRv6 dictionary"; then
+                verify_sha256 "$MODEL_DIR/dict_v6.txt" "dict_v6.txt" || :
+            else
+                echo "Warning: Failed to download PP-OCRv6 dictionary (primary and fallback)"
+            fi
         fi
     else
         echo "Warning: wget not available, cannot download PP-OCRv6 model"
@@ -156,13 +201,34 @@ if command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules 2>/dev/null || true
 fi
 
+%postun
+if [ $1 -eq 0 ]; then
+    # Real uninstall (not upgrade: $1 >= 1 during upgrade)
+    SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
+    MODEL_DIR="$SHARE_DIR/models"
+
+    # Best-effort: restore previous IBus engine
+    if command -v ibus >/dev/null 2>&1; then
+        CURRENT=$(ibus engine 2>/dev/null || echo "")
+        if [ "$CURRENT" = "handwrite-chinese" ]; then
+            ibus engine xkb:us::eng 2>/dev/null || true
+        fi
+    fi
+
+    if [ -d "$MODEL_DIR" ]; then
+        echo "Model data preserved at $MODEL_DIR."
+        echo "To remove: sudo rm -rf $SHARE_DIR"
+    fi
+fi
+
 %files
 %license LICENSE
-%doc README.md README.zh-Hans-汉.md README.zh-Hant-漢.md
+%doc README.md README.zh-Hans-汉.md README.zh-Hant-汉.md
 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
 /usr/local/share/ibus-handwrite-chinese/restore.sh
 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
+/usr/local/share/ibus-handwrite-chinese/models/checksums.sha256
 /usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg
 /usr/share/ibus/component/handwrite-chinese.xml
 /etc/udev/rules.d/99-trackpad-handwrite.rules

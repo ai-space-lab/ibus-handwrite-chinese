@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
 tests/captured_strokes.json
-/models/
+/models/*
+!/models/checksums.sha256
 .omo/run-continuation/

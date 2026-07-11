@@ -19,7 +19,8 @@ cp "$ROOTDIR/packaging/debian/copyright" "$BUILDDIR/DEBIAN/"
 cp "$ROOTDIR/packaging/debian/changelog" "$BUILDDIR/DEBIAN/changelog"
 cp "$ROOTDIR/packaging/debian/postinst" "$BUILDDIR/DEBIAN/"
 cp "$ROOTDIR/packaging/debian/prerm" "$BUILDDIR/DEBIAN/"
-chmod 755 "$BUILDDIR/DEBIAN/postinst" "$BUILDDIR/DEBIAN/prerm"
+cp "$ROOTDIR/packaging/debian/postrm" "$BUILDDIR/DEBIAN/"
+chmod 755 "$BUILDDIR/DEBIAN/postinst" "$BUILDDIR/DEBIAN/prerm" "$BUILDDIR/DEBIAN/postrm"
 
 # Set version in binary control
 sed -i "s/^Version:.*/Version: ${VERSION}/" "$BUILDDIR/DEBIAN/control"
@@ -27,6 +28,7 @@ sed -i "s/^Version:.*/Version: ${VERSION}/" "$BUILDDIR/DEBIAN/control"
 # Copy files into package tree
 mkdir -p "$BUILDDIR/usr/local/bin"
 mkdir -p "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/icons"
+mkdir -p "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/models"
 mkdir -p "$BUILDDIR/usr/share/ibus/component"
 mkdir -p "$BUILDDIR/etc/udev/rules.d"
 
@@ -43,6 +45,7 @@ chmod 755 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/restore.sh"
 cp "$ROOTDIR/tools/diagnose_trackpad.sh" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/"
 chmod 755 "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh"
 cp "$ROOTDIR/tools/99-trackpad-handwrite.rules" "$BUILDDIR/etc/udev/rules.d/"
+cp "$ROOTDIR/models/checksums.sha256" "$BUILDDIR/usr/local/share/ibus-handwrite-chinese/models/"
 
 # Check for required Python modules
 python3 -c "compile(open('$ROOTDIR/src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"

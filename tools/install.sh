@@ -29,6 +29,53 @@ fi
 
 REAL_USER="${SUDO_USER:-${USER:-root}}"
 
+# ---- SHA256 checksums ----
+# Path to checksums.sha256 relative to this script (tools/../models/checksums.sha256)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CHECKSUMS_FILE="$(cd "$SCRIPT_DIR/.." && pwd)/models/checksums.sha256"
+
+# Verify SHA256 of a downloaded file against the bundled checksums file.
+# Globals: CHECKSUMS_FILE
+# Args:    $1 = file to verify, $2 = expected filename in checksums file
+# Returns: 0 on match or if checksums file is missing, 1 on mismatch
+verify_sha256() {
+    local file="$1"
+    local expected_name="$2"
+    [ -f "$CHECKSUMS_FILE" ] || return 0  # Graceful skip when checksums file is absent
+    local expected_hash
+    expected_hash=$(awk -v name="$expected_name" '$2 == name {print $1}' "$CHECKSUMS_FILE" 2>/dev/null)
+    [ -n "$expected_hash" ] || return 0  # Skip if no entry for this filename
+    local actual_hash
+    actual_hash=$(sha256sum "$file" | awk '{print $1}')
+    if [ "$actual_hash" != "$expected_hash" ]; then
+        echo "  ✗ SHA256 mismatch for $expected_name" >&2
+        echo "    Expected: $expected_hash" >&2
+        echo "    Actual:   $actual_hash" >&2
+        echo "    The downloaded file is corrupted or has been tampered with." >&2
+        return 1
+    fi
+    echo "  ✓ SHA256 OK: $expected_name"
+    return 0
+}
+
+# Download a file with a primary URL and a fallback URL.
+# Args:    $1 = primary URL, $2 = fallback URL, $3 = output path, $4 = description
+# Returns: 0 on success, 1 if both URLs fail
+download_with_fallback() {
+    local url1="$1"
+    local url2="$2"
+    local output="$3"
+    local desc="$4"
+    if wget -q --timeout=30 -O "$output" "$url1"; then
+        return 0
+    fi
+    echo "  ⚠ Primary download failed for $desc, trying fallback..."
+    if wget -q --timeout=60 -O "$output" "$url2"; then
+        return 0
+    fi
+    return 1
+}
+
 if [ "$SKIP_DEPS" = false ]; then
     if ! command -v apt &>/dev/null; then
         echo "  ⚠ Not a Debian-based system — skipping apt dependency install."
@@ -62,24 +109,42 @@ else
     tmpdir="$(mktemp -d)"
     ppocr_ok=true
     if [ ! -f "$PPOCR_MODEL_FILE" ]; then
+        MODEL_URL_PRIMARY="https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
+        MODEL_URL_FALLBACK="https://hf-mirror.com/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"
         echo "  Downloading PP-OCRv6 ${PPOCR_TIER} recognition model..."
-        if wget -q --timeout=30 -O "$tmpdir/inference.onnx" \
-            "https://huggingface.co/PaddlePaddle/PP-OCRv6_${PPOCR_TIER}_rec_onnx/resolve/main/inference.onnx"; then
-            sudo cp "$tmpdir/inference.onnx" "$PPOCR_MODEL_FILE"
-            echo "  ✓ PP-OCRv6 ${PPOCR_TIER} model downloaded"
+        if download_with_fallback "$MODEL_URL_PRIMARY" "$MODEL_URL_FALLBACK" \
+            "$tmpdir/inference.onnx" "PP-OCRv6 model"; then
+            # Verify SHA256 before installing
+            if verify_sha256 "$tmpdir/inference.onnx" "ppocrv6_${PPOCR_TIER}_rec.onnx"; then
+                sudo cp "$tmpdir/inference.onnx" "$PPOCR_MODEL_FILE"
+                echo "  ✓ PP-OCRv6 ${PPOCR_TIER} model downloaded"
+            else
+                echo "  ✗ PP-OCRv6 ${PPOCR_TIER} model integrity check failed — aborting"
+                rm -rf "$tmpdir"
+                exit 1
+            fi
         else
-            echo "  ⚠ Warning: Failed to download PP-OCRv6 ${PPOCR_TIER} model"
+            echo "  ⚠ Warning: Failed to download PP-OCRv6 ${PPOCR_TIER} model (primary and fallback)"
             ppocr_ok=false
         fi
     fi
     if [ ! -f "$PPOCR_DICT_FILE" ]; then
+        DICT_URL_PRIMARY="https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"
+        DICT_URL_FALLBACK="https://cdn.jsdelivr.net/gh/PaddlePaddle/PaddleOCR@main/ppocr/utils/dict/ppocrv6_dict.txt"
         echo "  Downloading PP-OCRv6 dictionary..."
-        if wget -q --timeout=30 -O "$tmpdir/dict.txt" \
-            "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt"; then
-            sudo cp "$tmpdir/dict.txt" "$PPOCR_DICT_FILE"
-            echo "  ✓ PP-OCRv6 dictionary downloaded"
+        if download_with_fallback "$DICT_URL_PRIMARY" "$DICT_URL_FALLBACK" \
+            "$tmpdir/dict.txt" "PP-OCRv6 dictionary"; then
+            # Verify SHA256 before installing
+            if verify_sha256 "$tmpdir/dict.txt" "dict_v6.txt"; then
+                sudo cp "$tmpdir/dict.txt" "$PPOCR_DICT_FILE"
+                echo "  ✓ PP-OCRv6 dictionary downloaded"
+            else
+                echo "  ✗ PP-OCRv6 dictionary integrity check failed — aborting"
+                rm -rf "$tmpdir"
+                exit 1
+            fi
         else
-            echo "  ⚠ Warning: Failed to download PP-OCRv6 dictionary"
+            echo "  ⚠ Warning: Failed to download PP-OCRv6 dictionary (primary and fallback)"
             ppocr_ok=false
         fi
     fi
