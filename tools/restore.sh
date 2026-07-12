@@ -23,6 +23,26 @@ sudo rm -f /usr/share/ibus/component/handwrite-chinese.xml
 sudo rm -f /etc/udev/rules.d/99-trackpad-handwrite.rules
 sudo rm -rf /usr/local/share/ibus-handwrite-chinese
 
+# Clean up user-local config and data (prompt to avoid data loss)
+if [ -d "$HOME/.config/ibus-handwrite-chinese" ] || [ -d "$HOME/.local/share/ibus-handwrite-chinese" ]; then
+    echo ""
+    echo "  User data detected:"
+    [ -d "$HOME/.config/ibus-handwrite-chinese" ] && \
+        echo "    - $HOME/.config/ibus-handwrite-chinese/  (settings/config)"
+    [ -d "$HOME/.local/share/ibus-handwrite-chinese" ] && \
+        echo "    - $HOME/.local/share/ibus-handwrite-chinese/  (user dictionary)"
+    echo "  Remove user data? [y/N] "
+    read -r _confirm 2>/dev/null || _confirm=""
+    if [ "$_confirm" = "y" ] || [ "$_confirm" = "Y" ]; then
+        rm -rf "$HOME/.config/ibus-handwrite-chinese" 2>/dev/null && \
+            echo "  OK User config removed"
+        rm -rf "$HOME/.local/share/ibus-handwrite-chinese" 2>/dev/null && \
+            echo "  OK User dictionary removed"
+    else
+        echo "  - User data preserved"
+    fi
+fi
+
 echo "[2] Reloading udev..."
 sudo udevadm control --reload-rules 2>/dev/null || true
 
