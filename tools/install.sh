@@ -83,9 +83,9 @@ if [ "$SKIP_DEPS" = false ]; then
     else
         echo "[1] Installing dependencies..."
         sudo apt-get update || echo "  ⚠ apt update failed, attempting install anyway"
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip python3-venv || {
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y python3-evdev wget unzip python3-venv python3-gi-cairo || {
             echo "  ⚠ Failed to install system packages. Install manually:"
-            echo "     apt install python3-evdev wget unzip python3-venv"
+            echo "     apt install python3-evdev wget unzip python3-venv python3-gi-cairo"
             echo "  Then re-run with: ./tools/install.sh --skip-deps [--no-restart] [--no-set-engine]"
         }
     fi

@@ -17,7 +17,8 @@ else
 fi
 
 echo "=============================================="
-echo "  ibus-handwrite-chinese — v0.7.0"
+_VERSION="$(cat "$(dirname "$0")/VERSION" 2>/dev/null || echo "unknown")"
+echo "  ibus-handwrite-chinese — v${_VERSION}"
 echo "  ⚠️  Not yet widely tested on real hardware."
 echo "  Please report issues at:"
 echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"
