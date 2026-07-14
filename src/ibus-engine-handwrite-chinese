@@ -276,7 +276,7 @@ class HandwriteWin(Gtk.Window):
             f.write(str(os.getpid()) + ' ' + msg + '\n')
 
 
-    def __init__(self, engine):
+    def __init__(self, engine=None):
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         self.engine = engine
 
@@ -298,7 +298,7 @@ class HandwriteWin(Gtk.Window):
                 if primary:
                     self._scale = max(self._scale, max(1, min(primary.get_scale_factor(), 4)))
         # Propagate scale to ONNX preprocessor (for stroke line width)
-        if hasattr(self.engine.recognizer, 'scale'):
+        if self.engine is not None and hasattr(self.engine.recognizer, 'scale'):
             self.engine.recognizer.scale = self._scale
 
         win_w = CONFIG["window"]["width"] * self._scale
@@ -957,12 +957,25 @@ class HandwriteWin(Gtk.Window):
         Gtk.Window.destroy(self)
 
 
+# Global pre-created window — built before IBus.main() so GTK widget creation
+# (which requires X11 round-trips) completes outside any D-Bus handler context.
+_HANDWRITE_WIN_GLOBAL = None
+
+
 class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
     def __init__(self):
         super().__init__()
         self.onnx = self._create_onnx_handle()
         self.userdict = self._create_userdict()
-        self.win = None
+        # Acquire the pre-created window (if any) from main() — this avoids
+        # creating GTK widgets inside the IBus D-Bus handler context.
+        global _HANDWRITE_WIN_GLOBAL
+        if _HANDWRITE_WIN_GLOBAL is not None:
+            self.win = _HANDWRITE_WIN_GLOBAL
+            self.win.engine = self
+            _HANDWRITE_WIN_GLOBAL = None
+        else:
+            self.win = None
         self.last_results = []
         self._bus = None
         self._watch_id = None
@@ -1131,8 +1144,6 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._last_enable_time = time.time()
         self._has_drawn = False
         self._write_log('do_enable: t=%.3f' % self._last_enable_time)
-        if self.win is None:
-            self.win = HandwriteWin(self)
         if self._bus is None:
             self._bus = IBus.Bus()
         self.win._state = 0
@@ -1143,37 +1154,24 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self.recognizer.clear()
         self.last_results = []
         self._focused_since_enable = False
-        self.win.set_accept_focus(True)
+        # Don't accept focus so the active text field keeps keyboard focus
+        # and pass-through keys (Backspace, Enter) reach the application via
+        # the IBus key-event path.
+        self.win.set_accept_focus(False)
         self.win.show_all()
         self._position_window()
-        # Use idle_add so the X11 property changes from show_all() and
-        # set_accept_focus(True) are flushed to the X server before
-        # present() asks the window manager for keyboard focus.
-        GLib.idle_add(self._grab_focus_if_needed, priority=GLib.PRIORITY_LOW)
+        # Raise the window without stealing keyboard focus.  We call present
+        # here directly because GLib.idle_add with LOW priority never fires
+        # inside the IBus D-Bus handler — the main loop always has higher-
+        # priority D-Bus events to process.
+        display = Gdk.Display.get_default()
+        if display:
+            display.flush()
+        self.win.present()
         if not self.win.start_trackpad():
             print("  [engine] ⚠ Trackpad not available. Use mouse or check tools/diagnose_trackpad.sh", file=sys.stderr)
         if self._watch_id is None:
             self._watch_id = GLib.timeout_add(500, self._check_engine)
-
-    def _grab_focus_if_needed(self):
-        """One-shot: always grab keyboard focus so ESC and auto-pause work.
-
-        Without present(), the window never has keyboard focus and GTK
-        on_focus_out_event never fires — breaking auto-pause on Firefox
-        and desktop clicks. present() is safe because the user is in
-        handwriting mode and interacts via trackpad/mouse, not keyboard.
-        """
-        if not self.win or not self.win.get_visible():
-            self._write_log('_grab_focus_if_needed: window not visible, skipping')
-            return False
-        self.win.set_accept_focus(True)
-        self.win.present()
-        if self._focused_since_enable:
-            self._write_log('_grab_focus_if_needed: text field was focused, focus grabbed for window')
-        else:
-            self._write_log('_grab_focus_if_needed: grabbing keyboard focus')
-        self._write_log('_grab_focus_if_needed: done')
-        return False
 
     def do_disable(self):
         self._disabling = True
@@ -1400,6 +1398,23 @@ def main():
     component_name = "com.github.ai-space-lab.ibus-handwrite-chinese"
 
     Gtk.init(sys.argv)
+
+    # Pre-create the handwriting panel window here, before the IBus event
+    # loop starts.  GTK widget construction (which requires X11 round-trips
+    # for Gdk.Cursor.new, Gdk.Screen.get_default, etc.) blocks when called
+    # inside the IBus D-Bus handler context (do_enable) because the GLib
+    # main loop cannot dispatch X11 events while processing D-Bus.
+    #
+    # The engine's __init__ acquires this pre-created window and replaces
+    # the None engine reference with the real HandwriteEngine instance.
+    global _HANDWRITE_WIN_GLOBAL
+    _HANDWRITE_WIN_GLOBAL = HandwriteWin(None)
+    # Realize the window now (outside any IBus D-Bus handler) so that the
+    # X11 window and all Gdk resources are fully created.  When do_enable
+    # calls show_all() later, it only maps the existing window — no X11
+    # round-trips needed inside the D-Bus handler context.
+    _HANDWRITE_WIN_GLOBAL.realize()
+    _HANDWRITE_WIN_GLOBAL.hide()
 
     if args.test:
         engine = TestCommitEngine()
