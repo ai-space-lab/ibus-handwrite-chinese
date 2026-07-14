@@ -210,6 +210,9 @@ sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chi
 
 # Install handwrite config and VERSION file
 sudo cp src/handwrite_config.py /usr/local/share/ibus-handwrite-chinese/
+sudo cp src/handwrite_model_download.py /usr/local/share/ibus-handwrite-chinese/
+sudo cp src/handwrite_shortcuts.py /usr/local/share/ibus-handwrite-chinese/
+sudo cp src/handwrite_userdict.py /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/handwrite_config.py
 sudo cp VERSION /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/VERSION

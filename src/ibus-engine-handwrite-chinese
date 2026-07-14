@@ -973,7 +973,13 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if _HANDWRITE_WIN_GLOBAL is not None:
             self.win = _HANDWRITE_WIN_GLOBAL
             self.win.engine = self
-            _HANDWRITE_WIN_GLOBAL = None
+            # NOTE: _HANDWRITE_WIN_GLOBAL is intentionally NOT set to None here.
+            # ibus-daemon may destroy and recreate the engine instance between
+            # activations (e.g., when the user switches IME and back).  If we
+            # consumed the global on the FIRST engine's __init__, subsequent
+            # instances would have self.win = None, and do_enable would crash
+            # on self.win._state = 0 (AttributeError caught silently by GObject
+            # C layer, window never shown).
         else:
             self.win = None
         self.last_results = []
@@ -1146,6 +1152,16 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         self._write_log('do_enable: t=%.3f' % self._last_enable_time)
         if self._bus is None:
             self._bus = IBus.Bus()
+        # Self-heal: if self.win is None (should not happen with the persistent
+        # global window, but defensive against edge cases), re-acquire the global.
+        if self.win is None:
+            global _HANDWRITE_WIN_GLOBAL
+            if _HANDWRITE_WIN_GLOBAL is not None:
+                self.win = _HANDWRITE_WIN_GLOBAL
+                self.win.engine = self
+            else:
+                print("ERROR: No pre-created window available", file=sys.stderr)
+                return
         self.win._state = 0
 
         current = self._bus.get_global_engine()

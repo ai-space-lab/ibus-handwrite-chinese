@@ -27,9 +27,13 @@ DEFAULT_CONFIG = {
         "log_max_mb": 5,
     },
     "model": {
-        "tier": "small",       # tiny | small | medium
-        "path": "",            # explicit model .onnx path (empty = auto-detect)
-        "dict_path": "",       # explicit dict .txt path (empty = auto-detect)
+        "tier": "small",           # tiny | small | medium (path resolution)
+        "path": "",                # explicit model .onnx path (empty = auto-detect)
+        "dict_path": "",           # explicit dict .txt path (empty = auto-detect)
+        "variant": "small",        # small | large | server (auto-download variant)
+        "download_path": "/usr/local/share/ibus-handwrite-chinese/models",
+        "auto_download": True,     # automatically download model if missing
+        "download_timeout": 30,    # per-file download timeout in seconds
     },
     "engine": {
         "stroke_width": 8,
@@ -55,6 +59,15 @@ DEFAULT_CONFIG = {
         "boost_strength": 1.5,
         "max_entries": 10000,
     },
+    "shortcuts": {
+        "escape": "Escape",
+        "commit": "Return",
+        "delete_stroke": "BackSpace",
+        "page_up": "Left",
+        "page_down": "Right",
+        "cycle_theme": "<Control><Shift>T",
+        "open_settings": "<Control><Shift>S",
+    },
 }
 
 # Env var → config path mapping
@@ -65,6 +78,10 @@ ENV_MAP = {
     "IBUS_HANDWRITE_PPOCR_MODEL": ("model", "tier"),
     "IBUS_HANDWRITE_PPOCR_MODEL_PATH": ("model", "path"),
     "IBUS_HANDWRITE_PPOCR_DICT_PATH": ("model", "dict_path"),
+    "IBUS_HANDWRITE_VARIANT": ("model", "variant"),
+    "IBUS_HANDWRITE_DOWNLOAD_PATH": ("model", "download_path"),
+    "IBUS_HANDWRITE_AUTO_DOWNLOAD": ("model", "auto_download"),
+    "IBUS_HANDWRITE_DOWNLOAD_TIMEOUT": ("model", "download_timeout"),
     "IBUS_HANDWRITE_STROKE_WIDTH": ("engine", "stroke_width"),
 }
 
@@ -74,12 +91,17 @@ _INT_KEYS = frozenset({
     "min_redraw_ms", "momentum_tick_ms", "auto_pause_debounce_ms",
     "delete_hold_ms", "width", "height", "drawing_height",
     "drag_handle_height", "candidate_button_width", "log_max_mb",
-    "max_entries",
+    "max_entries", "download_timeout",
 })
 
 # Config keys that expect float values
 _FLOAT_KEYS = frozenset({
     "momentum_decay", "momentum_threshold", "boost_strength",
+})
+
+# Config keys that expect boolean values
+_BOOL_KEYS = frozenset({
+    "auto_download",
 })
 
 
@@ -205,6 +227,8 @@ def apply_env_overrides(config):
             except ValueError:
                 print(f"  [config] Warning: {env_var}={value} is not a valid float, ignoring",
                       file=sys.stderr)
+        elif key in _BOOL_KEYS:
+            config[section][key] = value.lower() in ("true", "1", "yes")
         else:
             config[section][key] = value
 
