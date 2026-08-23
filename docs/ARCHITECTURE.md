@@ -113,7 +113,7 @@ User taps on trackpad
 | `onnxruntime` | CPU-based ONNX model inference for PP-OCRv6 character recognition |
 | `numpy` | Image tensor manipulation, bilinear resize, CTC decode |
 | `pycairo` | Render stroke points to offscreen bitmap for recognition input |
-| `sqlite3` (stdlib) | Not yet in use; reserved for future user dictionary (per-user stroke-to-character learning) |
+| `sqlite3` (stdlib) | User dictionary: per-user stroke-to-character learning in SQLite database |
 | `tomllib` / `tomli` | Parse TOML config file from `~/.config/ibus-handwrite-chinese/config.toml` |
 
 ## Build / Install Pipeline
