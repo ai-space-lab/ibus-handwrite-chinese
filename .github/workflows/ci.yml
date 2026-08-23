@@ -164,14 +164,14 @@ jobs:
         run: |
           if [ "${{ matrix.distro }}" = "opensuse/tumbleweed" ]; then
             zypper --non-interactive removerepo repo-oss || true
-            zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-              https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
+            (zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+              https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss && \
             for attempt in 1 2 3; do
               if zypper --non-interactive --gpg-auto-import-keys refresh; then
                 break
               fi
               [ "$attempt" -lt 3 ] && sleep 30
-            done
+            done) || echo "WARNING: repo-oss refresh failed, proceeding with cached repos"
           else
             zypper --no-gpg-checks refresh 2>/dev/null || true
           fi
