@@ -211,7 +211,7 @@ GPLv3 — required by dependencies (python3-evdev, ibus).
 
 Open the 6-tab preference dialog from your IBus menu:
 - Right-click IBus tray icon > Preferences > Chinese Handwriting
-- Or run: `ibus-setup handwrite-chinese`
+- Or run: `ibus-engine-handwrite-chinese --setup`
 - Or search "Chinese Handwriting" in your desktop settings
 
 The dialog has these tabs:

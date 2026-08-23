@@ -199,7 +199,7 @@ GPLv3 — 由依赖库要求（python3-evdev、ibus）。
 
 从 IBus 菜单打开 6 标签偏好设置对话框：
 - 右键点击 IBus 托盘图标 → 首选项 → Chinese Handwriting
-- 或运行：`ibus-setup handwrite-chinese`
+- 或运行：`ibus-engine-handwrite-chinese --setup`
 - 或在桌面设置中搜索"Chinese Handwriting"
 
 对话框包含以下标签：
