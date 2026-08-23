@@ -10,6 +10,7 @@ import os
 import sqlite3
 import sys
 import threading
+from typing import Optional
 
 # ---------------------------------------------------------------------------
 # Default boost_strength — overridden by config when loaded from engine
@@ -50,7 +51,7 @@ class UserDict:
     to promote frequently-used characters in recognition results.
     """
 
-    def __init__(self, db_path: str | None = None):
+    def __init__(self, db_path: Optional[str] = None):
         """Open (or create) the user dictionary database.
 
         Args:
@@ -59,7 +60,7 @@ class UserDict:
         """
         self._db_path = db_path if db_path is not None else _default_db_path()
         self._lock = threading.Lock()
-        self._conn: sqlite3.Connection | None = None
+        self._conn: Optional[sqlite3.Connection] = None
         self._boost_strength = _DEFAULT_BOOST_STRENGTH
         self._max_entries = _DEFAULT_MAX_ENTRIES
         self._enabled = True
@@ -67,9 +68,9 @@ class UserDict:
 
     # -- public helpers -----------------------------------------------------
 
-    def configure(self, *, enabled: bool | None = None,
-                  boost_strength: float | None = None,
-                  max_entries: int | None = None) -> None:
+    def configure(self, *, enabled: Optional[bool] = None,
+                  boost_strength: Optional[float] = None,
+                  max_entries: Optional[int] = None) -> None:
         """Apply runtime configuration.  Thread-safe."""
         if enabled is not None:
             self._enabled = enabled
@@ -158,7 +159,7 @@ class UserDict:
         strength = self._boost_strength
 
         # Build (char, boosted_score, original_score_or_none) entries
-        entries: list[tuple[str, float, float | None]] = []
+        entries: list[tuple[str, float, Optional[float]]] = []
         for item in candidates:
             if tuple_mode:
                 char, score = item
