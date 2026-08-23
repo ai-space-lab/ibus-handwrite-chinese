@@ -24,7 +24,7 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle in the top bar to reposition the window
 - **Mouse fallback**: if no evdev trackpad is available, draw with the mouse
-- **Preference dialog**: 6-tab GTK3 settings UI (General, Model, Engine, Window, User Dictionary, Shortcuts) — accessible from IBus menu or via `ibus-setup handwrite-chinese`
+- **Preference dialog**: 6-tab GTK3 settings UI (General, Model, Engine, Window, User Dictionary, Shortcuts) — accessible from IBus menu or via `ibus-engine-handwrite-chinese --setup`
 - **On-demand model download**: Download PP-OCRv6 models (tiny/small/medium) directly from the preference dialog, with automatic pkexec permission elevation for system-wide install
 - **Auto-download prompt**: Selecting a missing model tier automatically asks if you want to download it
 - **Configurable keyboard shortcuts**: Customize all keybindings (ESC, Enter, Backspace, page up/down, theme cycling, settings) via the Shortcuts tab
