@@ -61,6 +61,9 @@ install -m 755 tools/restore.sh %{buildroot}/usr/local/share/ibus-handwrite-chin
 install -m 755 tools/diagnose_trackpad.sh %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 tools/99-trackpad-handwrite.rules %{buildroot}/etc/udev/rules.d/
 
+mkdir -p %{buildroot}/usr/local/share/ibus-handwrite-chinese/models
+install -m 644 models/checksums.sha256 %{buildroot}/usr/local/share/ibus-handwrite-chinese/models/checksums.sha256
+
 %post
 SHARE_DIR="/usr/local/share/ibus-handwrite-chinese"
 MODEL_DIR="$SHARE_DIR/models"
@@ -233,6 +236,10 @@ fi
 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 /usr/local/share/ibus-handwrite-chinese/handwrite_evdev.py
 /usr/local/share/ibus-handwrite-chinese/handwrite_config.py
+/usr/local/share/ibus-handwrite-chinese/handwrite_model_download.py
+/usr/local/share/ibus-handwrite-chinese/handwrite_prefs.py
+/usr/local/share/ibus-handwrite-chinese/handwrite_shortcuts.py
+/usr/local/share/ibus-handwrite-chinese/handwrite_userdict.py
 /usr/local/share/ibus-handwrite-chinese/VERSION
 /usr/local/share/ibus-handwrite-chinese/restore.sh
 /usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
