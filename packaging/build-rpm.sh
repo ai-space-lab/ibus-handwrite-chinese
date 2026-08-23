@@ -4,7 +4,7 @@ set -e
 # Build an RPM package for ibus-handwrite-chinese
 # Usage: ./packaging/build-rpm.sh [version] [dist]
 
-VERSION="${1:-0.7.0}"
+VERSION="${1:-0.6.0}"
 DIST="${2:-%{nil}}"
 PACKAGE="ibus-handwrite-chinese"
 ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"

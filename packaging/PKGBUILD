@@ -2,7 +2,7 @@
 # Contributor: Your Name <your@email.com>
 
 pkgname=ibus-handwrite-chinese
-pkgver=0.7.0
+pkgver=0.6.0
 pkgrel=1
 pkgdesc="Chinese handwriting input method with PP-OCRv6 ONNX-based recognition"
 arch=('any')

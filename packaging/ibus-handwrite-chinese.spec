@@ -1,5 +1,5 @@
 %global srcname ibus-handwrite-chinese
-%global srcver 0.7.0
+%global srcver 0.6.0
 
 Name:           ibus-handwrite-chinese
 Version:        %{srcver}

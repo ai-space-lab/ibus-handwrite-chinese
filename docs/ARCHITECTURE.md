@@ -142,7 +142,7 @@ tools/install.sh (or bootstrap.sh → install.sh)
 ```
 Release workflow (.github/workflows/release.yml)
        │
-       ├── Resolve version from tag (e.g., v0.8.0)
+       ├── Resolve version from tag (e.g., v0.6.0)
        ├── packaging/build-deb.sh → .deb
        ├── packaging/build-rpm.sh → .rpm
        ├── tar --exclude=.git → source tarball

@@ -4,7 +4,7 @@ set -e
 # Build a binary .deb package for ibus-handwrite-chinese
 # Usage: ./packaging/build-deb.sh [version]
 
-VERSION="${1:-0.7.0}"
+VERSION="${1:-0.6.0}"
 PACKAGE="ibus-handwrite-chinese"
 ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILDDIR="/tmp/${PACKAGE}-deb-build"
