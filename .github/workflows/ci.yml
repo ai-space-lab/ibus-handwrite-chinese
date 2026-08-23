@@ -157,7 +157,7 @@ jobs:
       - name: Install python3 with sqlite3 (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
-          zypper --no-refresh install -y python313 || \
+          zypper --no-refresh install -y python313 || true
           zypper --no-refresh install -y python3 || true
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
