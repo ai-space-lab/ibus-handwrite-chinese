@@ -50,6 +50,10 @@ mkdir -p %{buildroot}/etc/udev/rules.d
 install -m 755 src/ibus-engine-handwrite-chinese %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 src/handwrite_evdev.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 src/handwrite_config.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 src/handwrite_userdict.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 src/handwrite_model_download.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 src/handwrite_shortcuts.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
+install -m 644 src/handwrite_prefs.py %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 VERSION %{buildroot}/usr/local/share/ibus-handwrite-chinese/
 install -m 644 xml/handwrite-chinese.xml %{buildroot}/usr/share/ibus/component/
 install -m 644 icons/handwrite-chinese.svg %{buildroot}/usr/local/share/ibus-handwrite-chinese/icons/

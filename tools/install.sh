@@ -208,12 +208,13 @@ sudo chmod 755 /usr/local/bin/ibus-engine-handwrite-chinese
 sudo cp src/ibus-engine-handwrite-chinese /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese
 
-# Install handwrite config and VERSION file
-sudo cp src/handwrite_config.py /usr/local/share/ibus-handwrite-chinese/
-sudo cp src/handwrite_model_download.py /usr/local/share/ibus-handwrite-chinese/
-sudo cp src/handwrite_shortcuts.py /usr/local/share/ibus-handwrite-chinese/
-sudo cp src/handwrite_userdict.py /usr/local/share/ibus-handwrite-chinese/
-sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/handwrite_config.py
+# Install all handwrite_*.py modules and VERSION file
+for f in handwrite_config.py handwrite_userdict.py handwrite_model_download.py handwrite_shortcuts.py handwrite_prefs.py; do
+    if [ -f "src/$f" ]; then
+        sudo cp "src/$f" /usr/local/share/ibus-handwrite-chinese/
+    fi
+done
+sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/handwrite_*.py
 sudo cp VERSION /usr/local/share/ibus-handwrite-chinese/
 sudo chmod 644 /usr/local/share/ibus-handwrite-chinese/VERSION
 

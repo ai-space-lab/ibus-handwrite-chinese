@@ -42,6 +42,10 @@ package() {
     # Install engine script to ENGINE_DIR (run via wrapper, not directly)
     install -Dm644 src/ibus-engine-handwrite-chinese "${pkgdir}/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese"
     install -Dm644 src/handwrite_config.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_config.py"
+    install -Dm644 src/handwrite_userdict.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_userdict.py"
+    install -Dm644 src/handwrite_model_download.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_model_download.py"
+    install -Dm644 src/handwrite_shortcuts.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_shortcuts.py"
+    install -Dm644 src/handwrite_prefs.py "${pkgdir}/usr/local/share/ibus-handwrite-chinese/handwrite_prefs.py"
     install -Dm644 VERSION "${pkgdir}/usr/local/share/ibus-handwrite-chinese/VERSION"
 
     # Install diagnose_trackpad.sh

@@ -22,6 +22,12 @@
 - **智慧視窗定位**：彈出面板自動出現在文字游標附近，不遮擋應用程式畫面
 - **拖曳手柄**：頂部欄自訂拖曳手柄可隨意移動視窗位置
 - **滑鼠備用**：如無 evdev 觸控板，可使用滑鼠繪圖
+- **偏好設定對話框**：6 標籤 GTK3 設定介面（一般、模型、引擎、視窗、使用者辭典、快捷鍵）—— 可從 IBus 選單或透過 `ibus-setup handwrite-chinese` 開啟
+- **隨需模型下載**：直接從偏好設定對話框下載 PP-OCRv6 模型（tiny/small/medium），自動使用 pkexec 提權進行系統級安裝
+- **自動下載提示**：選取未下載的模型等級時自動詢問是否立即下載
+- **可設定鍵盤快捷鍵**：透過快捷鍵標籤頁自訂所有按鍵綁定（ESC、Enter、Backspace、翻頁、主題切換、設定）
+- **使用者辭典**：透過本機 SQLite 資料庫學習使用者選取的漢字，在後續辨識中提升其優先級
+- **TOML 設定檔**：所有設定儲存在 `~/.config/ibus-handwrite-chinese/config.toml`，可透過 `IBUS_HANDWRITE_*` 環境變數覆蓋
 - **PP-OCRv6 深度學習引擎**：基於 ONNX 的 CNN 辨識，覆蓋 18710 個漢字，使用 MAX 池化置信度評分
 - **'--test' 測試模式**：獨立 GTK 視窗（無需 IBus），適合快速測試、資料收集和除錯
 
@@ -187,39 +193,67 @@ GPLv3 — 由相依函式庫要求（python3-evdev、ibus）。
 
 軟體套件在推送標籤時由 CI 自動建置。安裝後自動下載 PP-OCRv6 ONNX 模型（非致命失敗）。
 
-## PP-OCRv6 整合
+## 設定
 
-PP-OCRv6 ONNX 模型（MobileNetV3 small，訓練於 18710 個漢字）是唯一辨識引擎。
+### 偏好設定對話框
 
-### 架構
+從 IBus 選單開啟 6 標籤偏好設定對話框：
+- 右鍵點擊 IBus 托盤圖示 → 偏好設定 → Chinese Handwriting
+- 或執行：`ibus-setup handwrite-chinese`
+- 或在桌面設定中搜尋"Chinese Handwriting"
 
-引擎使用 PP-OCRv6 ONNX 執行階段，採用 CTC 解碼和 MAX 池化置信度評分。
+對話框包含以下標籤：
 
-### 設定
+| 標籤頁 | 設定內容 |
+|--------|----------|
+| **一般** | 主題（深色/淺色/自動）、日誌層級、日誌路徑 |
+| **模型** | 模型等級（tiny/small/medium）、自訂模型/字典路徑、自動下載開關、帶進度指示的下載按鈕 |
+| **引擎** | 筆畫寬度（px）、頁面大小、最大候選數、慣性設定、防抖定時器 |
+| **視窗** | 視窗寬/高、繪製區域高度、拖曳手柄高度、候選按鈕寬度 |
+| **使用者辭典** | 啟用/停用使用者辭典、提升強度、最大條目數 |
+| **快捷鍵** | 自訂所有按鍵綁定（ESC、Enter、Backspace、翻頁、主題切換、開啟設定） |
 
-1. 透過 `bootstrap.sh` 或 `install.sh` 下載 PP-OCRv6 ONNX 模型及字典
-2. 透過環境變數設定 ONNX 模型路徑：
-   ```bash
-   export IBUS_HANDWRITE_PPOCR_MODEL=small  # 或 large、server（預設：small）
-   export IBUS_HANDWRITE_PPOCR_MODEL_PATH=/tmp/models/ppocrv6_small.onnx
-   export IBUS_HANDWRITE_PPOCR_DICT_PATH=/tmp/models/dict_v6.txt
-   ```
-3. 照常切換引擎：
-   ```bash
-   ibus engine handwrite-chinese
-   ```
+變更在點選**套用**並重新啟動 IBus（`ibus restart`）後生效。
 
-### 無需 IBus 測試
+### 環境變數
 
-以獨立 `--test` 模式執行引擎，測試辨識功能無需切換 IME：
-```bash
-python3 src/ibus-engine-handwrite-chinese --test
-```
-這將開啟一個 GTK 浮動視窗，您可以在其中繪製字元。辨識結果顯示在 `/tmp/ppocr-recognition.log`。
+所有設定均可透過 `IBUS_HANDWRITE_*` 環境變數覆蓋，優先級高於 TOML 設定檔：
+
+| 變數 | 設定鍵 | 範例 |
+|------|--------|------|
+| `IBUS_HANDWRITE_THEME` | general.theme | `dark` |
+| `IBUS_HANDWRITE_LOG_LEVEL` | general.log_level | `DEBUG` |
+| `IBUS_HANDWRITE_PPOCR_MODEL` | model.tier | `small` |
+| `IBUS_HANDWRITE_PPOCR_MODEL_PATH` | model.path | `/path/to/model.onnx` |
+| `IBUS_HANDWRITE_PPOCR_DICT_PATH` | model.dict_path | `/path/to/dict.txt` |
+| `IBUS_HANDWRITE_DOWNLOAD_PATH` | model.download_path | `/usr/local/share/ibus-handwrite-chinese/models` |
+| `IBUS_HANDWRITE_AUTO_DOWNLOAD` | model.auto_download | `true` |
+| `IBUS_HANDWRITE_STROKE_WIDTH` | engine.stroke_width | `12` |
+
+### 模型管理
+
+透過偏好設定對話框的**模型**標籤頁下載模型：
+
+1. 從下拉選單中選擇等級（tiny / small / medium）
+2. 如果模型尚未下載，系統會詢問是否立即下載
+3. 點選**下載模型**開始下載 — 脈衝進度條顯示活動狀態
+4. 模型下載到系統暫存目錄，然後複製到目標位置（必要時使用 `pkexec` 提權）
+5. 字典檔（`dict_v6.txt`）在所有等級間共享
+6. 下載後重新啟動 IBus 以使引擎載入新模型
+
+您也可以透過**模型路徑**/**字典路徑**欄位設定自訂路徑，使用儲存在別處的模型。
+
+### 模型等級
+
+| 等級 | 參數量 | 適用場景 |
+|------|--------|----------|
+| tiny | 1.5M | 快速，低資源環境 |
+| small | ~8M | 速度與精度均衡（預設） |
+| medium | 34.5M | 最高精度 |
 
 ### 已修復的 Bug
 
-共發現並修復了十個 Bug，涵蓋 PP-OCRv6 管線、ESC 狀態機、Firefox 相容性以及桌面/非文字區域自動暫停：
+共發現並修復了十三個 Bug，涵蓋 PP-OCRv6 管線、ESC 狀態機、Firefox 相容性、桌面/非文字區域自動暫停、模型下載、設定及偏好設定對話框：
 
 1. **字典索引損壞**（第 290 行）：`line.strip()` 從字典條目中剝離了 U+3000（表意空格），導致後續所有字元索引偏移 1。修復為 `line.rstrip('\n')`。
 2. **置信度池化**（第 405 行）：`np.mean(probs, axis=0)` 對所有 CTC 時間步（包括空白幀）取平均，使真實置信度稀釋約 10 倍。修復為 `np.max(probs, axis=0)`（MAX 池化），符合單字元辨識的 CTC argmax 行為。
@@ -295,6 +329,22 @@ Firefox 透過 IBus 發送 ESC 按鍵事件時會設定 `IBUS_RELEASE_MASK`（1 
 完整分析報告：`.omo/evidence/ppocr-handwriting-dataset/analysis-report.json`
 瓶頸報告：`.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.txt`
 
+### 11. 模型下載權限錯誤
+從偏好設定對話框下載模型時出現 `PermissionError`，原因是 `tempfile.mkdtemp()`
+在 root 擁有的 `/usr/local/share/.../models/` 目錄內建立了暫存目錄。修復方法：
+改為下載到系統暫存目錄（`/tmp`），並使用 `shutil.move()` 配合 `pkexec cp` 回退
+方案將檔案最終複製到目標目錄。
+
+### 12. 顯示筆畫寬度忽略偏好設定
+在引擎標籤頁中變更筆畫寬度沒有可見效果 — 顯示繪製硬編碼了 `3 * scale`
+而非讀取 `CONFIG["engine"]["stroke_width"]`。在 Cairo 繪製程式碼的兩處位置修復：
+`rebuild_pix()`（已完成筆畫）和 `on_draw()`（即時筆畫）。辨識渲染（第 183 行）
+已使用設定值。
+
+### 13. 設定清理
+移除了兩個無效設定鍵：`model.variant`（PP-OCRv6 舊命名的遺留項）和
+`engine.max_strokes`（在設定和偏好設定 UI 中定義但引擎從未讀取）。
+
 ## 目錄結構
 
 ```
@@ -305,7 +355,12 @@ Firefox 透過 IBus 發送 ESC 按鍵事件時會設定 `IBUS_RELEASE_MASK`（1 
 │   ├── gtk_collect_loop.py            基於日誌的 GTK 收集指令碼
 │   └── read_last_log.py               辨識日誌讀取器
 ├── src/
-│   ├── ibus-engine-handwrite-chinese    主引擎（Python、PP-OCRv6 ONNX、GTK 彈出面板、evdev 整合）
+│   ├── ibus-engine-handwrite-chinese    主引擎（Python、GTK 彈出面板、evdev 整合）
+│   ├── handwrite_config.py              TOML/環境變數設定載入器
+│   ├── handwrite_model_download.py      PP-OCRv6 模型下載器（含 SHA256 驗證）
+│   ├── handwrite_prefs.py               6 標籤 GTK3 偏好設定對話框
+│   ├── handwrite_shortcuts.py           可設定的按鍵綁定系統
+│   ├── handwrite_userdict.py            基於 SQLite 的使用者字元學習模組
 │   └── handwrite_evdev.py               Evdev 多點觸控讀取模組
 ├── xml/
 │   └── handwrite-chinese.xml            IBus 元件

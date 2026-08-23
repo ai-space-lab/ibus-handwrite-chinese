@@ -24,6 +24,12 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 - **Cursor-proximity positioning**: popup appears near the text cursor, not at a fixed screen position
 - **Drag handle**: custom drag handle in the top bar to reposition the window
 - **Mouse fallback**: if no evdev trackpad is available, draw with the mouse
+- **Preference dialog**: 6-tab GTK3 settings UI (General, Model, Engine, Window, User Dictionary, Shortcuts) — accessible from IBus menu or via `ibus-setup handwrite-chinese`
+- **On-demand model download**: Download PP-OCRv6 models (tiny/small/medium) directly from the preference dialog, with automatic pkexec permission elevation for system-wide install
+- **Auto-download prompt**: Selecting a missing model tier automatically asks if you want to download it
+- **Configurable keyboard shortcuts**: Customize all keybindings (ESC, Enter, Backspace, page up/down, theme cycling, settings) via the Shortcuts tab
+- **User dictionary**: Learns characters you select and boosts them in future recognition, via local SQLite database
+- **TOML configuration**: All settings stored in `~/.config/ibus-handwrite-chinese/config.toml`, overridable via `IBUS_HANDWRITE_*` environment variables
 - **PP-OCRv6 deep-learning engine**: ONNX-based CNN recognition covering 18,710 characters, with MAX-pooled confidence scoring for reliable top-1 predictions
 - **'--test' mode**: standalone GTK window (no IBus dependency) for quick testing, data collection, and debugging
 
@@ -199,40 +205,67 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 
 GPLv3 — required by dependencies (python3-evdev, ibus).
 
-## PP-OCRv6 Integration
+## Configuration
 
-The engine uses a PP-OCRv6 ONNX model (MobileNetV3 small, trained on 18,710 Chinese characters) for recognition.
+### Preference Dialog
 
-### Setup
+Open the 6-tab preference dialog from your IBus menu:
+- Right-click IBus tray icon > Preferences > Chinese Handwriting
+- Or run: `ibus-setup handwrite-chinese`
+- Or search "Chinese Handwriting" in your desktop settings
 
-1. Download the PP-OCRv6 ONNX model and dictionary via `bootstrap.sh` or `install.sh`
-2. Set the ONNX model path via environment variable:
-   ```bash
-   export IBUS_HANDWRITE_PPOCR_MODEL=small  # or: large, server (default: small)
-   export IBUS_HANDWRITE_PPOCR_MODEL_PATH=/tmp/models/ppocrv6_small.onnx
-   export IBUS_HANDWRITE_PPOCR_DICT_PATH=/tmp/models/dict_v6.txt
-   ```
-3. Switch the engine as normal:
-   ```bash
-   ibus engine handwrite-chinese
-   ```
+The dialog has these tabs:
 
-### Testing Without IBus
+| Tab | Settings |
+|-----|----------|
+| **General** | Theme (dark/light/auto), log level, log path |
+| **Model** | Model tier (tiny/small/medium), custom model/dict paths, auto-download toggle, download button with progress indicator |
+| **Engine** | Stroke width (px), page size, max candidates, momentum settings, debounce timers |
+| **Window** | Window width/height, drawing height, drag handle height, candidate button width |
+| **User Dict** | Enable/disable user dictionary, boost strength, max entries |
+| **Shortcuts** | Customize all keybindings (ESC, Enter, Backspace, page up/down, cycle theme, open settings) |
 
-Run the engine in standalone `--test` mode to test recognition without switching IME:
-```bash
-# From the project directory:
-python3 src/ibus-engine-handwrite-chinese --test
+Changes take effect after clicking **Apply** and restarting IBus (`ibus restart`).
 
-# Or if installed system-wide:
-/usr/local/share/ibus-handwrite-chinese/venv/bin/python3 \
-  /usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese --test
-```
-This opens a GTK floating window where you can draw characters. Recognition results appear in `/tmp/ppocr-recognition.log`.
+### Environment Variables
+
+All settings can be overridden via `IBUS_HANDWRITE_*` environment variables, which take precedence over the TOML config file:
+
+| Variable | Config Key | Example |
+|----------|-----------|---------|
+| `IBUS_HANDWRITE_THEME` | general.theme | `dark` |
+| `IBUS_HANDWRITE_LOG_LEVEL` | general.log_level | `DEBUG` |
+| `IBUS_HANDWRITE_PPOCR_MODEL` | model.tier | `small` |
+| `IBUS_HANDWRITE_PPOCR_MODEL_PATH` | model.path | `/path/to/model.onnx` |
+| `IBUS_HANDWRITE_PPOCR_DICT_PATH` | model.dict_path | `/path/to/dict.txt` |
+| `IBUS_HANDWRITE_DOWNLOAD_PATH` | model.download_path | `/usr/local/share/ibus-handwrite-chinese/models` |
+| `IBUS_HANDWRITE_AUTO_DOWNLOAD` | model.auto_download | `true` |
+| `IBUS_HANDWRITE_STROKE_WIDTH` | engine.stroke_width | `12` |
+
+### Model Management
+
+Models are downloaded via the preference dialog's **Model** tab:
+
+1. Select a tier (tiny / small / medium) from the dropdown
+2. If the model is not yet downloaded, a dialog asks if you want to download it now
+3. Click **Download Model** to start — a pulsing progress bar shows activity
+4. The model downloads to the system temp directory, then is copied to the target location (uses `pkexec` for permission elevation if needed)
+5. The dictionary (`dict_v6.txt`) is shared across all tiers
+6. Restart IBus after downloading for the engine to pick up the new model
+
+You can also set a custom model path via the **Model Path** / **Dict Path** fields to use a model stored elsewhere.
+
+### Model Tiers
+
+| Tier | Params | Use Case |
+|------|--------|----------|
+| tiny | 1.5M | Fast, low-resource environments |
+| small | ~8M | Balanced speed/accuracy (default) |
+| medium | 34.5M | Highest accuracy |
 
 ### Bug Fixes Applied
 
-Ten bugs were identified and fixed across the PP-OCRv6 pipeline, ESC state machine, Firefox compatibility, and desktop/Firefox non-text area auto-pause:
+Thirteen bugs were identified and fixed across the PP-OCRv6 pipeline, ESC state machine, Firefox compatibility, desktop/Firefox non-text area auto-pause, model download, configuration, and preference dialog:
 
 1. **Dict index corruption** (line 290): `line.strip()` stripped U+3000 (ideographic space) from a dict entry, shifting all subsequent character indices by 1. Fixed with `line.rstrip('\n')`.
 2. **Confidence pooling** (line 405): `np.mean(probs, axis=0)` averaged across all CTC time steps including blank frames, diluting true confidence by ~10×. Fixed with `np.max(probs, axis=0)` (MAX pooling) which matches CTC argmax behavior for single-character recognition.
@@ -308,6 +341,22 @@ Characters tested: 一 七 三 上 下 不 中 九 二 五 人 入 八 六 十 �
 Full analysis report: `.omo/evidence/ppocr-handwriting-dataset/analysis-report.json`
 Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.txt`
 
+### 11. Model download permission error
+Downloading models from the preference dialog failed with `PermissionError` because
+`tempfile.mkdtemp()` created temp directories inside the root-owned `/usr/local/share/.../models/`
+directory. Fixed by downloading to system tempdir (`/tmp`) instead, and using `shutil.move()`
+with a `pkexec cp` fallback for the final copy to the target directory.
+
+### 12. Display stroke width ignored preference
+Changing the stroke width in the Engine tab had no visible effect — the display drawing
+hardcoded `3 * scale` instead of reading `CONFIG["engine"]["stroke_width"]`. Fixed at
+two places in the Cairo drawing code: `rebuild_pix()` (completed strokes) and `on_draw()`
+(live stroke). Recognition rendering (line 183) already used the config value.
+
+### 13. Config cleanup
+Removed two dead config keys: `model.variant` (legacy from pre-PP-OCRv6 naming) and
+`engine.max_strokes` (defined in config + prefs UI but never read by the engine).
+
 ## Repository Structure
 
 ```
@@ -319,6 +368,11 @@ Bottleneck report: `.omo/evidence/ppocr-handwriting-dataset/bottleneck-report.tx
 │   └── read_last_log.py               Recognition log reader
 ├── src/
 │   ├── ibus-engine-handwrite-chinese    Main engine (Python, GTK popup, evdev integration)
+│   ├── handwrite_config.py              TOML/ENV configuration loader
+│   ├── handwrite_model_download.py      PP-OCRv6 model downloader with SHA256 verification
+│   ├── handwrite_prefs.py               6-tab GTK3 preference dialog
+│   ├── handwrite_shortcuts.py           Configurable keybinding system
+│   ├── handwrite_userdict.py            SQLite-backed per-user character learning
 │   └── handwrite_evdev.py               Evdev multitouch reader module
 ├── xml/
 │   └── handwrite-chinese.xml               IBus component XML

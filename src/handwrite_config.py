@@ -30,14 +30,12 @@ DEFAULT_CONFIG = {
         "tier": "small",           # tiny | small | medium (path resolution)
         "path": "",                # explicit model .onnx path (empty = auto-detect)
         "dict_path": "",           # explicit dict .txt path (empty = auto-detect)
-        "variant": "small",        # small | large | server (auto-download variant)
         "download_path": "/usr/local/share/ibus-handwrite-chinese/models",
         "auto_download": True,     # automatically download model if missing
         "download_timeout": 30,    # per-file download timeout in seconds
     },
     "engine": {
         "stroke_width": 8,
-        "max_strokes": 128,
         "page_size": 8,
         "max_candidates": 24,
         "min_redraw_ms": 16,
@@ -78,7 +76,6 @@ ENV_MAP = {
     "IBUS_HANDWRITE_PPOCR_MODEL": ("model", "tier"),
     "IBUS_HANDWRITE_PPOCR_MODEL_PATH": ("model", "path"),
     "IBUS_HANDWRITE_PPOCR_DICT_PATH": ("model", "dict_path"),
-    "IBUS_HANDWRITE_VARIANT": ("model", "variant"),
     "IBUS_HANDWRITE_DOWNLOAD_PATH": ("model", "download_path"),
     "IBUS_HANDWRITE_AUTO_DOWNLOAD": ("model", "auto_download"),
     "IBUS_HANDWRITE_DOWNLOAD_TIMEOUT": ("model", "download_timeout"),
@@ -87,7 +84,7 @@ ENV_MAP = {
 
 # Config keys that expect integer values
 _INT_KEYS = frozenset({
-    "stroke_width", "max_candidates", "max_strokes", "page_size",
+    "stroke_width", "max_candidates", "page_size",
     "min_redraw_ms", "momentum_tick_ms", "auto_pause_debounce_ms",
     "delete_hold_ms", "width", "height", "drawing_height",
     "drag_handle_height", "candidate_button_width", "log_max_mb",

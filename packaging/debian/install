@@ -6,4 +6,8 @@ tools/restore.sh usr/local/share/ibus-handwrite-chinese/
 tools/99-trackpad-handwrite.rules etc/udev/rules.d/
 tools/diagnose_trackpad.sh usr/local/share/ibus-handwrite-chinese/
 src/handwrite_config.py usr/local/share/ibus-handwrite-chinese/
+src/handwrite_userdict.py usr/local/share/ibus-handwrite-chinese/
+src/handwrite_model_download.py usr/local/share/ibus-handwrite-chinese/
+src/handwrite_shortcuts.py usr/local/share/ibus-handwrite-chinese/
+src/handwrite_prefs.py usr/local/share/ibus-handwrite-chinese/
 VERSION usr/local/share/ibus-handwrite-chinese/

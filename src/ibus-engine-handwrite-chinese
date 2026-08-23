@@ -36,7 +36,10 @@ if _handwrite_dir not in sys.path:
 
 import handwrite_config
 import handwrite_userdict
+import handwrite_shortcuts
+import handwrite_model_download
 CONFIG = handwrite_config.load_config()
+handwrite_shortcuts.load_bindings(CONFIG.get("shortcuts", {}))
 
 # Version: read from VERSION file in same directory as this script
 _version_path = os.path.join(_handwrite_dir, 'VERSION')
@@ -406,6 +409,7 @@ class HandwriteWin(Gtk.Window):
         self._momentum_dir = 1
         self._highlighted_idx = -1
         self._pending_pause_timeout = None
+        self._auto_close_timeout = None
 
         self.connect("key-press-event", self.on_key)
         self.connect("button-press-event", self.on_window_click)
@@ -498,13 +502,14 @@ class HandwriteWin(Gtk.Window):
 
     def on_key(self, w, ev):
         name = Gdk.keyval_name(ev.get_keyval()[1])
-        if name == "Escape":
+        action = handwrite_shortcuts.lookup_action(name)
+        if action == "escape":
             self.on_key_esc()
             return True
-        if name == "Return" and self.engine.last_results:
+        if action == "commit" and self.engine.last_results:
             self.engine.commit_first()
             return True
-        if name == "BackSpace":
+        if action == "delete_stroke":
             self.on_delete_tap(None)
             return True
         return False
@@ -553,6 +558,14 @@ class HandwriteWin(Gtk.Window):
         self.on_key_esc()
         return False
 
+    def _auto_close_if_paused(self):
+        """Close popup if still paused after auto-pause timer expires."""
+        self._auto_close_timeout = None
+        if self.get_visible() and self._state == 1:
+            self.engine._write_log('_auto_close_if_paused: closing popup after 8s')
+            self.on_close_click()
+        return False
+
     def _set_cursor_hidden(self, hidden):
         gw = self.get_window()
         if not gw or self._cursor_hidden == hidden:
@@ -579,6 +592,9 @@ class HandwriteWin(Gtk.Window):
         if self._pending_pause_timeout:
             GLib.source_remove(self._pending_pause_timeout)
             self._pending_pause_timeout = None
+        if self._auto_close_timeout:
+            GLib.source_remove(self._auto_close_timeout)
+            self._auto_close_timeout = None
         self.stop_trackpad()
         self._restore_cursor()
         self.hide()
@@ -809,7 +825,7 @@ class HandwriteWin(Gtk.Window):
         cr.paint()
         stroke = self._theme_colors["stroke"]
         cr.set_source_rgb(*stroke)
-        cr.set_line_width(3 * self._scale)
+        cr.set_line_width(CONFIG["engine"]["stroke_width"] * self._scale)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         cr.set_line_join(cairo.LINE_JOIN_ROUND)
         cr.set_antialias(cairo.ANTIALIAS_BEST)
@@ -880,7 +896,7 @@ class HandwriteWin(Gtk.Window):
         if self.cur_stroke and len(self.cur_stroke) > 1:
             stroke_color = self._theme_colors["stroke"]
             cr.set_source_rgb(*stroke_color)
-            cr.set_line_width(3 * self._scale)
+            cr.set_line_width(CONFIG["engine"]["stroke_width"] * self._scale)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
             cr.set_line_join(cairo.LINE_JOIN_ROUND)
             cr.set_antialias(cairo.ANTIALIAS_BEST)
@@ -1044,6 +1060,17 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
                 dict_path = dp
                 break
         if not model_path or not os.path.exists(model_path):
+            if CONFIG["model"].get("auto_download", True):
+                logger.warning(
+                    "PP-OCRv6 model not found at any path. "
+                    "Open Chinese Handwriting \u2192 Preferences \u2192 Model tab "
+                    "and click 'Download Model'."
+                )
+            else:
+                logger.error(
+                    "PP-OCRv6 model not found and auto_download is disabled. "
+                    "Set IBUS_HANDWRITE_AUTO_DOWNLOAD=true or run install.sh."
+                )
             raise FileNotFoundError(
                 f"PP-OCR model not found for tier '{tier}'. "
                 f"Tried: {candidates}"
@@ -1076,18 +1103,19 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
 
     def do_process_key_event(self, keyval, keycode, state):
         self._write_log('do_pke: keyval=%d state=%d visible=%s' % (keyval, state, str(self.win.get_visible() if self.win else False)))
+        action = handwrite_shortcuts.lookup_ibus_action(keyval, state)
         # Always handle ESC regardless of RELEASE_MASK (Firefox sends ESC with release mask)
-        if keyval in (IBus.KEY_Escape,) and self.win and self.win.get_visible():
+        if action == "escape" and self.win and self.win.get_visible():
             self.win.on_key_esc()
             return True
         if state & IBus.ModifierType.RELEASE_MASK:
             return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
         # Only intercept Backspace/Enter when actively writing (state 0)
-        if keyval in (IBus.KEY_BackSpace, IBus.KEY_Return) and self.win and self.win.get_visible() and self.win._state == 0:
-            if keyval == IBus.KEY_BackSpace:
+        if action in ("delete_stroke", "commit") and self.win and self.win.get_visible() and self.win._state == 0:
+            if action == "delete_stroke":
                 self.win._do_clear_strokes()
                 return False
-            elif keyval == IBus.KEY_Return and self.last_results:
+            elif action == "commit" and self.last_results:
                 self.commit_first()
                 return True
         return super(HandwriteEngine, self).do_process_key_event(keyval, keycode, state)
@@ -1238,13 +1266,12 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
         if elapsed < 1.0:
             self._write_log('do_focus_out: startup guard caught it, returning')
             return
-        if not self._has_drawn:
-            self._write_log('do_focus_out: no strokes drawn yet, skipping auto-pause')
-            return
         if self.win and self.win.get_visible() and self.win._state == 0:
             self._last_focus_out_time = time.time()
             self._write_log('do_focus_out: window visible, state=0 -> auto-pause')
             self.win.on_key_esc()
+            self.win._auto_close_timeout = GLib.timeout_add(
+                8000, self.win._auto_close_if_paused)
 
     def do_focus_in(self):
         """Auto-resume when IBus input context regains focus (e.g., clicking back into input field)."""
@@ -1270,6 +1297,15 @@ class HandwriteEngine(IBus.Engine if HAS_IBUS else object):
             if not self.win.start_trackpad():
                 print("  [engine] ⚠ Trackpad re-grab failed after focus-in. Mouse fallback active.", file=sys.stderr)
             self.update_candidates()
+            # Real focus-in (debounce gate passed): user is back in the text
+            # field, so the auto-close timer armed by auto-pause is cancelled.
+            # A spurious focus-in within the 0.3s debounce window (e.g. Firefox
+            # emits focus-out+focus-in for a single body click) must NOT cancel
+            # it — otherwise the popup auto-pauses but never auto-closes.
+            if self.win._auto_close_timeout:
+                GLib.source_remove(self.win._auto_close_timeout)
+                self.win._auto_close_timeout = None
+                self._write_log('do_focus_in: cancelled auto-close timer (real focus-in, resumed)')
 
     def _check_engine(self):
         if self._bus and self.win:
@@ -1406,7 +1442,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ibus', action='store_true')
     parser.add_argument('--test', action='store_true')
+    parser.add_argument('--setup', action='store_true')
     args = parser.parse_args()
+
+    if args.setup:
+        from handwrite_prefs import main as prefs_main
+        prefs_main()
+        return
 
     engine_name = "handwrite-chinese"
     engine_longname = "Chinese Handwriting"

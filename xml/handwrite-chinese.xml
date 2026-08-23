@@ -18,6 +18,7 @@
       <author>ai-space-lab</author>
       <layout>us</layout>
       <icon>/usr/local/share/ibus-handwrite-chinese/icons/handwrite-chinese.svg</icon>
+      <setup>/usr/local/bin/ibus-engine-handwrite-chinese --setup</setup>
     </engine>
   </engines>
 </component>
