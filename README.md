@@ -9,6 +9,64 @@ A Chinese handwriting input method for Linux with a macOS-style floating panel, 
 
 ![screenshot](docs/screenshot.png)
 
+## Quick Install
+
+![demo](docs/assets/demo.gif)
+
+The fastest way to install on any supported distro:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
+ibus restart
+```
+
+### Which install method for me?
+
+Answer three quick questions to pick the right path:
+
+1. **Which distro?**
+   - **Debian / Ubuntu / Mint** → `bootstrap.sh` (auto) or the `.deb` package
+   - **Fedora** → `bootstrap.sh` (auto) or the `.rpm` package
+   - **Arch / Manjaro** → `bootstrap.sh` (auto) or build from `PKGBUILD`
+   - **openSUSE** → `bootstrap.sh` (auto) or the `.rpm` package
+2. **Want one command or a package?**
+   - **One command (recommended)** → `bootstrap.sh` detects your distro and installs everything
+   - **Manual package** → download `.deb` / `.rpm` from [GitHub Releases](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases) and install it
+3. **Prefer building from source?**
+   - **Yes** → clone the repo and run `install.sh` (steps below)
+   - **No** → stick with `bootstrap.sh` or a package
+
+> For distro-specific steps and a troubleshooting accordion, see the [Full install guide](docs/index.md).
+
+**Debian/Ubuntu/Mint** users can also use the traditional method:
+
+```bash
+sudo apt install python3-evdev python3-venv
+git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
+cd ibus-handwrite-chinese
+./tools/install.sh         # add --skip-deps if deps already installed (sudo used internally)
+ibus restart
+```
+
+`install.sh` automatically:
+- Downloads the PP-OCRv6 ONNX model and character dictionary
+- Creates a Python virtual environment with onnxruntime installed
+- Installs a wrapper script as the engine binary
+- Restarts IBus and activates Chinese Handwriting as the current IME
+
+Or select **Chinese Handwriting** from your desktop's IBus menu.
+
+To switch back to your previous IME later, use your IBus menu or:
+```bash
+ibus engine <previous-engine>
+```
+
+### Troubleshooting Quick Links
+
+- **Trackpad permissions**: add your user to the `input` group with `sudo usermod -a -G input $USER && reboot`, or run `sudo udevadm trigger`
+- **IBus won't start**: run `ibus restart`, then `ibus engine handwrite-chinese`
+- **Model download**: pick a model tier in the preference dialog (`ibus-engine-handwrite-chinese --setup`), or see [Troubleshooting](#troubleshooting)
+
 ## Features
 
 - **macOS-style popup**: dark floating window with embedded candidates at the top
@@ -58,36 +116,6 @@ The installer downloads the PP-OCRv6 ONNX model and character dictionary for rec
 
 The engine uses **ONNX Runtime** for PP-OCRv6 recognition. The install script
 automatically creates a Python venv with onnxruntime — no manual pip needed.
-
-## Quick Install
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
-ibus restart
-```
-
-**Debian/Ubuntu/Mint** users can also use the traditional method:
-
-```bash
-sudo apt install python3-evdev python3-venv
-git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
-cd ibus-handwrite-chinese
-./tools/install.sh         # add --skip-deps if deps already installed (sudo used internally)
-ibus restart
-```
-
-`install.sh` automatically:
-- Downloads the PP-OCRv6 ONNX model and character dictionary
-- Creates a Python virtual environment with onnxruntime installed
-- Installs a wrapper script as the engine binary
-- Restarts IBus and activates Chinese Handwriting as the current IME
-
-Or select **Chinese Handwriting** from your desktop's IBus menu.
-
-To switch back to your previous IME later, use your IBus menu or:
-```bash
-ibus engine <previous-engine>
-```
 
 ## Packages
 

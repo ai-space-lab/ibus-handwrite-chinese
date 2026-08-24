@@ -7,6 +7,64 @@
 
 ![screenshot](docs/screenshot.png)
 
+## 快速安装
+
+![demo](docs/assets/demo.gif)
+
+在任何受支持的发行版上，最快的安装方式是：
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
+ibus restart
+```
+
+### 我该用哪种安装方式？
+
+回答三个简单的问题，选出最适合你的路径：
+
+1. **用哪个发行版？**
+   - **Debian / Ubuntu / Mint** → `bootstrap.sh`（自动）或 `.deb` 软件包
+   - **Fedora** → `bootstrap.sh`（自动）或 `.rpm` 软件包
+   - **Arch / Manjaro** → `bootstrap.sh`（自动）或从 `PKGBUILD` 构建
+   - **openSUSE** → `bootstrap.sh`（自动）或 `.rpm` 软件包
+2. **想要一条命令还是手动装包？**
+   - **一条命令（推荐）** → `bootstrap.sh` 会自动检测发行版并安装全部依赖
+   - **手动装包** → 从 [GitHub Releases](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases) 下载 `.deb` / `.rpm` 并安装
+3. **是否偏好从源码构建？**
+   - **是** → 克隆仓库并运行 `install.sh`（步骤见下文）
+   - **否** → 继续使用 `bootstrap.sh` 或软件包
+
+> 各发行版的具体步骤与故障排除折叠面板，请参阅[完整安装指南](docs/index.md)。
+
+**Debian/Ubuntu/Mint** 用户也可以使用传统方式：
+
+```bash
+sudo apt install python3-evdev python3-venv
+git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
+cd ibus-handwrite-chinese
+./tools/install.sh    # 若依赖已安装可加 --skip-deps（脚本内部会使用 sudo）
+ibus restart
+```
+
+`install.sh` 会自动完成以下操作：
+- 下载 PP-OCRv6 ONNX 模型与字符字典
+- 创建带有 onnxruntime 的 Python 虚拟环境
+- 安装一个包装脚本作为引擎可执行文件
+- 重启 IBus 并将"中文手写"激活为当前输入法
+
+也可以从桌面环境的 IBus 菜单中选择 **Chinese Handwriting**。
+
+之后如需切回之前的输入法，使用 IBus 菜单或：
+```bash
+ibus engine <previous-engine>
+```
+
+### 故障排除快速链接
+
+- **触控板权限**：将用户加入 `input` 组：`sudo usermod -a -G input $USER && reboot`，或运行 `sudo udevadm trigger`
+- **IBus 无法启动**：运行 `ibus restart`，然后 `ibus engine handwrite-chinese`
+- **模型下载**：在偏好设置对话框中选择模型等级（`ibus-engine-handwrite-chinese --setup`），或参见[故障排除](#故障排除)
+
 ## 功能特点
 
 - **macOS 风格弹出面板**：深色浮动窗口，候选词嵌入面板顶部
@@ -52,33 +110,6 @@
 - **Fedora**：Fedora 40+
 - **Arch**：Arch Linux，Manjaro
 - **openSUSE**：Tumbleweed
-
-## 快速安装
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh)
-ibus restart
-```
-
-**Debian/Ubuntu/Mint** 用户也可使用传统方式：
-
-```bash
-sudo apt install python3-evdev python3-venv
-git clone https://github.com/ai-space-lab/ibus-handwrite-chinese
-cd ibus-handwrite-chinese
-./tools/install.sh    # sudo 在内部自动使用
-ibus restart
-```
-
-`install.sh` 自动下载 PP-OCRv6 ONNX 模型（覆盖 18710 个汉字）用于深度学习识别。
-
-切换输入法：
-
-```bash
-ibus engine handwrite-chinese
-```
-
-或者从桌面环境的 IBus 菜单中选择 **Chinese Handwriting**。
 
 ## 软件包
 

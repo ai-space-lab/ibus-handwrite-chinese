@@ -90,6 +90,21 @@ if [ "$SKIP_DEPS" = false ]; then
         }
     fi
 fi
+
+echo "=== Detecting trackpad (auto-detection) ==="
+if command -v python3 >/dev/null 2>&1 && python3 -c "import evdev" 2>/dev/null; then
+    DIAG_OUT="$(bash "$SCRIPT_DIR/diagnose_trackpad.sh" 2>/dev/null || true)"
+    TRACKPAD_DEVICE="$(printf '%s\n' "$DIAG_OUT" | grep -A2 "Trackpad(s) matching CURRENT filter" | grep -E '^[[:space:]]*-[[:space:]]' | head -1 | sed 's/^[[:space:]]*-[[:space:]]//')"
+    if [ -n "$TRACKPAD_DEVICE" ]; then
+        echo "  Detected trackpad: $TRACKPAD_DEVICE"
+    else
+        echo "  ⚠ No trackpad detected by current filter (mouse fallback will be used)"
+    fi
+else
+    echo "  ⚠ python3-evdev not available — skipping trackpad detection"
+fi
+echo ""
+
 echo "[PP-OCR] Downloading PP-OCRv6 recognition model..."
 PPOCR_TIER="${IBUS_HANDWRITE_PPOCR_MODEL:-small}"
 case "$PPOCR_TIER" in
@@ -343,3 +358,30 @@ echo "To uninstall: /usr/local/share/ibus-handwrite-chinese/restore.sh"
 echo ""
 echo "⚠ IMPORTANT: You must LOG OUT and BACK IN for input group access to take effect."
 echo "  Otherwise the engine cannot read the trackpad device."
+
+echo ""
+echo "=== Verifying IBus engine registration ==="
+if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    echo "  ⚠ No display detected — skipping engine registration check."
+    echo "  After logging in, run: ibus restart, then ibus engine handwrite-chinese"
+elif [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    echo "  ⚠ No D-Bus session — skipping engine registration check."
+    echo "  After logging in, run: ibus restart, then ibus engine handwrite-chinese"
+else
+    sleep 2
+    if [ "$(id -u)" -eq 0 ] && [ "$REAL_USER" != "root" ]; then
+        if su -c "ibus list-engine 2>/dev/null | grep -q handwrite-chinese" "$REAL_USER"; then
+            echo "  ✓ Engine registered (handwrite-chinese)"
+        else
+            echo "  ✗ Engine NOT registered"
+            echo "  Run: ibus restart, then ibus engine handwrite-chinese"
+        fi
+    else
+        if ibus list-engine 2>/dev/null | grep -q handwrite-chinese; then
+            echo "  ✓ Engine registered (handwrite-chinese)"
+        else
+            echo "  ✗ Engine NOT registered"
+            echo "  Run: ibus restart, then ibus engine handwrite-chinese"
+        fi
+    fi
+fi

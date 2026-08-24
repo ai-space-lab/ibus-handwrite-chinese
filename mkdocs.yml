@@ -1,0 +1,56 @@
+site_name: ibus-handwrite-chinese
+site_url: https://ai-space-lab.github.io/ibus-handwrite-chinese/
+repo_url: https://github.com/ai-space-lab/ibus-handwrite-chinese
+repo_name: ai-space-lab/ibus-handwrite-chinese
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - content.code.copy
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: zh
+          name: 简体中文
+          build: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Configure: configure.md
+  - FAQ: faq.md
+  - Troubleshooting: troubleshooting.md
+  - Changelog: changelog.md
+
+extra_javascript:
+  - https://gc.zgoat.net/count.js  # GoatCounter (account created at goatcounter.com)
