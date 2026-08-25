@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml)
 [![Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml)
+[![Version](https://img.shields.io/github/v/release/ai-space-lab/ibus-handwrite-chinese?label=version)](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases/tag/v0.6.0)
 
 一款 Linux 平臺的中文手寫輸入法，採用 macOS 風格浮動面板、evdev 觸控板整合和 PP-OCRv6 ONNX 深度學習引擎。
 

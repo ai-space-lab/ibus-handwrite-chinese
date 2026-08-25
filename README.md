@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/ci.yml)
 [![Release](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml/badge.svg)](https://github.com/ai-space-lab/ibus-handwrite-chinese/actions/workflows/release.yml)
+[![Version](https://img.shields.io/github/v/release/ai-space-lab/ibus-handwrite-chinese?label=version)](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases/tag/v0.6.0)
 
 **English** · [简体中文](README.zh-Hans-汉.md) · [繁體中文](README.zh-Hant-漢.md)
 
