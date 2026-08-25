@@ -181,12 +181,12 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 
 如果您覺得這個專案有用，請考慮支持它的開發：
 
-| | | |
-|---|---|---|
-| ![BTC](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.04.07.jpeg) | ![ETH](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.05.36.jpeg) | ![USDT](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.09.jpeg) |
-| **Bitcoin (BTC)** | **Ethereum (ETH)** | **USDT (TRC20)** |
-| ![BNB](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.33.jpeg) | | |
-| **BNB (BEP20)** | | |
+| Network | Address | QR Code |
+|---------|---------|---------|
+| USDC (Solana) | `0x9907aFbb0E3e41019BF8E5d5049bd6FF1d568f7C` | [QR Code](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.04.07.jpeg) |
+| USDC (Polygon) | `0x9907aFbb0E3e41019BF8E5d5049bd6FF1d568f7C` | [QR Code](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.05.36.jpeg) |
+| USDC (Arbitrum One) | `0x9907aFbb0E3e41019BF8E5d5049bd6FF1d568f7C` | [QR Code](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.09.jpeg) |
+| USDC (Base) | `0x9907aFbb0E3e41019BF8E5d5049bd6FF1d568f7C` | [QR Code](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.33.jpeg) |
 
 ---
 
