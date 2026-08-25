@@ -1457,11 +1457,27 @@ def main():
 
     Gtk.init(sys.argv)
 
-    # Pre-create the handwriting panel window here, before the IBus event
-    # loop starts.  GTK widget construction (which requires X11 round-trips
-    # for Gdk.Cursor.new, Gdk.Screen.get_default, etc.) blocks when called
-    # inside the IBus D-Bus handler context (do_enable) because the GLib
-    # main loop cannot dispatch X11 events while processing D-Bus.
+    if args.test:
+        # --test standalone mode: no IBus dependency, no pre-created global
+        # window.  Creating the global window here would make it the
+        # WM_CLIENT_LEADER (group leader) for the test window; xfwm4 refuses
+        # to map a window whose group leader is hidden/unmapped.
+        engine = TestCommitEngine()
+        win = HandwriteWin(engine)
+        engine.win = win
+        win.show_all()
+        win.set_accept_focus(True)
+        win.present()
+        if not win.start_trackpad():
+            print("  [engine] ⚠ Trackpad not available. Use mouse to draw.", file=sys.stderr)
+        Gtk.main()
+        return
+
+    # IBus mode: pre-create the handwriting panel window here, before the
+    # IBus event loop starts.  GTK widget construction (which requires X11
+    # round-trips for Gdk.Cursor.new, Gdk.Screen.get_default, etc.) blocks
+    # when called inside the IBus D-Bus handler context (do_enable) because
+    # the GLib main loop cannot dispatch X11 events while processing D-Bus.
     #
     # The engine's __init__ acquires this pre-created window and replaces
     # the None engine reference with the real HandwriteEngine instance.
@@ -1473,18 +1489,6 @@ def main():
     # round-trips needed inside the D-Bus handler context.
     _HANDWRITE_WIN_GLOBAL.realize()
     _HANDWRITE_WIN_GLOBAL.hide()
-
-    if args.test:
-        engine = TestCommitEngine()
-        win = HandwriteWin(engine)
-        engine.win = win
-        win.show_all()
-        win.set_accept_focus(True)
-        win.present()
-        if not win.start_trackpad():
-            print("  [engine] ⚠ Trackpad not available. Use mouse to draw.", file=sys.stderr)
-        Gtk.main()
-        return
 
     IBus.init()
 
