@@ -76,13 +76,12 @@ install_arch() {
 }
 
 install_suse() {
-    # Use a reliable mirror to avoid 403 errors from download.opensuse.org in CI
     sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
     sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
     sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-        https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
+        https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
     sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-        https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
+        https://download.opensuse.org/tumbleweed/repo/non-oss/ repo-non-oss
     sudo zypper --non-interactive refresh
     sudo zypper --non-interactive install -y ibus python3-evdev wget unzip p7zip python3-cairo
 }

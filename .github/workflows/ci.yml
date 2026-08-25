@@ -58,12 +58,13 @@ jobs:
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
+          zypper --non-interactive install -y sudo
           sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
           sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
           sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
+            https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
           sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
+            https://download.opensuse.org/tumbleweed/repo/non-oss/ repo-non-oss
           sudo zypper --non-interactive refresh
           sudo zypper --non-interactive install -y python3-evdev
       - name: Verify Python syntax
@@ -91,6 +92,9 @@ jobs:
           useradd -m builder
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           su builder -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+      - name: Install sudo (openSUSE)
+        if: startsWith(matrix.distro, 'opensuse')
+        run: zypper --non-interactive install -y sudo
       - name: Run bootstrap.sh
         run: bash bootstrap.sh
       - name: Verify installed files
@@ -167,15 +171,18 @@ jobs:
         run: |
           zypper --no-refresh install -y python313 || true
           zypper --no-refresh install -y python3 || true
+      - name: Install sudo (openSUSE)
+        if: startsWith(matrix.distro, 'opensuse')
+        run: zypper --non-interactive install -y sudo
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
           sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
           sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
           sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
+            https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss
           sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
+            https://download.opensuse.org/tumbleweed/repo/non-oss/ repo-non-oss
           sudo zypper --non-interactive refresh
           sudo zypper --non-interactive install -y python3-evdev python3-gobject \
             python3-numpy \
