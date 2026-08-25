@@ -1,0 +1,14 @@
+=== Cleanup: Before ===
+Root ibus-daemon: 1
+Mint ibus-daemon: 1
+
+=== Killing root ibus-daemon and orphans ===
+Killed root ibus-daemon
+
+=== Cleanup: After ===
+Root ibus-daemon: 0
+Mint ibus-daemon: 1
+
+=== Verify only user daemon remains ===
+✅ PASS: No root ibus-daemon
+✅ PASS: User ibus-daemon alive

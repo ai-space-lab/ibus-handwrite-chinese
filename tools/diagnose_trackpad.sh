@@ -1,6 +1,7 @@
 #!/bin/bash
 # tools/diagnose_trackpad.sh — Diagnose why ibus-handwrite-chinese doesn't detect the trackpad
-set -e
+# Run with DIAG_NONFATAL=1 to avoid exiting on errors (for CI environments)
+[ -n "${DIAG_NONFATAL:-}" ] || set -e
 
 echo "=== IBus Handwrite Chinese — Trackpad Diagnostics ==="
 echo ""

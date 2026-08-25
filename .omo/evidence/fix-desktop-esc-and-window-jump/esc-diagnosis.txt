@@ -1,0 +1,41 @@
+=========================================================================
+ESC Diagnosis Report
+Date: 2026-07-09
+Fix: commit pending (present() in on_window_click)
+=========================================================================
+
+ROOT CAUSE
+---------
+When desktop background is focused after clicking it:
+  1. GTK on_key path: window has no keyboard focus → ESC lost
+  2. IBus do_process_key_event path: desktop has no text field → ESC lost
+Both input paths are dead when desktop is focused.
+
+The on_window_click() handler (line 473) resumes the window but did NOT
+grab keyboard focus. On XFCE, clicking a UTILITY-type window doesn't
+automatically give it keyboard focus — so subsequent ESC presses fail.
+
+FIX
+---
+Added self.present() in on_window_click() after resume (state 1→0).
+This ensures the window gets keyboard focus when the user clicks to resume,
+so subsequent ESC presses reach the GTK on_key handler.
+
+TEST RESULTS
+------------
+
+Test 1: Desktop → Click-resume → ESC (3 iterations)
+  Before fix: window stayed at desktop after click → ESC: NO_EVENT
+  After fix:  window gets focus after click → ESC: on_key_esc ✅
+
+Test 2: Firefox → Desktop → Terminal → Click → ESC (3 cycles)
+  All 3: window focused + ESC received ✅
+
+LIMITATION
+----------
+If the user clicks desktop and presses ESC WITHOUT first clicking on our
+window, ESC will not reach the engine. This is a fundamental X11 input
+routing limitation: the window manager sends keys to whichever window has
+keyboard focus, and no IBus engine can receive keys without either
+window focus or an IBus input context.
+=========================================================================

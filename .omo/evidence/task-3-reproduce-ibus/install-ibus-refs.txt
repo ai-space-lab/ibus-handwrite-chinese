@@ -1,0 +1,19 @@
+=== install.sh ibus references (functional code — excluding /usr/local/ path strings) ===
+Line 124:   exec "$VENV/bin/python3" "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"   # Wrapper script engine name
+Line 126:   exec /usr/bin/python3 "$ENGINE_DIR/ibus-engine-handwrite-chinese" "$@"      # Wrapper fallback
+Line 142: sudo mkdir -p /usr/share/ibus/component                                       # IBus component directory
+Line 143: sudo cp xml/handwrite-chinese.xml /usr/share/ibus/component/                  # Register engine XML
+Line 165: echo "【8】 Killing stale root ibus-daemon..."                               # Status message
+Line 166: if pgrep -x ibus-daemon >/dev/null 2>&1 && pgrep -u root ibus-daemon ...     # Check for stale daemon
+Line 167:     pkill -u root ibus-daemon 2>/dev/null || true                             # Kill stale daemon
+Line 169:     echo "  ✓ Stale root ibus-daemon killed"                                  # Success message
+Line 171:     echo "  ✓ No stale root ibus-daemon found"                                # Status message
+Line 179: ibus-daemon --daemonize --replace 2>/dev/null || true                        # START IBUS DAEMON (will FAIL if ibus not installed!)
+Line 182:     timeout 1 ibus engine >/dev/null 2>&1 && break                           # POLL ibus (will FAIL if ibus not installed!)
+Line 192: if timeout 3s ibus engine handwrite-chinese 2>/dev/null; then               # ACTIVATE ENGINE (will FAIL if ibus not installed!)
+Line 196:     echo "    ibus engine handwrite-chinese"                                  # Help message
+Line 200:   echo "  ibus engine handwrite-chinese"                                      # Help message
+
+=== Analysis ===
+Despite 16 functional ibus references, install.sh does NOT install the ibus package itself.
+Lines 179, 182, and 192 are ibus binary invocations that silently fail on a system without ibus.

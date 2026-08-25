@@ -1,0 +1,49 @@
+=== install.sh Lines 161-207 (ibus restart + engine activation section) ===
+
+161: echo "【7】 Installing icons..."
+162: sudo mkdir -p /usr/local/share/ibus-handwrite-chinese/icons
+163: sudo cp icons/handwrite-chinese.svg /usr/local/share/ibus-handwrite-chinese/icons/
+164: 
+165: echo "【8】 Killing stale root ibus-daemon..."
+166: if pgrep -x ibus-daemon >/dev/null 2>&1 && pgrep -u root ibus-daemon >/dev/null 2>&1; then
+167:     pkill -u root ibus-daemon 2>/dev/null || true
+168:     sleep 1
+169:     echo "  ✓ Stale root ibus-daemon killed"
+170: else
+171:     echo "  ✓ No stale root ibus-daemon found"
+172: fi
+173: 
+174: echo "【9】 Restarting IBus..."
+175: if [ "$SKIP_RESTART" = true ]; then
+176:     echo "  Skipping IBus restart"
+177:     SET_ENGINE=false
+178: else
+179:     ibus-daemon --daemonize --replace 2>/dev/null || true
+180:     # Poll for ibus-daemon readiness before activating engine
+181:     for _ in 1 2 3 4 5; do
+182:         timeout 1 ibus engine >/dev/null 2>&1 && break
+183:         sleep 1
+184:     done
+185: fi
+186: 
+187: echo ""
+188: echo "=== Install complete ==="
+189: 
+190: if [ "$SET_ENGINE" = true ]; then
+191:     echo "  Activating Chinese Handwriting IME..."
+192:     if timeout 3s ibus engine handwrite-chinese 2>/dev/null; then
+193:         echo "  ✓ Chinese Handwriting set as engine (verify in IBus menu)"
+194:     else
+195:         echo "  ! Could not switch engine. Try manually:"
+196:         echo "    ibus engine handwrite-chinese"
+197:     fi
+198: else
+199:     echo "Switch to the engine:"
+200:     echo "  ibus engine handwrite-chinese"
+201: fi
+202: echo "Or select 'Chinese Handwriting' from your IBus menu."
+203: echo ""
+204: echo "To uninstall: /usr/local/share/ibus-handwrite-chinese/restore.sh"
+205: echo ""
+206: echo "⚠ IMPORTANT: You must LOG OUT and BACK IN for input group access to take effect."
+207: echo "  Otherwise the engine cannot read the trackpad device."

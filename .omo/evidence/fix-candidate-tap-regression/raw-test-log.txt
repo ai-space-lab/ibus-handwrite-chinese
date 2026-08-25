@@ -1,0 +1,9 @@
+
+159161 do_focus_out: elapsed=11.795 last_enable_time=1783512537.244
+159161 do_focus_out: no strokes drawn yet, skipping auto-pause
+159161 do_enable: t=1783512550.386
+159161 _grab_focus_if_needed: grabbing keyboard focus
+159161 _grab_focus_if_needed: done
+159161 do_pke: keyval=65307 state=0 visible=True
+159161 on_key_esc: _state=0
+159161 do_pke: keyval=65307 state=1073741824 visible=True

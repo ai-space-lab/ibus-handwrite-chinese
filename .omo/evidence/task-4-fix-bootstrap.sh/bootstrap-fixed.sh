@@ -17,8 +17,7 @@ else
 fi
 
 echo "=============================================="
-_VERSION="$(cat "$(dirname "$0")/VERSION" 2>/dev/null || echo "unknown")"
-echo "  ibus-handwrite-chinese — v${_VERSION}"
+echo "  ibus-handwrite-chinese — v0.4.0"
 echo "  ⚠️  Not yet widely tested on real hardware."
 echo "  Please report issues at:"
 echo "  https://github.com/ai-space-lab/ibus-handwrite-chinese/issues"
@@ -64,27 +63,23 @@ install_debian() {
         sudo sed -i '/^deb cdrom:/s/^/#/' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
     fi
     sudo apt update || { echo "  ⚠ apt update failed (non-fatal), continuing..."; }
-    sudo apt install -y ibus python3-evdev wget unzip p7zip-full git python3-venv python3-gi-cairo
+    sudo apt install -y ibus python3-evdev wget unzip p7zip-full git python3-venv
 }
 
 install_fedora() {
-    sudo dnf install -y ibus python3-evdev wget unzip p7zip git python3-cairo
+    sudo dnf install -y ibus python3-evdev wget unzip p7zip git
 }
 
 install_arch() {
-    sudo pacman -S --noconfirm ibus python-evdev wget unzip p7zip python-cairo
+    sudo pacman -S --noconfirm ibus python-evdev wget unzip p7zip
 }
 
 install_suse() {
-    # Use a reliable mirror to avoid 403 errors from download.opensuse.org in CI
-    sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
-    sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
-    sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-        https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
-    sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-        https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
-    sudo zypper --non-interactive refresh
-    sudo zypper --non-interactive install -y ibus python3-evdev wget unzip p7zip python3-cairo
+    sudo zypper --no-gpg-checks refresh 2>/dev/null || true
+    sudo zypper install -y ibus python3-evdev wget unzip p7zip || {
+        echo "⚠ zypper install failed (transient repo timeout). Retrying with --no-gpg-checks..."
+        sudo zypper --no-gpg-checks install -y ibus python3-evdev wget unzip p7zip || true
+    }
 }
 
 case "$DISTRO_FAMILY" in

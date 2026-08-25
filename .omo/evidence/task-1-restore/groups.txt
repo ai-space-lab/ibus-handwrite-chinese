@@ -1,0 +1,1 @@
+mint : mint adm cdrom sudo dip plugdev users lpadmin sambashare

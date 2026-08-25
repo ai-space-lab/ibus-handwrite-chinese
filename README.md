@@ -234,6 +234,8 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 
 If you find this project useful, please consider supporting its development:
 
+**Version: v0.6.0**  [![Version](https://img.shields.io/badge/version-v0.6.0-blue)](https://github.com/ai-space-lab/ibus-handwrite-chinese/releases/tag/v0.6.0)
+
 | Network | Address | QR Code |
 |---------|---------|---------|
 | USDC (Solana) | `2amp2LBYCWjtARL7BHgzArxJk8S1sHWQNHtryY6D1mud` | [QR Code](docs/assets/crypto/usdc-solana.png) |

@@ -1,0 +1,39 @@
+{
+  "schema_version": 2,
+  "active_work_id": "get-users-now-cc8f9798",
+  "works": {
+    "get-users-now-cc8f9798": {
+      "work_id": "get-users-now-cc8f9798",
+      "active_plan": "/home/chloeng/Shares/tools/ibus-handwrite-chinese/.omo/plans/get-users-now.md",
+      "plan_name": "get-users-now",
+      "status": "completed",
+      "started_at": "2026-08-24T23:13:21.804Z",
+      "updated_at": "2026-08-24T23:36:52.287Z",
+      "session_ids": [
+        "opencode:ses_08a27102bffej5ceYeInc8sO69"
+      ],
+      "session_origins": {
+        "opencode:ses_08a27102bffej5ceYeInc8sO69": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {},
+      "ended_at": "2026-08-24T23:36:52.287Z",
+      "elapsed_ms": 1410483
+    }
+  },
+  "active_plan": "/home/chloeng/Shares/tools/ibus-handwrite-chinese/.omo/plans/get-users-now.md",
+  "started_at": "2026-08-24T23:13:21.804Z",
+  "status": "completed",
+  "updated_at": "2026-08-24T23:36:52.287Z",
+  "session_ids": [
+    "opencode:ses_08a27102bffej5ceYeInc8sO69"
+  ],
+  "session_origins": {
+    "opencode:ses_08a27102bffej5ceYeInc8sO69": "direct"
+  },
+  "plan_name": "get-users-now",
+  "task_sessions": {},
+  "agent": "atlas",
+  "ended_at": "2026-08-24T23:36:52.287Z",
+  "elapsed_ms": 1410483
+}

@@ -1,0 +1,17 @@
+=== Acceptance Check Results ===
+
+#1: Guard A — (x > 0 or y > 0) in do_set_cursor_location
+$ grep -n 'x > 0 or y > 0' src/ibus-engine-handwrite-chinese
+943:        if self.win and self.win.get_visible() and (x > 0 or y > 0):
+
+#2: Guard B — active == our_gdk_win return guard
+$ grep -n 'active == our_gdk_win' src/ibus-engine-handwrite-chinese
+973:        if active == our_gdk_win:
+
+#3: Cursor-location check in active is None branch
+$ grep -n 'self._cx > 0' src/ibus-engine-handwrite-chinese
+957:            if self._cx > 0 or self._cy > 0:
+
+#4: Python syntax check
+$ python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
+(no output — no SyntaxError)

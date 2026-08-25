@@ -1,0 +1,73 @@
+IBUS INSTALL GAP ANALYSIS
+==========================
+
+1. Scripts that do NOT install ibus:
+   - bootstrap.sh: All 4 ibus references are cosmetic (lines 20, 23, 55 = banner/URL; line 96 = git clone URL).
+     None of the distro install functions (install_debian, install_fedora, install_arch, install_suse)
+     include the ibus package.
+   - install.sh: Zero ibus package installation despite 16 functional ibus references.
+     The --skip-deps block (lines 32-45) only installs python3-evdev, wget, unzip, python3-venv.
+
+2. ibus failure points in install.sh:
+   - Line 166: pgrep -x ibus-daemon
+     pgrep returns non-zero (no match) → if condition false → harmless "No stale root ibus-daemon found" message
+   - Line 179: ibus-daemon --daemonize --replace 2>/dev/null || true
+     CRITICAL FAIL: "Command 'ibus-daemon' not found" → suppressed by 2>/dev/null, exit code absorbed by || true
+     Result: No ibus daemon is started. The script is unaware.
+   - Line 182: timeout 1 ibus engine >/dev/null 2>&1 && break
+     FAILS silently: "Command 'ibus' not found" → suppressed. Loop runs 5 full iterations with 1s sleeps each.
+     Total: ~5 seconds of silent failure.
+   - Line 192: timeout 3s ibus engine handwrite-chinese 2>/dev/null
+     FAILS silently: "Command 'ibus' not found" → suppressed.
+     Falls through to "! Could not switch engine. Try manually:" message.
+
+3. ibus failure points in restore.sh:
+   - Line 28: ibus restart 2>/dev/null || ibus-daemon --replace --daemonize 2>/dev/null || true
+     Both commands fail silently. Uninstall works for file removal, but ibus restart is a no-op.
+
+4. Effect on user:
+   The install script runs to completion with NO visible errors. All ibus errors are suppressed.
+   The user sees:
+     ✓ "Install complete"
+     ✓ "! Could not switch engine. Try manually: ibus engine handwrite-chinese"
+   But if they follow the advice and run "ibus engine handwrite-chinese", they get:
+     "Command 'ibus' not found, but can be installed with: sudo apt install ibus"
+   The engine files ARE installed at /usr/local/bin/ibus-engine-handwrite-chinese
+   The component XML IS registered at /usr/share/ibus/component/handwrite-chinese.xml
+   But without ibus itself, nothing works. The user has a dead installation.
+
+5. dpkg log confirmation (ibus was NOT pre-installed):
+   ---
+   Start-Date: 2026-07-05  03:35:46
+   Commandline: /usr/bin/apt install ibus
+   Requested-By: mint (1000)
+   Install: ibus-gtk3:amd64 (1.5.29-2, automatic), ibus-gtk4:amd64 (1.5.29-2, automatic),
+            python3-ibus-1.0:amd64 (1.5.29-2, automatic), ibus-data:amd64 (1.5.29-2, automatic),
+            ibus-gtk:amd64 (1.5.29-2, automatic), ibus:amd64 (1.5.29-2)
+   
+   First dpkg entry:
+   2026-07-05 03:35:51 install ibus-data:all <none> 1.5.29-2
+
+   The apt install ibus command ran at 03:35:46 on 2026-07-05.
+   The context indicates bootstrap.sh ran at ~04:10, ~35 minutes later.
+   ibus was manually installed by user 'mint' — it was NOT on the system pre-installed.
+
+6. Conclusion:
+   Neither script ensures ibus is installed. The project README lists "IBus input method
+   framework (default on most desktops)" as a requirement, but neither bootstrap.sh nor
+   install.sh verifies or installs it.
+   
+   On a system without ibus:
+   - The install completes without visible errors
+   - All ibus commands silently fail (error output redirected to /dev/null)
+   - The engine cannot start or activate
+   - User is left with a non-functioning installation
+   - The error message suggests manual "ibus engine handwrite-chinese" which also fails
+   
+   FIX:
+   - bootstrap.sh: Add "ibus" to each distro's package install list (e.g., line 61 for Debian)
+     OR add a `command -v ibus` check with a clear error message before proceeding
+   - install.sh: Add ibus detection + install before line 165 (the ibus-daemon section)
+     OR add the ibus package to the --skip-deps dependency install list (line 40)
+   - At minimum: Add `command -v ibus &>/dev/null || { echo "Please install ibus first"; exit 1; }`
+     before any ibus commands are executed

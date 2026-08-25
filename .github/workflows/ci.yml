@@ -57,7 +57,15 @@ jobs:
         run: echo "Arch deps installed via pacman above"
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
-        run: zypper install -y python3-evdev
+        run: |
+          sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
+          sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
+          sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
+          sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
+          sudo zypper --non-interactive refresh
+          sudo zypper --non-interactive install -y python3-evdev
       - name: Verify Python syntax
         run: |
           python3 -c "compile(open('src/ibus-engine-handwrite-chinese').read(), 'engine', 'exec')"
@@ -162,20 +170,14 @@ jobs:
       - name: Install deps (openSUSE)
         if: startsWith(matrix.distro, 'opensuse')
         run: |
-          if [ "${{ matrix.distro }}" = "opensuse/tumbleweed" ]; then
-            zypper --non-interactive removerepo repo-oss || true
-            (zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
-              https://download.opensuse.org/tumbleweed/repo/oss/ repo-oss && \
-            for attempt in 1 2 3; do
-              if zypper --non-interactive --gpg-auto-import-keys refresh; then
-                break
-              fi
-              [ "$attempt" -lt 3 ] && sleep 30
-            done) || echo "WARNING: repo-oss refresh failed, proceeding with cached repos"
-          else
-            zypper --no-gpg-checks refresh 2>/dev/null || true
-          fi
-          zypper --no-refresh install -y python3-evdev python3-gobject \
+          sudo zypper --non-interactive removerepo repo-oss 2>/dev/null || true
+          sudo zypper --non-interactive removerepo repo-non-oss 2>/dev/null || true
+          sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/oss/ repo-oss
+          sudo zypper --non-interactive --gpg-auto-import-keys addrepo --check --refresh \
+            https://mirrors.edge.kernel.org/opensuse/tumbleweed/repo/non-oss/ repo-non-oss
+          sudo zypper --non-interactive refresh
+          sudo zypper --non-interactive install -y python3-evdev python3-gobject \
             python3-numpy \
             typelib-1_0-Gtk-3_0 typelib-1_0-IBus-1_0 \
             xvfb-run wget unzip
