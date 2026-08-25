@@ -22,7 +22,7 @@ I got tired of hunting for the right character on a pinyin keyboard when I only 
 
 It's an IBus engine. Switch to "Chinese Handwriting", draw a character with one finger on the trackpad, and candidates pop up in a dark floating panel near your cursor. Tap the trackpad to pick one, or swipe two fingers to page through candidates.
 
-Recognition runs on PP-OCRv6 (a deep-learning OCR model) via ONNX Runtime, covering 18,710 characters. On a set of 40 real handwritten samples it scored 100% top-1 accuracy (average confidence 94.97%). That's a small sample, so treat it as promising rather than definitive, but it's been solid in daily use.
+Recognition runs locally via ONNX Runtime, covering 18,710 characters. On a set of 40 real handwritten samples it scored 100% top-1 accuracy (average confidence 94.97%). That's a small sample, so treat it as promising rather than definitive, but it's been solid in daily use.
 
 Key features:
 - macOS-style floating panel that appears next to your text cursor
@@ -72,7 +72,7 @@ bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chi
 
 What you get:
 - A dark floating panel near your cursor; draw a character on the trackpad, tap to select, swipe to page
-- PP-OCRv6 recognition (ONNX Runtime) covering 18,710 characters; 100% top-1 on a 40-sample handwritten test (avg confidence 94.97%)
+- Local ONNX Runtime recognition covering 18,710 characters; 100% top-1 on a 40-sample handwritten test (avg confidence 94.97%)
 - 6-tab GTK settings, on-demand model download, local user dictionary, configurable shortcuts
 - Mouse fallback if your trackpad isn't evdev-compatible
 
@@ -107,7 +107,7 @@ bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chi
 
 Why it's worth a look:
 - Draw on the trackpad via evdev; a dark panel shows candidates by your cursor. Tap to pick, two-finger swipe to page.
-- PP-OCRv6 (ONNX Runtime) recognition over 18,710 characters. On 40 real handwritten samples: 100% top-1 accuracy, 94.97% average confidence.
+- ONNX Runtime recognition over 18,710 characters. On 40 real handwritten samples: 100% top-1 accuracy, 94.97% average confidence.
 - 6-tab GTK preferences, on-demand model download (tiny/small/medium), user dictionary, remappable shortcuts.
 - Mouse fallback when no trackpad is available.
 
@@ -142,7 +142,7 @@ bash <(curl -s https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chi
 
 What it does:
 - A dark floating panel appears by your cursor. Draw with one finger on the trackpad, tap to select, swipe two fingers to page through candidates.
-- Recognition uses PP-OCRv6 via ONNX Runtime, covering 18,710 characters. In a 40-sample handwritten test it hit 100% top-1 accuracy (94.97% average confidence).
+- Recognition uses ONNX Runtime locally, covering 18,710 characters. In a 40-sample handwritten test it hit 100% top-1 accuracy (94.97% average confidence).
 - 6-tab GTK settings, on-demand model download, a local user dictionary that learns from your picks, and fully configurable shortcuts.
 - Mouse fallback if your machine has no evdev trackpad.
 
