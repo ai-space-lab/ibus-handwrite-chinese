@@ -229,6 +229,19 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 - **PP-OCRv6** — text recognition model by [PaddlePaddle](https://github.com/PaddlePaddle/PaddleOCR) / Baidu, licensed under [Apache 2.0](https://github.com/PaddlePaddle/PaddleOCR/blob/main/LICENSE).
 - **ONNX Runtime** — cross-platform inference engine by Microsoft, licensed under [MIT](https://github.com/microsoft/onnxruntime/blob/main/LICENSE).
 
+## Support This Project
+
+If you find this project useful, please consider supporting its development:
+
+| | | |
+|---|---|---|
+| ![BTC](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.04.07.jpeg) | ![ETH](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.05.36.jpeg) | ![USDT](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.09.jpeg) |
+| **Bitcoin (BTC)** | **Ethereum (ETH)** | **USDT (TRC20)** |
+| ![BNB](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.33.jpeg) | | |
+| **BNB (BEP20)** | | |
+
+---
+
 ## License
 
 GPLv3 — required by dependencies (python3-evdev, ibus).

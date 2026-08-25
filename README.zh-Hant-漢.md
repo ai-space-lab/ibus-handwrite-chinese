@@ -177,6 +177,19 @@ python3 scripts/analyze_ppocr_data.py --input .omo/evidence/ppocr-handwriting-da
 - **PP-OCRv6** — 文字辨識模型，由 [PaddlePaddle](https://github.com/PaddlePaddle/PaddleOCR) / 百度開發，採用 [Apache 2.0](https://github.com/PaddlePaddle/PaddleOCR/blob/main/LICENSE) 授權條款。
 - **ONNX Runtime** — 跨平台推論引擎，由微軟開發，採用 [MIT](https://github.com/microsoft/onnxruntime/blob/main/LICENSE) 授權條款。
 
+## 支持本專案
+
+如果您覺得這個專案有用，請考慮支持它的開發：
+
+| | | |
+|---|---|---|
+| ![BTC](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.04.07.jpeg) | ![ETH](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.05.36.jpeg) | ![USDT](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.09.jpeg) |
+| **Bitcoin (BTC)** | **Ethereum (ETH)** | **USDT (TRC20)** |
+| ![BNB](docs/assets/crypto/WhatsApp%20Image%202026-08-25%20at%2022.07.33.jpeg) | | |
+| **BNB (BEP20)** | | |
+
+---
+
 ## 授權條款
 
 GPLv3 — 由相依函式庫要求（python3-evdev、ibus）。
