@@ -92,7 +92,10 @@ if [ "$SKIP_DEPS" = false ]; then
 fi
 
 echo "=== Detecting trackpad (auto-detection) ==="
-if command -v python3 >/dev/null 2>&1 && python3 -c "import evdev" 2>/dev/null; then
+# Skip trackpad detection in CI environments (no input devices)
+if [ -n "${CI:-}" ]; then
+    echo "  ⚠ CI environment detected — skipping trackpad detection"
+elif command -v python3 >/dev/null 2>&1 && python3 -c "import evdev" 2>/dev/null; then
     DIAG_OUT="$(DIAG_NONFATAL=1 bash "$SCRIPT_DIR/diagnose_trackpad.sh" 2>/dev/null)" || DIAG_OUT=""
     TRACKPAD_DEVICE="$(printf '%s\n' "$DIAG_OUT" | grep -A2 "Trackpad(s) matching CURRENT filter" | grep -E '^[[:space:]]*-[[:space:]]' | head -1 | sed 's/^[[:space:]]*-[[:space:]]//')"
     if [ -n "$TRACKPAD_DEVICE" ]; then
