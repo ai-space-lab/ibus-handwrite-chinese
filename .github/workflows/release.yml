@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rpm-package
-          path: ibus-handwrite-chinese-*.rpm
+          path: ibus-handwrite-chinese-*-*.noarch.rpm
           if-no-files-found: error
 
   build-source:
@@ -89,13 +89,13 @@ jobs:
       - name: Create source tarball
         run: |
           tar --exclude='.git' --exclude='.github' --exclude='__pycache__' \
-              --exclude='models' --exclude='*.pyc' \
+              --exclude='models/*.onnx' --exclude='models/*.txt' --exclude='*.pyc' \
               -czf "ibus-handwrite-chinese-${{ needs.release.outputs.version }}.tar.gz" \
               src/ xml/ icons/ tools/ docs/ tests/ \
               bootstrap.sh LICENSE \
               VERSION \
               README.md "README.zh-Hans-汉.md" "README.zh-Hant-漢.md" \
-              packaging/
+              packaging/ models/checksums.sha256
       - name: Verify source tarball
         run: tar -tzf "ibus-handwrite-chinese-${{ needs.release.outputs.version }}.tar.gz" >/dev/null
       - name: Upload source artifact
@@ -277,5 +277,5 @@ jobs:
           tag_name: ${{ needs.release.outputs.tag }}
           files: |
             release-artifacts/ibus-handwrite-chinese_*.deb
-            release-artifacts/ibus-handwrite-chinese-*.rpm
+            release-artifacts/ibus-handwrite-chinese-*-*.noarch.rpm
             release-artifacts/ibus-handwrite-chinese-*.tar.gz
