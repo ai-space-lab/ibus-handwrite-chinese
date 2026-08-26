@@ -93,9 +93,11 @@ fi
 
 echo "=== Detecting trackpad (auto-detection) ==="
 # Skip trackpad detection in CI environments (no input devices)
-if [ -n "${CI:-}" ]; then
+# Check multiple CI indicators since container may not inherit all env vars
+if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${GITHUB_WORKFLOW:-}" ]; then
     echo "  ⚠ CI environment detected — skipping trackpad detection"
 elif command -v python3 >/dev/null 2>&1 && python3 -c "import evdev" 2>/dev/null; then
+    # Run trackpad detection but never fail the install if it errors
     DIAG_OUT="$(DIAG_NONFATAL=1 bash "$SCRIPT_DIR/diagnose_trackpad.sh" 2>/dev/null)" || DIAG_OUT=""
     TRACKPAD_DEVICE="$(printf '%s\n' "$DIAG_OUT" | grep -A2 "Trackpad(s) matching CURRENT filter" | grep -E '^[[:space:]]*-[[:space:]]' | head -1 | sed 's/^[[:space:]]*-[[:space:]]//')"
     if [ -n "$TRACKPAD_DEVICE" ]; then
