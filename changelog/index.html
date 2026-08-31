@@ -1,0 +1,1542 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ai-space-lab.github.io/ibus-handwrite-chinese/changelog/">
+      
+      
+        <link rel="prev" href="../troubleshooting/">
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../zh/changelog/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Changelog - ibus-handwrite-chinese</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ibus-handwrite-chinese" class="md-header__button md-logo" aria-label="ibus-handwrite-chinese" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ibus-handwrite-chinese
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../zh/changelog/" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ai-space-lab/ibus-handwrite-chinese
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configure/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configure
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ibus-handwrite-chinese" class="md-nav__button md-logo" aria-label="ibus-handwrite-chinese" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ibus-handwrite-chinese
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ai-space-lab/ibus-handwrite-chinese
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v060-2025-01-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.6.0] - 2025-01-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.6.0] - 2025-01-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#major-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Major Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v050-2024-10-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.5.0] - 2024-10-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.5.0] - 2024-10-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v040-2024-07-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.4.0] - 2024-07-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.4.0] - 2024-07-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v030-2024-05-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.3.0] - 2024-05-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.3.0] - 2024-05-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#breaking-changes-by-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breaking Changes by Version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Breaking Changes by Version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.5.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrade Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-v05x-to-v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From v0.5.x to v0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-v04x-or-earlier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From v0.4.x or earlier
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Links
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v060-2025-01-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.6.0] - 2025-01-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.6.0] - 2025-01-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#major-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Major Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v050-2024-10-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.5.0] - 2024-10-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.5.0] - 2024-10-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v040-2024-07-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.4.0] - 2024-07-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.4.0] - 2024-07-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v030-2024-05-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.3.0] - 2024-05-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.3.0] - 2024-05-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#breaking-changes-by-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breaking Changes by Version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Breaking Changes by Version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.5.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrade Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-v05x-to-v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From v0.5.x to v0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-v04x-or-earlier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From v0.4.x or earlier
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Links
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project are documented here. Follows <a href="https://keepachangelog.com/">Keep a Changelog</a> format.</p>
+<hr />
+<h2 id="v060-2025-01-15">[v0.6.0] - 2025-01-15</h2>
+<h3 id="major-features">Major Features</h3>
+<ul>
+<li><strong>Complete ESC/Enter key handling rewrite</strong> — fixes 5 critical bugs in key routing</li>
+<li><strong>Firefox ESC compatibility</strong> — handles <code>IBUS_RELEASE_MASK</code> on ESC events</li>
+<li><strong>Auto-pause on focus loss</strong> — pauses panel when clicking Firefox title bar / desktop</li>
+<li><strong>Window focus management fixes</strong> — ensures keyboard focus on every activation cycle</li>
+<li><strong>Model download with pkexec</strong> — permission elevation for system-wide model install</li>
+<li><strong>Preference dialog download button</strong> — pulsing progress bar, auto-prompt on tier change</li>
+<li><strong>User dictionary</strong> — SQLite-backed learning with configurable boost strength</li>
+<li><strong>Configurable shortcuts</strong> — 6-tab GTK3 preference dialog with key capture UI</li>
+<li><strong>PP-OCRv6 MAX pooling</strong> — fixed confidence calculation (was averaging, now max over time steps)</li>
+<li><strong>Dict index corruption fix</strong> — preserves ideographic space (U+3000) in dictionary</li>
+</ul>
+<h3 id="added">Added</h3>
+<ul>
+<li><code>--setup</code> CLI flag opens preference dialog</li>
+<li><code>--test</code> standalone mode improvements (keyboard focus fixed)</li>
+<li><code>IBUS_HANDWRITE_AUTO_DOWNLOAD</code> env var</li>
+<li><code>engine.auto_pause_debounce_ms</code> config (default 50ms)</li>
+<li><code>engine.delete_hold_ms</code> config (default 500ms)</li>
+<li><code>model.download_timeout</code> config (default 30s)</li>
+<li>Theme auto-detection via <code>gsettings</code> / <code>kreadconfig5</code> / <code>GTK_THEME</code></li>
+<li>SHA256 verification for model downloads (primary + fallback URLs)</li>
+<li>Drag handle hover effect in window top bar</li>
+<li>Candidate highlight via 1-finger drag in top trackpad zone</li>
+<li>Swipe momentum with configurable decay/threshold/tick</li>
+<li>Non-destructive multitouch (2nd finger during stroke saves/restores state)</li>
+<li>Udev rule for trackpad <code>uaccess</code> (<code>99-trackpad-handwrite.rules</code>)</li>
+<li>Input group auto-add during install</li>
+<li>Stale root <code>ibus-daemon</code> detection &amp; kill</li>
+<li><code>diagnose_trackpad.sh</code> diagnostic script</li>
+<li><code>restore.sh</code> uninstall script with user data preservation prompt</li>
+<li>Cross-distro <code>bootstrap.sh</code> installer</li>
+<li>GitHub Actions CI across 5 distros (Debian, Ubuntu, Fedora, Arch, openSUSE)</li>
+<li>Release workflow building <code>.deb</code>, <code>.rpm</code>, source tarball</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Bug</th>
+<th>Root Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Dict index corruption</td>
+<td><code>line.strip()</code> removed U+3000</td>
+<td><code>line.rstrip('\n')</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Confidence pooling</td>
+<td><code>np.mean()</code> diluted by blanks</td>
+<td><code>np.max()</code> (MAX pooling)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Stroke line width</td>
+<td>Hardcoded 6px vs training data</td>
+<td>Configurable <code>stroke_width</code> (default 8)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ESC/Enter key handling</td>
+<td>Intercepted regardless of state</td>
+<td>State-machine: ESC always handled; Enter/Backspace only in active state with candidates</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>--test</code> keyboard focus</td>
+<td><code>set_accept_focus(False)</code></td>
+<td><code>set_accept_focus(True)</code> before <code>present()</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Firefox ESC compatibility</td>
+<td><code>RELEASE_MASK</code> bypassed ESC check</td>
+<td>Check ESC before <code>RELEASE_MASK</code> filter; 150ms debounce</td>
+</tr>
+<tr>
+<td>7</td>
+<td>ESC pause without text focus</td>
+<td>No IBus context + no GTK focus</td>
+<td><code>set_accept_focus(True)</code> in <code>do_enable()</code>; removed focus-grab timer</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Auto-pause on non-text focus</td>
+<td>No key event path available</td>
+<td>GTK <code>focus-out-event</code> → 50ms debounce → <code>on_key_esc()</code></td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>present()</code> skipped on 2nd activation</td>
+<td><code>_focused_since_enable</code> race</td>
+<td>Always call <code>present()</code> in idle handler</td>
+</tr>
+<tr>
+<td>10</td>
+<td>X11 property flush timing</td>
+<td><code>accept_focus</code> not flushed before <code>present()</code></td>
+<td>Set <code>accept_focus(True)</code> in <code>do_enable()</code> before <code>idle_add</code></td>
+</tr>
+<tr>
+<td>11</td>
+<td>Model download permission</td>
+<td><code>tempfile.mkdtemp()</code> in root dir</td>
+<td>Download to <code>/tmp</code>, move with <code>pkexec cp</code> fallback</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Display stroke width ignored</td>
+<td>Hardcoded <code>3 * scale</code> in Cairo</td>
+<td>Use <code>CONFIG["engine"]["stroke_width"]</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td>Dead config keys</td>
+<td><code>model.variant</code>, <code>engine.max_strokes</code></td>
+<td>Removed from config &amp; UI</td>
+</tr>
+</tbody>
+</table>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>Default model tier: <code>small</code> (was <code>medium</code> in early versions)</li>
+<li>Default stroke width: 8px (was 6px)</li>
+<li>Momentum decay: 0.65 (was 0.5)</li>
+<li>Log format: JSON lines (was plain text)</li>
+<li>Config file: TOML (was JSON-like custom format)</li>
+<li>Model naming: <code>ppocrv6_{tier}_rec.onnx</code> (unified)</li>
+<li>Dictionary: <code>dict_v6.txt</code> (shared across tiers)</li>
+</ul>
+<h3 id="removed">Removed</h3>
+<ul>
+<li>Legacy <code>model.variant</code> config key</li>
+<li>Legacy <code>engine.max_strokes</code> config key</li>
+<li><code>--prompt</code> / <code>--free</code> CLI modes (use <code>--test</code> instead)</li>
+</ul>
+<hr />
+<h2 id="v050-2024-10-01">[v0.5.0] - 2024-10-01</h2>
+<h3 id="added_1">Added</h3>
+<ul>
+<li>PP-OCRv6 ONNX recognition (replaced legacy template matching)</li>
+<li>18,710 character support via PP-OCRv6 dictionary</li>
+<li>ONNX Runtime inference backend</li>
+<li>Model tier selection (tiny/small/medium)</li>
+<li>On-demand model download from HuggingFace</li>
+<li>evdev trackpad integration with multitouch</li>
+<li>Tap-to-select with spatial mapping</li>
+<li>Two-finger swipe paging</li>
+<li>macOS-style floating panel with embedded candidates</li>
+<li>Cursor-proximity window positioning</li>
+<li>Drag handle for window repositioning</li>
+<li>Close button (×) with previous IME restore</li>
+<li>Delete stroke button (⌫)</li>
+<li>Dark theme (default)</li>
+<li>IBus component registration</li>
+<li>Debian packaging (<code>.deb</code>)</li>
+<li>Install script with dependency management</li>
+</ul>
+<h3 id="fixed_1">Fixed</h3>
+<ul>
+<li>Initial trackpad grab/ungrab sequence</li>
+<li>IBus engine lifecycle (enable/disable/focus)</li>
+<li>Candidate button click handling</li>
+<li>Window positioning near cursor</li>
+<li>Stroke rendering with Cairo</li>
+</ul>
+<hr />
+<h2 id="v040-2024-07-15">[v0.4.0] - 2024-07-15</h2>
+<h3 id="added_2">Added</h3>
+<ul>
+<li>Basic IBus engine skeleton</li>
+<li>GTK3 drawing area for handwriting</li>
+<li>Simple template-based recognition (pre-PP-OCR)</li>
+<li>Mouse fallback drawing</li>
+<li>Basic candidate display</li>
+<li>IBus key event handling (ESC, Enter, Backspace)</li>
+</ul>
+<hr />
+<h2 id="v030-2024-05-01">[v0.3.0] - 2024-05-01</h2>
+<h3 id="added_3">Added</h3>
+<ul>
+<li>Project structure</li>
+<li>IBus component XML</li>
+<li>Basic install script</li>
+<li>README with install instructions</li>
+</ul>
+<hr />
+<h2 id="breaking-changes-by-version">Breaking Changes by Version</h2>
+<h3 id="v060">v0.6.0</h3>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Migration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Config format: JSON-like → TOML</td>
+<td>Delete <code>~/.config/ibus-handwrite-chinese/config.toml</code> and reconfigure</td>
+</tr>
+<tr>
+<td>Model naming: <code>ppocrv6_{variant}.onnx</code> → <code>ppocrv6_{tier}_rec.onnx</code></td>
+<td>Re-download models via preference dialog</td>
+</tr>
+<tr>
+<td><code>model.variant</code> removed</td>
+<td>Use <code>model.tier</code> (tiny/small/medium)</td>
+</tr>
+<tr>
+<td><code>engine.max_strokes</code> removed</td>
+<td>No action needed (was unused)</td>
+</tr>
+<tr>
+<td>Stroke width default: 6 → 8</td>
+<td>Adjust in Engine tab if needed</td>
+</tr>
+<tr>
+<td>ESC behavior: single press closed</td>
+<td>Now: 1×ESC = pause, 2×ESC = close</td>
+</tr>
+</tbody>
+</table>
+<h3 id="v050">v0.5.0</h3>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Migration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recognition engine: template → PP-OCRv6 ONNX</td>
+<td>Full reinstall required (run <code>restore.sh</code> then <code>install.sh</code>)</td>
+</tr>
+<tr>
+<td>Model files: bundled → downloaded</td>
+<td>Installer handles download</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="upgrade-instructions">Upgrade Instructions</h2>
+<h3 id="from-v05x-to-v060">From v0.5.x to v0.6.0</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Uninstall old version</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>/usr/local/share/ibus-handwrite-chinese/restore.sh
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Install new version</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bash<span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-s<span class="w"> </span>https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh<span class="o">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># 3. Reconfigure preferences</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>ibus-engine-handwrite-chinese<span class="w"> </span>--setup
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>ibus<span class="w"> </span>restart
+</code></pre></div>
+<h3 id="from-v04x-or-earlier">From v0.4.x or earlier</h3>
+<p>Full reinstall required — recognition engine completely changed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># If restore.sh exists</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>/usr/local/share/ibus-handwrite-chinese/restore.sh
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Clean any remaining files</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>/usr/local/bin/ibus-engine-handwrite-chinese
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>/usr/share/ibus/component/handwrite-chinese.xml
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>/etc/udev/rules.d/99-trackpad-handwrite.rules
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Fresh install</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>bash<span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-s<span class="w"> </span>https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh<span class="o">)</span>
+</code></pre></div>
+<hr />
+<h2 id="release-checklist">Release Checklist</h2>
+<p>Each release includes:</p>
+<ul>
+<li>[ ] Version bump in <code>VERSION</code> file</li>
+<li>[ ] Changelog updated</li>
+<li>[ ] Git tag <code>vX.Y.Z</code> pushed</li>
+<li>[ ] GitHub Release created with:</li>
+<li><code>.deb</code> package</li>
+<li><code>.rpm</code> package</li>
+<li>Source tarball</li>
+<li>SHA256 checksums</li>
+<li>[ ] CI passes on all 5 distros</li>
+<li>[ ] Manual test on Linux Mint 22 XFCE (reference platform)</li>
+</ul>
+<hr />
+<h2 id="contributors">Contributors</h2>
+<ul>
+<li><strong>ai-space-lab</strong> — Core development, architecture, PP-OCR integration, IBus/GTK/evdev engineering</li>
+<li><strong>PaddlePaddle</strong> — PP-OCRv6 model (Apache 2.0)</li>
+<li><strong>Microsoft</strong> — ONNX Runtime (MIT)</li>
+<li><strong>IBus Project</strong> — Input method framework</li>
+<li><strong>GTK Project</strong> — UI toolkit</li>
+</ul>
+<hr />
+<h2 id="links">Links</h2>
+<ul>
+<li><a href="https://github.com/ai-space-lab/ibus-handwrite-chinese/releases">GitHub Releases</a></li>
+<li><a href="https://github.com/ai-space-lab/ibus-handwrite-chinese/issues">GitHub Issues</a></li>
+<li><a href="https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx">PP-OCRv6 Model Card</a></li>
+<li><a href="https://onnxruntime.ai/">ONNX Runtime</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://gc.zgoat.net/count.js"></script>
+      
+    
+  </body>
+</html>

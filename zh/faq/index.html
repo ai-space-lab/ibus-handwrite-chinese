@@ -1,0 +1,2405 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ai-space-lab.github.io/ibus-handwrite-chinese/zh/faq/">
+      
+      
+        <link rel="prev" href="../configure/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+          <link rel="alternate" href="../../faq/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>FAQ - ibus-handwrite-chinese</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#frequently-asked-questions" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../" title="ibus-handwrite-chinese" class="md-header__button md-logo" aria-label="ibus-handwrite-chinese" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ibus-handwrite-chinese
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FAQ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../faq/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ai-space-lab/ibus-handwrite-chinese
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configure/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configure
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="ibus-handwrite-chinese" class="md-nav__button md-logo" aria-label="ibus-handwrite-chinese" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ibus-handwrite-chinese
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ai-space-lab/ibus-handwrite-chinese
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-which-installation-method-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Which installation method should I use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-my-distro-isnt-listed-will-it-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: My distro isn't listed. Will it work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-do-i-need-to-build-the-onnx-model-myself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Do I need to build the ONNX model myself?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-installation-fails-with-python3-evdev-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Installation fails with "python3-evdev not found"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-install-without-sudo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I install without sudo?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trackpad-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trackpad &amp; Hardware
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trackpad &amp; Hardware">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-will-it-work-on-my-trackpad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Will it work on my trackpad?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-my-trackpad-isnt-detected-no-trackpad-detected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: My trackpad isn't detected / "No trackpad detected"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-does-it-work-on-wayland" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Does it work on Wayland?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-use-a-touchscreen-instead-of-trackpad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I use a touchscreen instead of trackpad?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-does-it-work-with-external-drawing-tablets-wacom-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Does it work with external drawing tablets (Wacom, etc.)?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-switch-to-chinese-handwriting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I switch to Chinese Handwriting?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-draw-characters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I draw characters?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-do-the-keyboard-shortcuts-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What do the keyboard shortcuts do?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-does-tap-to-select-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How does tap-to-select work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-does-two-finger-swipe-paging-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How does two-finger swipe paging work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-type-normally-english-while-the-panel-is-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I type normally (English) while the panel is open?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-close-the-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I close the panel?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-is-paused-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What is "Paused" mode?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models &amp; Recognition
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Models &amp; Recognition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-which-model-tier-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Which model tier should I use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-change-the-model-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I change the model tier?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-model-download-fails-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Model download fails / "Permission denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-use-my-own-onnx-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I use my own ONNX model?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-recognition-accuracy-is-poor-what-can-i-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Recognition accuracy is poor. What can I do?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-where-is-the-config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Where is the config file?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-override-settings-via-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I override settings via environment variables?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-have-different-settings-per-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I have different settings per user?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-backuprestore-my-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I backup/restore my settings?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-cannot-find-engine-handwrite-chinese" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: "Cannot find engine handwrite-chinese"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-trackpad-doesnt-work-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Trackpad doesn't work / "Permission denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-esc-key-doesnt-work-in-firefox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: ESC key doesn't work in Firefox
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-enter-key-doesnt-reach-terminal-after-pressing-esc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Enter key doesn't reach terminal after pressing ESC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-panel-doesnt-appear-window-not-showing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Panel doesn't appear / window not showing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-onnxruntime-errors-on-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: onnxruntime errors on startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-ibus-indicator-not-showing-in-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: IBus indicator not showing in panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-ctrlspace-ibus-trigger-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Ctrl+Space / IBus trigger not working
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uninstallation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uninstallation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uninstallation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I uninstall?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-will-uninstall-remove-my-learned-characters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Will uninstall remove my learned characters?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development &amp; Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development &amp; Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-test-without-installing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I test without installing?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-collect-handwriting-data-for-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I collect handwriting data for analysis?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-where-are-logs-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Where are logs stored?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license-credits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License &amp; Credits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="License &amp; Credits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-what-license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What license?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-models-are-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What models are used?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-can-i-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How can I contribute?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#still-have-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Still Have Questions?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-which-installation-method-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Which installation method should I use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-my-distro-isnt-listed-will-it-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: My distro isn't listed. Will it work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-do-i-need-to-build-the-onnx-model-myself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Do I need to build the ONNX model myself?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-installation-fails-with-python3-evdev-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Installation fails with "python3-evdev not found"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-install-without-sudo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I install without sudo?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trackpad-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trackpad &amp; Hardware
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trackpad &amp; Hardware">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-will-it-work-on-my-trackpad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Will it work on my trackpad?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-my-trackpad-isnt-detected-no-trackpad-detected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: My trackpad isn't detected / "No trackpad detected"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-does-it-work-on-wayland" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Does it work on Wayland?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-use-a-touchscreen-instead-of-trackpad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I use a touchscreen instead of trackpad?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-does-it-work-with-external-drawing-tablets-wacom-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Does it work with external drawing tablets (Wacom, etc.)?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-switch-to-chinese-handwriting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I switch to Chinese Handwriting?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-draw-characters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I draw characters?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-do-the-keyboard-shortcuts-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What do the keyboard shortcuts do?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-does-tap-to-select-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How does tap-to-select work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-does-two-finger-swipe-paging-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How does two-finger swipe paging work?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-type-normally-english-while-the-panel-is-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I type normally (English) while the panel is open?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-close-the-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I close the panel?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-is-paused-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What is "Paused" mode?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models &amp; Recognition
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Models &amp; Recognition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-which-model-tier-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Which model tier should I use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-change-the-model-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I change the model tier?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-model-download-fails-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Model download fails / "Permission denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-use-my-own-onnx-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I use my own ONNX model?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-recognition-accuracy-is-poor-what-can-i-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Recognition accuracy is poor. What can I do?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-where-is-the-config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Where is the config file?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-override-settings-via-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I override settings via environment variables?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-can-i-have-different-settings-per-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Can I have different settings per user?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-backuprestore-my-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I backup/restore my settings?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-cannot-find-engine-handwrite-chinese" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: "Cannot find engine handwrite-chinese"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-trackpad-doesnt-work-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Trackpad doesn't work / "Permission denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-esc-key-doesnt-work-in-firefox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: ESC key doesn't work in Firefox
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-enter-key-doesnt-reach-terminal-after-pressing-esc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Enter key doesn't reach terminal after pressing ESC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-panel-doesnt-appear-window-not-showing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Panel doesn't appear / window not showing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-onnxruntime-errors-on-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: onnxruntime errors on startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-ibus-indicator-not-showing-in-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: IBus indicator not showing in panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-ctrlspace-ibus-trigger-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Ctrl+Space / IBus trigger not working
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uninstallation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uninstallation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uninstallation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I uninstall?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-will-uninstall-remove-my-learned-characters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Will uninstall remove my learned characters?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development &amp; Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development &amp; Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-test-without-installing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I test without installing?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-do-i-collect-handwriting-data-for-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How do I collect handwriting data for analysis?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-where-are-logs-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: Where are logs stored?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license-credits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License &amp; Credits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="License &amp; Credits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q-what-license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What license?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-what-models-are-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: What models are used?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q-how-can-i-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: How can I contribute?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#still-have-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Still Have Questions?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<h2 id="installation">Installation</h2>
+<h3 id="q-which-installation-method-should-i-use">Q: Which installation method should I use?</h3>
+<p><strong>Quick answer:</strong> Use the one-command bootstrap:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bash<span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-s<span class="w"> </span>https://raw.githubusercontent.com/ai-space-lab/ibus-handwrite-chinese/main/bootstrap.sh<span class="o">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ibus<span class="w"> </span>restart
+</code></pre></div>
+<p>It auto-detects your distro (Debian/Ubuntu/Mint, Fedora, Arch/Manjaro, openSUSE) and installs everything.</p>
+<p><strong>Other options:</strong>
+- <strong>Pre-built packages</strong>: Download <code>.deb</code> / <code>.rpm</code> from <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese/releases">GitHub Releases</a>
+- <strong>Build from source</strong>: Clone the repo and run <code>./tools/install.sh</code></p>
+<hr />
+<h3 id="q-my-distro-isnt-listed-will-it-work">Q: My distro isn't listed. Will it work?</h3>
+<p>The bootstrap script supports:
+- Debian 12+, Ubuntu 22.04+, Linux Mint 21+
+- Fedora 40+
+- Arch Linux, Manjaro
+- openSUSE Tumbleweed</p>
+<p>Other distros may work if they have:
+- IBus 1.5+
+- Python 3.8+ with <code>python3-venv</code>
+- <code>python3-evdev</code> (or equivalent)
+- GTK3, Cairo, GObject Introspection</p>
+<p>Try the bootstrap script — it will tell you what's missing.</p>
+<hr />
+<h3 id="q-do-i-need-to-build-the-onnx-model-myself">Q: Do I need to build the ONNX model myself?</h3>
+<p>No. The installer downloads pre-built PP-OCRv6 ONNX models from HuggingFace (with hf-mirror.com fallback). Three tiers are available: tiny (1.5M params), small (~8M), medium (34.5M).</p>
+<hr />
+<h3 id="q-installation-fails-with-python3-evdev-not-found">Q: Installation fails with "python3-evdev not found"</h3>
+<p>Install the system package first:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Debian/Ubuntu/Mint</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-evdev
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Fedora</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>python3-evdev
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Arch/Manjaro</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>python-evdev
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># openSUSE</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>python3-evdev
+</code></pre></div>
+<p>Then re-run the installer with <code>--skip-deps</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./tools/install.sh<span class="w"> </span>--skip-deps
+</code></pre></div></p>
+<hr />
+<h3 id="q-can-i-install-without-sudo">Q: Can I install without sudo?</h3>
+<p>No. The engine needs:
+- System-wide IBus component registration (<code>/usr/share/ibus/component/</code>)
+- Udev rule for trackpad access (<code>/etc/udev/rules.d/</code>)
+- Model files in <code>/usr/local/share/ibus-handwrite-chinese/models/</code>
+- Python venv with onnxruntime in <code>/usr/local/share/ibus-handwrite-chinese/venv/</code></p>
+<p>All require root. The bootstrap script uses <code>sudo</code> internally.</p>
+<hr />
+<h2 id="trackpad-hardware">Trackpad &amp; Hardware</h2>
+<h3 id="q-will-it-work-on-my-trackpad">Q: Will it work on my trackpad?</h3>
+<p><strong>Tested &amp; working:</strong>
+- Acer Aspire AL16-54P (HTIX5288)
+- MacBook Pro (bcm5974)</p>
+<p><strong>Should work on any trackpad with:</strong>
+- <code>BTN_TOUCH</code> or <code>ABS_MT_TRACKING_ID</code> (finger detection)
+- <code>ABS_X</code>/<code>ABS_MT_POSITION_X</code> and <code>ABS_Y</code>/<code>ABS_MT_POSITION_Y</code> (position)</p>
+<p>Run the diagnostic to check:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
+</code></pre></div></p>
+<hr />
+<h3 id="q-my-trackpad-isnt-detected-no-trackpad-detected">Q: My trackpad isn't detected / "No trackpad detected"</h3>
+<ol>
+<li>
+<p><strong>Check the diagnostic:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify udev rule is applied:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>udevadm<span class="w"> </span>trigger
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check group membership:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>groups<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>input
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># If missing: sudo usermod -a -G input $USER &amp;&amp; reboot</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify device ACL:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>getfacl<span class="w"> </span>/dev/input/event*
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># Your user should have rw on the trackpad device</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Some trackpads need a physical click</strong> to register touches. The engine now also tracks <code>ABS_MT_TRACKING_ID</code> — try touching lightly without clicking.</p>
+</li>
+</ol>
+<hr />
+<h3 id="q-does-it-work-on-wayland">Q: Does it work on Wayland?</h3>
+<p><strong>Popup positioning and evdev access are untested on Wayland.</strong> The engine uses X11-specific APIs for cursor-proximity window positioning. On Wayland:
+- Window may appear at wrong position
+- evdev access may be blocked by compositor</p>
+<p><strong>Workaround:</strong> Run on X11 session (log out → select "Xorg" / "X11" at login).</p>
+<hr />
+<h3 id="q-can-i-use-a-touchscreen-instead-of-trackpad">Q: Can I use a touchscreen instead of trackpad?</h3>
+<p>The engine reads evdev events. If your touchscreen exposes the same event codes (<code>ABS_MT_POSITION_X/Y</code>, <code>ABS_MT_TRACKING_ID</code>), it may work. Not officially tested.</p>
+<hr />
+<h3 id="q-does-it-work-with-external-drawing-tablets-wacom-etc">Q: Does it work with external drawing tablets (Wacom, etc.)?</h3>
+<p>Only if the tablet appears as a standard evdev touchpad device with the required event codes. Most drawing tablets use different event types and won't work without modification.</p>
+<hr />
+<h2 id="usage">Usage</h2>
+<h3 id="q-how-do-i-switch-to-chinese-handwriting">Q: How do I switch to Chinese Handwriting?</h3>
+<ul>
+<li><strong>IBus Menu</strong>: Click tray icon → Chinese Handwriting</li>
+<li><strong>Keyboard</strong>: <code>Super+Space</code> (or your configured IBus trigger)</li>
+<li><strong>Command</strong>: <code>ibus engine handwrite-chinese</code></li>
+</ul>
+<hr />
+<h3 id="q-how-do-i-draw-characters">Q: How do I draw characters?</h3>
+<ol>
+<li>Switch to Chinese Handwriting IME</li>
+<li>Floating panel appears near text cursor</li>
+<li><strong>Draw with one finger</strong> on trackpad</li>
+<li>Candidates appear at top of panel</li>
+<li><strong>Tap trackpad</strong> to select candidate (spatial mapping)</li>
+<li><strong>Two-finger swipe</strong> left/right to page candidates</li>
+<li><strong>Fast swipe</strong> = momentum (advances multiple pages)</li>
+<li><strong>Drag finger in top 5%</strong> of trackpad to highlight candidate by position</li>
+<li><strong>⌫ button</strong> = undo last stroke</li>
+<li><strong>× button</strong> = close &amp; restore previous IME</li>
+</ol>
+<hr />
+<h3 id="q-what-do-the-keyboard-shortcuts-do">Q: What do the keyboard shortcuts do?</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ESC</code> (once)</td>
+<td>Pause panel, show "click to resume"</td>
+</tr>
+<tr>
+<td><code>ESC</code> (twice)</td>
+<td>Close panel, restore previous IME</td>
+</tr>
+<tr>
+<td><code>Enter</code> (with candidates)</td>
+<td>Commit first candidate</td>
+</tr>
+<tr>
+<td><code>Enter</code> (no candidates)</td>
+<td>Pass through to app</td>
+</tr>
+<tr>
+<td><code>Backspace</code></td>
+<td>Undo last stroke</td>
+</tr>
+<tr>
+<td><code>Backspace</code> (hold 500ms)</td>
+<td>Clear all strokes + send backspace to app</td>
+</tr>
+<tr>
+<td><code>Left</code> / <code>Right</code></td>
+<td>Page candidates</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+T</code></td>
+<td>Cycle theme</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+S</code></td>
+<td>Open settings</td>
+</tr>
+</tbody>
+</table>
+<p>All shortcuts are customizable in the <strong>Shortcuts</strong> tab.</p>
+<hr />
+<h3 id="q-how-does-tap-to-select-work">Q: How does tap-to-select work?</h3>
+<p>Tap anywhere on the trackpad. The X position maps spatially to candidates:
+- Left side → first candidate
+- Right side → last candidate
+- Far right (82%+) → triggers ⌫ (delete stroke)</p>
+<hr />
+<h3 id="q-how-does-two-finger-swipe-paging-work">Q: How does two-finger swipe paging work?</h3>
+<ul>
+<li><strong>Swipe left</strong> → next page</li>
+<li><strong>Swipe right</strong> → previous page</li>
+<li><strong>Fast swipe</strong> → momentum: continues paging after lift, decelerating</li>
+<li>Velocity and decay configurable in <strong>Engine</strong> tab</li>
+</ul>
+<hr />
+<h3 id="q-can-i-type-normally-english-while-the-panel-is-open">Q: Can I type normally (English) while the panel is open?</h3>
+<p><strong>Yes.</strong> When no strokes are drawn (no candidates), <code>Enter</code> passes through to the application. You can type English normally. The panel only intercepts keys when actively writing.</p>
+<hr />
+<h3 id="q-how-do-i-close-the-panel">Q: How do I close the panel?</h3>
+<ul>
+<li>Click <strong>×</strong> button (top-left)</li>
+<li>Press <strong>ESC</strong> twice</li>
+<li>Switch to another IME from IBus menu</li>
+</ul>
+<p>The previous IME is automatically restored.</p>
+<hr />
+<h3 id="q-what-is-paused-mode">Q: What is "Paused" mode?</h3>
+<p>Press <strong>ESC</strong> once → panel shows "click to resume" overlay, trackpad ungrabbed. Click the panel or press <strong>ESC</strong> again to close. Useful for temporarily using trackpad for cursor movement.</p>
+<hr />
+<h2 id="models-recognition">Models &amp; Recognition</h2>
+<h3 id="q-which-model-tier-should-i-use">Q: Which model tier should I use?</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Speed</th>
+<th>Accuracy</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tiny</td>
+<td>Fastest</td>
+<td>Good</td>
+<td>Low-end hardware, battery saving</td>
+</tr>
+<tr>
+<td>small</td>
+<td>Balanced</td>
+<td>Very Good</td>
+<td><strong>Default</strong> — most users</td>
+</tr>
+<tr>
+<td>medium</td>
+<td>Slowest</td>
+<td>Best</td>
+<td>High accuracy needs, powerful hardware</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>small</strong> tier (default) achieves &gt;99% top-1 accuracy on common characters.</p>
+<hr />
+<h3 id="q-how-do-i-change-the-model-tier">Q: How do I change the model tier?</h3>
+<ol>
+<li>Open preferences: <code>ibus-engine-handwrite-chinese --setup</code></li>
+<li>Go to <strong>Model</strong> tab</li>
+<li>Select tier from dropdown</li>
+<li>If not downloaded, click <strong>Download Model</strong> (or accept prompt)</li>
+<li>Click <strong>Apply</strong></li>
+<li>Run <code>ibus restart</code></li>
+</ol>
+<hr />
+<h3 id="q-model-download-fails-permission-denied">Q: Model download fails / "Permission denied"</h3>
+<p>The downloader uses <code>/tmp</code> for temporary files, then moves to target with <code>pkexec</code> if needed. If it fails:</p>
+<ol>
+<li>
+<p><strong>Manual download:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Download from HuggingFace</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>wget<span class="w"> </span>https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>wget<span class="w"> </span>https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocrv6_dict.txt
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Install</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese/models
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>sudo<span class="w"> </span>cp<span class="w"> </span>inference.onnx<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese/models/ppocrv6_small_rec.onnx
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>sudo<span class="w"> </span>cp<span class="w"> </span>dict_v6.txt<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese/models/dict_v6.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Or set custom path</strong> in Model tab → "Model Path" / "Dict Path"</p>
+</li>
+</ol>
+<hr />
+<h3 id="q-can-i-use-my-own-onnx-model">Q: Can I use my own ONNX model?</h3>
+<p>Yes. In the <strong>Model</strong> tab:
+- <strong>Model Path</strong>: Path to your <code>.onnx</code> file
+- <strong>Dict Path</strong>: Path to your dictionary <code>.txt</code> (one char per line, matching model vocab)</p>
+<p>Leave empty for auto-detection. The model must be compatible with PP-OCRv6 architecture (CNN + CTC, 48px height input).</p>
+<hr />
+<h3 id="q-recognition-accuracy-is-poor-what-can-i-do">Q: Recognition accuracy is poor. What can I do?</h3>
+<ol>
+<li><strong>Use medium tier</strong> for highest accuracy</li>
+<li><strong>Draw larger, clearer strokes</strong> — small/cramped strokes reduce accuracy</li>
+<li><strong>Check stroke width</strong> in Engine tab (default 8px, try 10–12)</li>
+<li><strong>Enable User Dictionary</strong> — learned characters get boosted</li>
+<li><strong>Verify model matches dict</strong> — they must be from same PP-OCRv6 version</li>
+</ol>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="q-where-is-the-config-file">Q: Where is the config file?</h3>
+<p><code>~/.config/ibus-handwrite-chinese/config.toml</code></p>
+<p>Only non-default values are stored. Delete it to reset.</p>
+<hr />
+<h3 id="q-how-do-i-override-settings-via-environment-variables">Q: How do I override settings via environment variables?</h3>
+<p>Prefix with <code>IBUS_HANDWRITE_</code> and use uppercase with underscores:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">IBUS_HANDWRITE_THEME</span><span class="o">=</span>light
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">IBUS_HANDWRITE_PPOCR_MODEL</span><span class="o">=</span>medium
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">IBUS_HANDWRITE_STROKE_WIDTH</span><span class="o">=</span><span class="m">10</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>ibus<span class="w"> </span>restart
+</code></pre></div>
+<p>See <a href="../configure/#environment-variables">Configuration</a> for full list.</p>
+<hr />
+<h3 id="q-can-i-have-different-settings-per-user">Q: Can I have different settings per user?</h3>
+<p>Yes. Each user has their own:
+- Config: <code>~/.config/ibus-handwrite-chinese/config.toml</code>
+- User dictionary: <code>~/.local/share/ibus-handwrite-chinese/userdict.sqlite</code>
+- Log: <code>/tmp/ppocr-recognition.log</code> (shared)</p>
+<p>System-wide model files in <code>/usr/local/share/...</code> are shared.</p>
+<hr />
+<h3 id="q-how-do-i-backuprestore-my-settings">Q: How do I backup/restore my settings?</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Backup</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>cp<span class="w"> </span>~/.config/ibus-handwrite-chinese/config.toml<span class="w"> </span>~/config-backup.toml
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>cp<span class="w"> </span>~/.local/share/ibus-handwrite-chinese/userdict.sqlite<span class="w"> </span>~/userdict-backup.sqlite
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Restore</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>cp<span class="w"> </span>~/config-backup.toml<span class="w"> </span>~/.config/ibus-handwrite-chinese/config.toml
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>cp<span class="w"> </span>~/userdict-backup.sqlite<span class="w"> </span>~/.local/share/ibus-handwrite-chinese/userdict.sqlite
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>ibus<span class="w"> </span>restart
+</code></pre></div>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="q-cannot-find-engine-handwrite-chinese">Q: "Cannot find engine handwrite-chinese"</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ibus<span class="w"> </span>restart
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>ibus<span class="w"> </span>engine<span class="w"> </span>handwrite-chinese
+</code></pre></div>
+<p>The engine component XML must be registered at <code>/usr/share/ibus/component/handwrite-chinese.xml</code> (done by installer).</p>
+<hr />
+<h3 id="q-trackpad-doesnt-work-permission-denied">Q: Trackpad doesn't work / "Permission denied"</h3>
+<p>See <a href="#q-my-trackpad-isnt-detected--no-trackpad-detected">Trackpad not detected</a> above. Key steps:
+1. <code>sudo usermod -a -G input $USER &amp;&amp; reboot</code>
+2. <code>sudo udevadm trigger</code>
+3. Verify with <code>getfacl /dev/input/event*</code></p>
+<hr />
+<h3 id="q-esc-key-doesnt-work-in-firefox">Q: ESC key doesn't work in Firefox</h3>
+<p>Fixed in v0.6.0. Firefox sends ESC with <code>IBUS_RELEASE_MASK</code>. The engine now handles ESC regardless of press/release state with a 150ms debounce.</p>
+<p>If still broken:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Check for stale root ibus-daemon</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>sudo<span class="w"> </span>pkill<span class="w"> </span>-u<span class="w"> </span>root<span class="w"> </span>ibus-daemon
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>ibus<span class="w"> </span>restart
+</code></pre></div></p>
+<hr />
+<h3 id="q-enter-key-doesnt-reach-terminal-after-pressing-esc">Q: Enter key doesn't reach terminal after pressing ESC</h3>
+<p>Fixed in v0.6.0. Enter now passes through when:
+- No candidates exist
+- Panel is paused (after first ESC)</p>
+<p>Update to latest version.</p>
+<hr />
+<h3 id="q-panel-doesnt-appear-window-not-showing">Q: Panel doesn't appear / window not showing</h3>
+<ol>
+<li>Check IBus is running: <code>ibus-daemon --daemonize --replace</code></li>
+<li>Check engine registered: <code>ibus list-engine | grep handwrite</code></li>
+<li>Run manually to see errors:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>/usr/local/share/ibus-handwrite-chinese/venv/bin/python3<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>/usr/local/share/ibus-handwrite-chinese/ibus-engine-handwrite-chinese<span class="w"> </span>--test
+</code></pre></div></li>
+</ol>
+<hr />
+<h3 id="q-onnxruntime-errors-on-startup">Q: onnxruntime errors on startup</h3>
+<p>The installer creates a Python venv with onnxruntime. If it failed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>sudo<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>--system-site-packages<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese/venv
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>sudo<span class="w"> </span>/usr/local/share/ibus-handwrite-chinese/venv/bin/pip<span class="w"> </span>install<span class="w"> </span>onnxruntime<span class="w"> </span>tomli
+</code></pre></div>
+<p>Then <code>ibus restart</code>.</p>
+<hr />
+<h3 id="q-ibus-indicator-not-showing-in-panel">Q: IBus indicator not showing in panel</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Restart IBus</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>ibus-daemon<span class="w"> </span>--daemonize<span class="w"> </span>--replace
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Cinnamon: ensure panel shows</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>gsettings<span class="w"> </span><span class="nb">set</span><span class="w"> </span>org.freedesktop.ibus.panel<span class="w"> </span>show<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<hr />
+<h3 id="q-ctrlspace-ibus-trigger-not-working">Q: Ctrl+Space / IBus trigger not working</h3>
+<ol>
+<li>Check trigger shortcut: <code>ibus-setup</code> or <code>dconf read /desktop/ibus/general/hotkey/trigger</code></li>
+<li>Kill stale root daemon: <code>sudo pkill -u root ibus-daemon</code></li>
+<li>Restart: <code>ibus restart</code></li>
+</ol>
+<hr />
+<h2 id="uninstallation">Uninstallation</h2>
+<h3 id="q-how-do-i-uninstall">Q: How do I uninstall?</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>/usr/local/share/ibus-handwrite-chinese/restore.sh
+</code></pre></div>
+<p>This removes:
+- Engine binary &amp; wrapper
+- IBus component XML
+- Udev rule
+- Model files &amp; venv
+- Optionally: user config &amp; dictionary</p>
+<p>Then <code>ibus restart</code>.</p>
+<hr />
+<h3 id="q-will-uninstall-remove-my-learned-characters">Q: Will uninstall remove my learned characters?</h3>
+<p>Only if you confirm at the prompt. By default, user data is <strong>preserved</strong>.</p>
+<hr />
+<h2 id="development-testing">Development &amp; Testing</h2>
+<h3 id="q-how-do-i-test-without-installing">Q: How do I test without installing?</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># From repo root</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>python3<span class="w"> </span>src/ibus-engine-handwrite-chinese<span class="w"> </span>--test
+</code></pre></div>
+<p>Opens standalone GTK window with mouse drawing. No IBus required.</p>
+<hr />
+<h3 id="q-how-do-i-collect-handwriting-data-for-analysis">Q: How do I collect handwriting data for analysis?</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Interactive collection</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>python3<span class="w"> </span>scripts/collect_ppocr_data.py<span class="w"> </span>--help
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Single capture</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>python3<span class="w"> </span>scripts/capture_one.py
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># Batch collection (uses --test mode logs)</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>python3<span class="w"> </span>scripts/gtk_collect_loop.py
+</code></pre></div>
+<p>See <code>scripts/</code> directory for analysis tools.</p>
+<hr />
+<h3 id="q-where-are-logs-stored">Q: Where are logs stored?</h3>
+<table>
+<thead>
+<tr>
+<th>Log</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recognition</td>
+<td><code>/tmp/ppocr-recognition.log</code> (configurable)</td>
+</tr>
+<tr>
+<td>Window events</td>
+<td><code>/tmp/hw.log</code></td>
+</tr>
+<tr>
+<td>Engine debug</td>
+<td><code>journalctl -u ibus</code> or run manually</td>
+</tr>
+</tbody>
+</table>
+<p>Set log level to <code>DEBUG</code> in General tab for more detail.</p>
+<hr />
+<h2 id="license-credits">License &amp; Credits</h2>
+<h3 id="q-what-license">Q: What license?</h3>
+<p><strong>GPLv3</strong> — required by dependencies (<code>python3-evdev</code>, IBus).</p>
+<h3 id="q-what-models-are-used">Q: What models are used?</h3>
+<p><strong>PP-OCRv6</strong> by PaddlePaddle/Baidu — Apache 2.0 license. Downloaded from HuggingFace at runtime, not bundled.</p>
+<h3 id="q-how-can-i-contribute">Q: How can I contribute?</h3>
+<ul>
+<li>Report issues on GitHub</li>
+<li>Submit PRs for bug fixes</li>
+<li>Test on new hardware/distros</li>
+<li>Improve documentation</li>
+<li>Donate via USDC addresses in README</li>
+</ul>
+<hr />
+<h2 id="still-have-questions">Still Have Questions?</h2>
+<ul>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese/issues">Report a bug</a></li>
+<li><strong>Discussions</strong>: <a href="https://github.com/ai-space-lab/ibus-handwrite-chinese/discussions">GitHub Discussions</a></li>
+<li><strong>Diagnostic Script</strong>: Run <code>/usr/local/share/ibus-handwrite-chinese/diagnose_trackpad.sh</code> and include output in bug reports</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://gc.zgoat.net/count.js"></script>
+      
+    
+  </body>
+</html>
